@@ -1,0 +1,3 @@
+rootProject.name='TableView'
+include ':app'
+include ':tableview'
