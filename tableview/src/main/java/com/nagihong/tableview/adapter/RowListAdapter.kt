@@ -12,7 +12,7 @@ import com.nagihong.tableview.fallback.RowListEmptyViewHolder
  */
 class RowListAdapter(private val header: Boolean) : RecyclerView.Adapter<ViewHolder>() {
 
-  var delegate: IRowListDelegate? = null
+  var delegate: IRowListAdapterDelegate? = null
 
   init {
     setHasStableIds(true)
@@ -43,12 +43,12 @@ class RowListAdapter(private val header: Boolean) : RecyclerView.Adapter<ViewHol
 
   override fun getItemId(position: Int): Long {
     checkDelegate()
-    return delegate?.getItemId(position, header) ?: IRowListDelegate.INVALID_ITEM_ID
+    return delegate?.getItemId(position, header) ?: IRowListAdapterDelegate.INVALID_ITEM_ID
   }
 
   override fun getItemViewType(position: Int): Int {
     checkDelegate()
-    return delegate?.getItemViewType(position, header) ?: IRowListDelegate.INVALID_VIEW_TYPE
+    return delegate?.getItemViewType(position, header) ?: IRowListAdapterDelegate.INVALID_VIEW_TYPE
   }
 
   private fun checkDelegate() {

@@ -9,7 +9,7 @@ import com.nagihong.tableview.layoutmanager.ColumnsLayoutManager
  * Chenyikang
  * 2018 December 22
  */
-interface IRowListDelegate {
+interface IRowListAdapterDelegate {
 
   companion object {
     const val INVALID_VIEW_TYPE = Int.MIN_VALUE

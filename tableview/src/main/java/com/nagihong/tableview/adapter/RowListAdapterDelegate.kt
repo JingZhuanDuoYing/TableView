@@ -11,7 +11,7 @@ import com.nagihong.tableview.fallback.EmptyRow
 import com.nagihong.tableview.fallback.RowListEmptyViewHolder
 import com.nagihong.tableview.layoutmanager.ColumnsLayoutManager
 
-abstract class RowListAdapterDelegate : IRowListDelegate {
+open class RowListAdapterDelegate : IRowListAdapterDelegate {
 
     override var titleRow: Row<*>? = null
     override var stickyRows: MutableList<Row<*>?>? = null
@@ -22,18 +22,12 @@ abstract class RowListAdapterDelegate : IRowListDelegate {
     private val headerTypeRowMap = SparseArray<Row<*>>()
     private val typeRowMap = SparseArray<Row<*>>()
 
-    abstract fun onBindViewHolder(
-        holder: ViewHolder,
-        row: Row<*>,
-        layoutManager: ColumnsLayoutManager
-    )
-
     override fun createViewHolder(
         parent: ViewGroup,
         viewType: Int,
         fromHeader: Boolean
     ): ViewHolder {
-        if (viewType == IRowListDelegate.INVALID_VIEW_TYPE) {
+        if (viewType == IRowListAdapterDelegate.INVALID_VIEW_TYPE) {
             return RowListEmptyViewHolder(
                 parent
             )
@@ -78,7 +72,7 @@ abstract class RowListAdapterDelegate : IRowListDelegate {
             return
         }
 
-        onBindViewHolder(holder, row, layoutManager)
+        (holder as? RowListViewHolder)?.bindData(row, layoutManager)
     }
 
     override fun getItemCount(fromHeader: Boolean): Int {
@@ -139,7 +133,7 @@ abstract class RowListAdapterDelegate : IRowListDelegate {
     }
 
     private fun getRowForType(type: Int): Row<*>? {
-        if (type == IRowListDelegate.INVALID_VIEW_TYPE) return EmptyRow()
+        if (type == IRowListAdapterDelegate.INVALID_VIEW_TYPE) return EmptyRow()
         if (typeRowMap.contains(type)) return typeRowMap[type]
         rows
             ?.filterNotNull()
@@ -149,7 +143,7 @@ abstract class RowListAdapterDelegate : IRowListDelegate {
     }
 
     private fun getHeaderRowForType(type: Int): Row<*>? {
-        if (type == IRowListDelegate.INVALID_VIEW_TYPE) return EmptyRow()
+        if (type == IRowListAdapterDelegate.INVALID_VIEW_TYPE) return EmptyRow()
         if (headerTypeRowMap.contains(type)) return headerTypeRowMap[type]
         titleRow?.apply { headerTypeRowMap.put(type, this) }
         stickyRows
