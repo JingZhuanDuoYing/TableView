@@ -13,6 +13,8 @@ import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
+import androidx.annotation.ColorInt
+import com.nagihong.tableview.TableViewLog
 import kotlin.math.max
 
 abstract class TextColumn : DrawableColumn() {
@@ -43,9 +45,19 @@ abstract class TextColumn : DrawableColumn() {
         return Typeface.DEFAULT
     }
 
-    open fun textSizeSp(context: Context) = 18F
+    open fun textSizeSp(context: Context): Float {
+        return 18F
+    }
 
-    open fun color(context: Context) = Color.BLACK
+    @ColorInt
+    open fun color(context: Context): Int {
+        return Color.BLACK
+    }
+
+    @ColorInt
+    open fun backgroundColor(context: Context): Int? {
+        return null
+    }
 
     open fun isBold(context: Context) = false
 

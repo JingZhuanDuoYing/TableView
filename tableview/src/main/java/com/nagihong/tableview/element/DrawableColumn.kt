@@ -18,7 +18,7 @@ abstract class DrawableColumn : Column() {
     paint.color = Color.RED
     paint.isDither = true
     paint.isAntiAlias = true
-    paint.strokeWidth = 3F
+    paint.strokeWidth = 1F
     paint.style = STROKE
     paint
   }

@@ -27,10 +27,6 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
 
     open fun isSticky() = isSticky
 
-    open fun stickyColumnCount(): Int {
-        return visibleColumns.count { it.isSticky() }
-    }
-
     open fun createView(context: Context): ViewGroup {
         val rowLayout = RowLayout(context)
         rowLayout.layoutParams = ViewGroup.LayoutParams(width(context), height(context))
@@ -39,7 +35,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     }
 
     open fun bindView(view: ViewGroup, layoutManager: ColumnsLayoutManager) {
-        (view as? RowLayout)?.bindRow(this, stretchMode, layoutManager)
+        (view as? RowLayout)?.bindRow(this, layoutManager)
     }
 
     abstract fun type(): Int
@@ -59,7 +55,8 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     fun layout(
         context: Context,
         stretchMode: Boolean,
-        columnsWidthWithMargin: IntArray
+        stickyColumns: Int,
+        columnsWidthWithMargins: IntArray
     ) {
         var x = 0
         val rowHeight = when {
@@ -67,10 +64,9 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
             height(context) > 0 -> height(context)
             else -> minHeight(context)
         }
-        val stickyCount = stickyColumnCount()
-        val maxSize = min(visibleColumns.size, columnsWidthWithMargin.size)
+        val maxSize = min(visibleColumns.size, columnsWidthWithMargins.size)
         for (i in 0 until maxSize) {
-            if (i == stickyCount) x = 0
+            if (i == stickyColumns) x = 0
             val column = visibleColumns[i]
             if (stretchMode) {
                 if (column.laidOut) {
@@ -79,7 +75,12 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
                 continue
             }
 
-            val columnWidthWithMargins = columnsWidthWithMargin.getOrNull(i) ?: continue
+            val columnWidthWithMargins = columnsWidthWithMargins.getOrNull(i) ?: continue
+
+            column.columnLeft = x
+            column.columnTop = 0
+            column.columnRight = x + columnWidthWithMargins
+            column.columnBottom = height
 
             val top: Int
             val bottom: Int
@@ -100,11 +101,11 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
 
     fun drawSticky(
         context: Context,
-        canvas: Canvas?
+        canvas: Canvas?,
+        stickyColumns: Int
     ) {
         canvas ?: return
-        val stickyCount = stickyColumnCount()
-        for (i in 0 until stickyCount) {
+        for (i in 0 until stickyColumns) {
             val column = visibleColumns[i] as? DrawableColumn
                 ?: continue
             column.draw(context, canvas)
@@ -114,11 +115,11 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     fun drawScrollable(
         context: Context,
         canvas: Canvas?,
-        container: View
+        container: View,
+        stickyColumns: Int
     ) {
         canvas ?: return
-        val stickyCount = stickyColumnCount()
-        for (i in stickyCount until visibleColumns.size) {
+        for (i in stickyColumns until visibleColumns.size) {
             val column = visibleColumns[i] as? DrawableColumn
                 ?: continue
             if (column.shouldIgnoreDraw(container)) continue
@@ -144,24 +145,6 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         x: Float = 0F,
         y: Float = 0F
     ) {
-    }
-
-    private fun stickyWidth(): Int {
-        val stickyColumnCount = stickyColumnCount()
-        var width = 0
-        for (i in 0 until stickyColumnCount) {
-            width += visibleColumns[i].widthWithMargins
-        }
-        return width
-    }
-
-    private fun scrollableWidth(): Int {
-        val stickyColumnCount = stickyColumnCount()
-        var width = 0
-        for (i in stickyColumnCount until visibleColumns.size) {
-            width += visibleColumns[i].widthWithMargins
-        }
-        return width
     }
 
 }

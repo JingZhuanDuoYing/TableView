@@ -9,58 +9,71 @@ import com.nagihong.tableview.dp
 import com.nagihong.tableview.element.DrawableColumn
 import com.nagihong.tableview.element.Row
 import com.nagihong.tableview.element.ViewColumn
-import com.nagihong.tableview.lazyNone
 import com.nagihong.tableview.screenWidth
 import java.io.Serializable
 import kotlin.math.max
 import kotlin.math.min
 
-class ColumnsLayoutManager(private val titleRow: Row<*>) : Serializable {
+class ColumnsLayoutManager : Serializable {
 
-    // 整表列宽
-    val visibleColumnsWidthWithMargins by lazyNone {
-        IntArray(
-            titleRow.visibleColumns.size
-        )
-    }
-    // 整表列高
-    private val visibleColumnsHeightWithMargins by lazyNone {
-        IntArray(
-            titleRow.visibleColumns.size
-        )
-    }
+    private var columnsSize = 0
+    var stickyColumns = 0
+        private set
 
-    // 整表可滑动列宽总和
+    var stretchMode = false
+
+    @Transient
+    var onColumnsWidthWithMarginsChanged: ((ColumnsLayoutManager) -> Unit)? = null
+
+    var columnsWidthWithMargins = IntArray(0)
+        private set
+
+    var columnsHeightWithMargins = IntArray(0)
+        private set
+
+    var stickyWidthWithMargins = 0
+        private set
     var scrollableWidthWithMargins = 0
-    // 整表固定列宽总和 暂时没用
-    private var stickyWidthWithMargins = 0
-
-    // <editor-fold desc="滑动相关">    ----------------------------------------------------------
+        private set
 
     var scrollX = 0
         private set
+
     @Transient
-    private val attachedRowLayouts = mutableSetOf<RowLayout>()
+    private val attachedRows = mutableSetOf<RowLayout>()
+
+    fun updateTableSize(
+        columnsSize: Int = this.columnsSize,
+        stickyColumns: Int = this.stickyColumns
+    ) {
+        this.columnsSize = columnsSize
+        this.stickyColumns = stickyColumns
+        onColumnsSizeChanged()
+    }
+
+    fun randomRowLayout(): RowLayout? {
+        return attachedRows.firstOrNull()
+    }
 
     fun forceDetachAllRowLayouts() {
-        attachedRowLayouts.clear()
+        attachedRows.clear()
     }
 
     fun attachRowLayout(layout: RowLayout) {
-        attachedRowLayouts.add(layout)
+        attachedRows.add(layout)
     }
 
     fun detachRowLayout(layout: RowLayout) {
-        attachedRowLayouts.remove(layout)
+        attachedRows.remove(layout)
     }
 
     fun containsRowLayout(layout: RowLayout): Boolean {
-        return attachedRowLayouts.contains(layout)
+        return attachedRows.contains(layout)
     }
 
     fun scrollHorizontallyBy(dx: Int): Int {
-        if (attachedRowLayouts.isEmpty()) return 0
-        val scrollRange = attachedRowLayouts.first()
+        if (attachedRows.isEmpty()) return 0
+        val scrollRange = attachedRows.first()
             .computeScrollRange()
         val consumed = when {
             dx > 0 -> {
@@ -76,33 +89,8 @@ class ColumnsLayoutManager(private val titleRow: Row<*>) : Serializable {
         if (consumed == 0) return 0
         scrollX += consumed
         // 调整当前持有的所有RowLayout
-        attachedRowLayouts.forEach { it.scrollTo(scrollX, 0) }
+        attachedRows.forEach { it.scrollTo(scrollX, 0) }
         return consumed
-    }
-
-    // </editor-fold desc="滑动相关">    ---------------------------------------------------------
-
-    /**
-     * 标记当前在屏幕显示范围内的字段
-     */
-    fun markColumnsVisibleOnWindow(): Boolean {
-        if (attachedRowLayouts.isEmpty()) return false
-        val scrollWidth = attachedRowLayouts.first()
-            .computeScrollWidth()
-        val visibleScrollLeft = scrollX
-        val visibleScrollRight = scrollX + scrollWidth
-        titleRow.visibleColumns.forEach {
-
-            // 固定字段全部视为在屏幕范围内
-            if (it.isSticky()) {
-                it.visibleOnWindow = true
-                return@forEach
-            }
-
-            // 非固定字段依据left\right判断
-            it.visibleOnWindow = it.left < visibleScrollRight && it.right > visibleScrollLeft
-        }
-        return true
     }
 
     /**
@@ -112,16 +100,18 @@ class ColumnsLayoutManager(private val titleRow: Row<*>) : Serializable {
      */
     fun measureAndLayoutInBackground(
         context: Context,
-        stretchMode: Boolean,
         row: Row<*>
     ): Boolean {
         var maxHeight = 0
         var columnsSizeChanged = false
-        val maxSize = min(row.visibleColumns.size, visibleColumnsWidthWithMargins.size)
+        val maxSize = min(row.columns.size, columnsWidthWithMargins.size)
         for (index in 0 until maxSize) {
-            val column = row.visibleColumns[index]
+            val column = row.columns[index]
 
-            if (column is DrawableColumn) {
+            @Suppress("ControlFlowWithEmptyBody")
+            if (!column.visible()) {
+                // skip invisible column
+            } else if (column is DrawableColumn) {
                 column.prepareForMeasure(context)
                 column.measure(context)
             } else {
@@ -150,12 +140,12 @@ class ColumnsLayoutManager(private val titleRow: Row<*>) : Serializable {
             }
 
             // 记录当前column与整列的尺寸，并比较是否有变化
-            if (visibleColumnsWidthWithMargins[index] < column.widthWithMargins) {
-                visibleColumnsWidthWithMargins[index] = column.widthWithMargins
+            if (columnsWidthWithMargins[index] < column.widthWithMargins) {
+                columnsWidthWithMargins[index] = column.widthWithMargins
                 columnsSizeChanged = true
             }
-            if (visibleColumnsHeightWithMargins[index] < column.heightWithMargins) {
-                visibleColumnsHeightWithMargins[index] = column.heightWithMargins
+            if (columnsHeightWithMargins[index] < column.heightWithMargins) {
+                columnsHeightWithMargins[index] = column.heightWithMargins
                 columnsSizeChanged = true
             }
 
@@ -174,33 +164,37 @@ class ColumnsLayoutManager(private val titleRow: Row<*>) : Serializable {
         }
 
         // Layout步骤由row自行实现
-        if (!stretchMode && row.height > 0) row.layout(
-            context, false, visibleColumnsWidthWithMargins
-        )
+        if (!stretchMode && row.height > 0) {
+            row.layout(context, false, stickyColumns, columnsWidthWithMargins)
+        }
+
         return columnsSizeChanged
     }
-
-    // <editor-fold desc="实际 measure/layout">    ----------------------------------------------------------
 
     /**
      * 当表整体列宽有变化时调用
      */
-    fun onColumnsWidthWithMarginsChanged(
-        context: Context,
-        stretchMode: Boolean
-    ) {
-        val stickyCount = titleRow.stickyColumnCount()
+    fun onColumnsWidthWithMarginsChanged() {
         // 重新计算固定列总宽度和滑动列总宽度
         stickyWidthWithMargins = 0
         scrollableWidthWithMargins = 0
-        for (i in titleRow.visibleColumns.indices) {
-            if (i < stickyCount) {
-                stickyWidthWithMargins += visibleColumnsWidthWithMargins[i]
+        for (i in columnsHeightWithMargins.indices) {
+            if (i < stickyColumns) {
+                stickyWidthWithMargins += columnsWidthWithMargins[i]
             } else {
-                scrollableWidthWithMargins += visibleColumnsWidthWithMargins[i]
+                scrollableWidthWithMargins += columnsWidthWithMargins[i]
             }
         }
-        titleRow.layout(context, stretchMode, visibleColumnsWidthWithMargins)
+        onColumnsWidthWithMarginsChanged?.invoke(this)
+    }
+
+    private fun onColumnsSizeChanged() {
+        if (columnsWidthWithMargins.size != columnsSize) {
+            columnsWidthWithMargins = enlargeIntArray(columnsWidthWithMargins, columnsSize)
+        }
+        if (columnsHeightWithMargins.size != columnsSize) {
+            columnsHeightWithMargins = enlargeIntArray(columnsHeightWithMargins, columnsSize)
+        }
     }
 
     fun measureAndLayoutInForeground(
@@ -208,8 +202,7 @@ class ColumnsLayoutManager(private val titleRow: Row<*>) : Serializable {
         row: Row<*>,
         rowLayout: RowLayout,
         scrollableContainer: ViewGroup,
-        skipLayout: Boolean = false,
-        stretchMode: Boolean = false
+        skipLayout: Boolean = false
     ) {
         // 如果rowLayout持有scrollableContainer，说明rowLayout之前已经初始化过了，不需要重新创建View对象
         val initialized = rowLayout.indexOfChild(scrollableContainer) >= 0
@@ -217,15 +210,18 @@ class ColumnsLayoutManager(private val titleRow: Row<*>) : Serializable {
         if (row.height <= 0) {
             row.height = rowLayout.height
             // stretchMode 不能传 true, 否则会跳过第一次Layout
-            row.layout(context, false, visibleColumnsWidthWithMargins)
+            row.layout(context, false, stickyColumns, columnsWidthWithMargins)
         }
         var pendingLayout = false
 
         // 普通View的Measure/Layout流程
         var viewIndex = 0
-        val maxSize = min(row.visibleColumns.size, visibleColumnsWidthWithMargins.size)
+        val maxSize = min(row.columns.size, columnsWidthWithMargins.size)
         for (index in 0 until maxSize) {
-            val column = row.visibleColumns[index]
+            val column = row.columns[index]
+
+            if (!column.visible()) continue
+            val sticky = index < stickyColumns
 
             // 对于非ViewColumn，如DrawableColumn等，不需要走如下流程
             if (column !is ViewColumn) continue
@@ -242,7 +238,7 @@ class ColumnsLayoutManager(private val titleRow: Row<*>) : Serializable {
 
             // 未初始化过，需要将新创建的View添加到ViewGroup
             if (!initialized) {
-                if (column.isSticky()) {
+                if (sticky) {
                     rowLayout.addView(view)
                 } else {
                     scrollableContainer.addView(view)
@@ -257,13 +253,13 @@ class ColumnsLayoutManager(private val titleRow: Row<*>) : Serializable {
             }
 
             // 实际Measure后，如果宽度超过预测量宽度，需要反馈刷新一些保存的状态值
-            if (column.widthWithMargins > visibleColumnsWidthWithMargins[index]) {
-                visibleColumnsWidthWithMargins[index] = column.widthWithMargins
+            if (column.widthWithMargins > columnsWidthWithMargins[index]) {
+                columnsWidthWithMargins[index] = column.widthWithMargins
                 pendingLayout = true
             }
 
-            if (column.heightWithMargins > visibleColumnsHeightWithMargins[index]) {
-                visibleColumnsHeightWithMargins[index] = column.heightWithMargins
+            if (column.heightWithMargins > columnsHeightWithMargins[index]) {
+                columnsHeightWithMargins[index] = column.heightWithMargins
                 pendingLayout = true
             }
 
@@ -274,8 +270,8 @@ class ColumnsLayoutManager(private val titleRow: Row<*>) : Serializable {
 
         // 列宽发生变化或者第一次初始化，都需要Layout
         if (!skipLayout && (pendingLayout || !initialized)) {
-            row.layout(context, stretchMode, visibleColumnsWidthWithMargins)
-            onColumnsWidthWithMarginsChanged(context, stretchMode)
+            row.layout(context, stretchMode, stickyColumns, columnsWidthWithMargins)
+            onColumnsWidthWithMarginsChanged()
 
             viewIndex = 0
             row.visibleColumns.forEachIndexed { _, column ->
@@ -354,18 +350,19 @@ class ColumnsLayoutManager(private val titleRow: Row<*>) : Serializable {
         rowLayout: RowLayout,
         scrollableContainer: ViewGroup
     ) {
-        val columns = row.visibleColumns
+        val columns = row.columns
         if (columns.isEmpty()) return
-        val stickyCount = row.stickyColumnCount()
 
         val rowHeight = if (rowLayout.height > 0) rowLayout.height else row.height
         val rowWidth =
             if (rowLayout.width > 0) rowLayout.width else context.screenWidth()
         var x = rowLayout.paddingLeft
+
         // Measure/Layout 固定列
-        for (i in 0 until stickyCount) {
+        for (i in 0 until stickyColumns) {
             val column = columns[i]
-            val widthWithMargins = visibleColumnsWidthWithMargins.getOrNull(i) ?: continue
+            if (!column.visible()) continue
+            val widthWithMargins = columnsWidthWithMargins.getOrNull(i) ?: continue
             val virtualRight = x + widthWithMargins
 
             when (column) {
@@ -413,10 +410,16 @@ class ColumnsLayoutManager(private val titleRow: Row<*>) : Serializable {
         )
 
         // 按剩余的空间计算列宽，Measure/Layout 剩下的列
-        val extraRight by lazyNone { context.dp(10F).toInt() }
-        val columnWidth = (scrollableContainerWidth - extraRight) / (columns.size - stickyCount)
+        val extraRight = context.dp(10F).toInt()
+        var scrollableContainerVisibleColumns = 0
+        for (i in stickyColumns until columns.size) {
+            val column = columns[i]
+            if (column.visible()) scrollableContainerVisibleColumns++
+        }
+        val columnWidth =
+            (scrollableContainerWidth - extraRight) / scrollableContainerVisibleColumns
         x = 0
-        for (i in stickyCount until columns.size) {
+        for (i in stickyColumns until columns.size) {
             val column = columns[i]
             val margins = column.margins(context)
             val virtualRight = x + columnWidth
@@ -451,6 +454,13 @@ class ColumnsLayoutManager(private val titleRow: Row<*>) : Serializable {
         }
     }
 
-    // </editor-fold desc="实际 measure/layout">    ---------------------------------------------------------
+    private fun enlargeIntArray(
+        original: IntArray,
+        newCapacity: Int
+    ): IntArray {
+        val newArray = IntArray(newCapacity)
+        System.arraycopy(original, 0, newArray, 0, min(original.size, newCapacity))
+        return newArray
+    }
 
 }

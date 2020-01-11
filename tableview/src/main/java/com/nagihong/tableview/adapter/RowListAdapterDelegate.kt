@@ -13,14 +13,29 @@ import com.nagihong.tableview.layoutmanager.ColumnsLayoutManager
 
 open class RowListAdapterDelegate : IRowListAdapterDelegate {
 
-    override var titleRow: Row<*>? = null
-    override var stickyRows: MutableList<Row<*>?>? = null
-    override var rows: MutableList<Row<*>?>? = null
+    var titleRow: Row<*>? = null
+        private set
+    var stickyRows: MutableList<Row<*>>? = null
+        private set
+    var rows: MutableList<Row<*>>? = null
+        private set
     override var columnsLayoutManager: ColumnsLayoutManager? = null
 
     private val adapters = mutableListOf<RowListAdapter>()
     private val headerTypeRowMap = SparseArray<Row<*>>()
     private val typeRowMap = SparseArray<Row<*>>()
+
+    override fun setTitleRow(row: Row<*>) {
+        titleRow = row
+    }
+
+    override fun setRows(rows: List<Row<*>>) {
+        this.rows = if(rows is MutableList<Row<*>>) rows else rows.toMutableList()
+    }
+
+    override fun setStickyRows(rows: List<Row<*>>) {
+        stickyRows = if(rows is MutableList<Row<*>>) rows else rows.toMutableList()
+    }
 
     override fun createViewHolder(
         parent: ViewGroup,
@@ -135,9 +150,7 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
     private fun getRowForType(type: Int): Row<*>? {
         if (type == IRowListAdapterDelegate.INVALID_VIEW_TYPE) return EmptyRow()
         if (typeRowMap.contains(type)) return typeRowMap[type]
-        rows
-            ?.filterNotNull()
-            ?.distinctBy { it.type() }
+        rows?.distinctBy { it.type() }
             ?.forEach { typeRowMap.put(it.type(), it) }
         return typeRowMap[type]
     }
@@ -146,9 +159,7 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
         if (type == IRowListAdapterDelegate.INVALID_VIEW_TYPE) return EmptyRow()
         if (headerTypeRowMap.contains(type)) return headerTypeRowMap[type]
         titleRow?.apply { headerTypeRowMap.put(type, this) }
-        stickyRows
-            ?.filterNotNull()
-            ?.toList()
+        stickyRows?.toList()
             ?.distinctBy { it.type() }
             ?.forEach { headerTypeRowMap.put(type, it) }
         return headerTypeRowMap[type]

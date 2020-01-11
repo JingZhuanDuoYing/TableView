@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.nagihong.tableview.adapter.IRowListAdapterDelegate
 import com.nagihong.tableview.element.Row
+import com.nagihong.tableview.layoutmanager.ColumnsLayoutManager
 
 internal class EmptyRow : Row<EmptyColumn>(listOf()) {
 
@@ -12,7 +13,7 @@ internal class EmptyRow : Row<EmptyColumn>(listOf()) {
         return FrameLayout(context)
     }
 
-    override fun bindView(view: ViewGroup) {
+    override fun bindView(view: ViewGroup, layoutManager: ColumnsLayoutManager) {
 
     }
 

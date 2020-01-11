@@ -15,6 +15,7 @@ import com.nagihong.tableview.adapter.IRowListAdapterDelegate
 import com.nagihong.tableview.adapter.RowListAdapter
 import com.nagihong.tableview.adapter.RowListAdapterDelegate
 import com.nagihong.tableview.directionlock.DirectionLockRecyclerView
+import com.nagihong.tableview.layoutmanager.ColumnsLayoutManager
 import com.nagihong.tableview.layoutmanager.RowListLayoutManager
 import com.nagihong.tableview.layoutmanager.RowListStretchLayoutManager
 import kotlin.math.max
@@ -38,7 +39,6 @@ open class TableView @JvmOverloads constructor(
             onAdapterChanged(value)
         }
 
-    var scrollHorizontalCallback: ((dx: Int, remainingScrollHorizontal: Int) -> Int)? = null
     var scrolledVerticalCallback: (() -> Unit)? = null
     var scrolledHorizontalCallback: (() -> Unit)? = null
 
@@ -57,20 +57,15 @@ open class TableView @JvmOverloads constructor(
                 directionLockEnabled = true
             }
 
-    private val headerLayoutManager =
-        RowListLayoutManager(context) { dx, remainingScrollHorizontal ->
-            scrollHorizontalCallback?.invoke(
-                dx, remainingScrollHorizontal
-            ) ?: 0
-        }
-    private val mainLayoutManager =
-        RowListLayoutManager(context) { dx, remainingScrollHorizontal ->
-            scrollHorizontalCallback?.invoke(
-                dx, remainingScrollHorizontal
-            ) ?: 0
-        }
+    private val headerLayoutManager = RowListLayoutManager(context) { dx, _ ->
+        columnsLayoutManager.scrollHorizontallyBy(dx)
+    }
+    private val mainLayoutManager = RowListLayoutManager(context) { dx, _ ->
+        columnsLayoutManager.scrollHorizontallyBy(dx)
+    }
     private val headerStretchLayoutManager by lazyNone { RowListStretchLayoutManager(context) }
     private val mainStretchLayoutManager by lazyNone { RowListStretchLayoutManager(context) }
+    val columnsLayoutManager = ColumnsLayoutManager()
 
     private val scrollListener = RecyclerViewScrollListener(
         verticalScrollCallback = { scrolledVerticalCallback?.invoke() },
@@ -181,6 +176,7 @@ open class TableView @JvmOverloads constructor(
     // </editor-fold desc="Glow">    ---------------------------------------------------------
 
     private fun onAdapterChanged(adapter: IRowListAdapterDelegate) {
+        adapter.columnsLayoutManager = columnsLayoutManager
         header.setAdapter(true, adapter)
         main.setAdapter(false, adapter)
         restorePositionController.attach(main, main.adapter!!)

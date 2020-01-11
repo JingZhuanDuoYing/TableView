@@ -16,10 +16,13 @@ interface IRowListAdapterDelegate {
     const val INVALID_ITEM_ID = Long.MIN_VALUE
   }
 
-  var titleRow: Row<*>?
-  var stickyRows: MutableList<Row<*>?>?
-  var rows: MutableList<Row<*>?>?
   var columnsLayoutManager: ColumnsLayoutManager?
+
+  fun setTitleRow(row: Row<*>)
+
+  fun setRows(rows: List<Row<*>>)
+
+  fun setStickyRows(rows: List<Row<*>>)
 
   fun createViewHolder(
     parent: ViewGroup,
