@@ -1,11 +1,12 @@
 package com.nagihong.tableview.demo.elements
 
-import com.nagihong.tableview.element.Column
+import android.content.Context
+import com.nagihong.tableview.element.TextColumn
 
-class SimpleTextColumn(val source: ColumnData) : Column() {
+class SimpleTextColumn(val source: ColumnData) : TextColumn() {
 
-    override fun id(): Long {
-        return source.id.hashCode().toLong()
+    override fun getText(context: Context): CharSequence? {
+        return source.value
     }
 
     override fun visible(): Boolean {
