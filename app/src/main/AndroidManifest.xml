@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity"></activity>
-        <activity android:name=".SimpleTableViewActivity">
+        <activity android:name=".lesson1.SimpleTableViewActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

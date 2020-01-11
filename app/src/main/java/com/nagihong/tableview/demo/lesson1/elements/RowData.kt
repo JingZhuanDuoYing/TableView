@@ -1,4 +1,4 @@
-package com.nagihong.tableview.demo.elements
+package com.nagihong.tableview.demo.lesson1.elements
 
 import java.util.*
 

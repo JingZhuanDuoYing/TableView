@@ -1,4 +1,4 @@
-package com.nagihong.tableview.demo.elements
+package com.nagihong.tableview.demo.lesson1.elements
 
 import android.content.Context
 import android.graphics.Canvas

@@ -99,12 +99,15 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         }
     }
 
-    fun drawSticky(
+    open fun draw(context: Context, canvas: Canvas, stickyWidthWithMargins: Int) {
+
+    }
+
+    open fun drawSticky(
         context: Context,
-        canvas: Canvas?,
+        canvas: Canvas,
         stickyColumns: Int
     ) {
-        canvas ?: return
         for (i in 0 until stickyColumns) {
             val column = visibleColumns[i] as? DrawableColumn
                 ?: continue
@@ -112,13 +115,12 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         }
     }
 
-    fun drawScrollable(
+    open fun drawScrollable(
         context: Context,
-        canvas: Canvas?,
+        canvas: Canvas,
         container: View,
         stickyColumns: Int
     ) {
-        canvas ?: return
         for (i in stickyColumns until visibleColumns.size) {
             val column = visibleColumns[i] as? DrawableColumn
                 ?: continue

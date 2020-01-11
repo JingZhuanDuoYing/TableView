@@ -86,10 +86,11 @@ class RowLayout @JvmOverloads constructor(
     ) {
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val row = row ?: return
         val layoutManager = layoutManager ?: return
+        row.draw(context, canvas, layoutManager.stickyWidthWithMargins)
         row.drawSticky(context, canvas, layoutManager.stickyColumns)
         scrollableContainer.invalidate()
     }
