@@ -20,6 +20,6 @@ class ExampleInstrumentedTest {
     // Context of the app under test.
     val appContext = InstrumentationRegistry.getInstrumentation()
         .targetContext
-    assertEquals("com.nagihong.tableview.demo", appContext.packageName)
+    assertEquals("cn.jingzhuan.tableview.demo", appContext.packageName)
   }
 }
