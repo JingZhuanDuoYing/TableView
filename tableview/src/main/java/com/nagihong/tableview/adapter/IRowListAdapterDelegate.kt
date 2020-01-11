@@ -18,11 +18,11 @@ interface IRowListAdapterDelegate {
 
   var columnsLayoutManager: ColumnsLayoutManager?
 
-  fun setTitleRow(row: Row<*>)
+  fun setTitleRow(row: Row<*>?)
 
-  fun setRows(rows: List<Row<*>>)
+  fun setRows(rows: List<Row<*>>?)
 
-  fun setStickyRows(rows: List<Row<*>>)
+  fun setStickyRows(rows: List<Row<*>>?)
 
   fun createViewHolder(
     parent: ViewGroup,

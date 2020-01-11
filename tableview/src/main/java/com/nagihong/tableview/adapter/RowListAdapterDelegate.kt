@@ -25,16 +25,16 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
     private val headerTypeRowMap = SparseArray<Row<*>>()
     private val typeRowMap = SparseArray<Row<*>>()
 
-    override fun setTitleRow(row: Row<*>) {
+    override fun setTitleRow(row: Row<*>?) {
         titleRow = row
     }
 
-    override fun setRows(rows: List<Row<*>>) {
-        this.rows = if(rows is MutableList<Row<*>>) rows else rows.toMutableList()
+    override fun setRows(rows: List<Row<*>>?) {
+        this.rows = if(rows is MutableList<Row<*>>) rows else rows?.toMutableList()
     }
 
-    override fun setStickyRows(rows: List<Row<*>>) {
-        stickyRows = if(rows is MutableList<Row<*>>) rows else rows.toMutableList()
+    override fun setStickyRows(rows: List<Row<*>>?) {
+        stickyRows = if(rows is MutableList<Row<*>>) rows else rows?.toMutableList()
     }
 
     override fun createViewHolder(

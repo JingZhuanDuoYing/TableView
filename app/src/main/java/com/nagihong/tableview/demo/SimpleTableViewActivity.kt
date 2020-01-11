@@ -31,7 +31,7 @@ class SimpleTableViewActivity : AppCompatActivity() {
         val titleRow = tableRows.first()
         val dataRows = tableRows.subList(1, tableRows.size).toMutableList()
 
-        binding.tableView.columnsLayoutManager.updateTableSize(titleRow.columns.size, 2)
+        binding.tableView.columnsLayoutManager.updateTableSize(titleRow.columns.size, 1)
         tableRows.forEach {
             binding.tableView.columnsLayoutManager.measureAndLayoutInBackground(this, it)
         }
