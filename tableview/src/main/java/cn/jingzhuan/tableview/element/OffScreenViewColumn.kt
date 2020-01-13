@@ -14,11 +14,11 @@ abstract class OffScreenViewColumn : DrawableColumn() {
 
   abstract fun createView(context: Context): View
 
-  override fun prepareForMeasure(context: Context) {
+  override fun prepareForMeasure(context: Context, rowShareElements: RowShareElements) {
     if (null == view) view = createView(context)
   }
 
-  override fun measure(context: Context) {
+  override fun measure(context: Context, rowShareElements: RowShareElements) {
     val view = view ?: return
     val width = width(context)
     val height = height(context)
@@ -46,9 +46,10 @@ abstract class OffScreenViewColumn : DrawableColumn() {
 
   override fun draw(
     context: Context,
-    canvas: Canvas
+    canvas: Canvas,
+    rowShareElements: RowShareElements
   ) {
-    super.draw(context, canvas)
+    super.draw(context, canvas, rowShareElements)
     val view = view ?: return
 
     val mlp = view.layoutParams as? MarginLayoutParams

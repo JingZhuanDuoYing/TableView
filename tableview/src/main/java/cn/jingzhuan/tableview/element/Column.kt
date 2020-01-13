@@ -59,7 +59,8 @@ abstract class Column : IElement {
         left: Int,
         top: Int,
         right: Int,
-        bottom: Int
+        bottom: Int,
+        rowShareElements: RowShareElements
     ) {
         this.left = left
         this.top = top

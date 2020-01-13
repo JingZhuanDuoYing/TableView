@@ -14,22 +14,21 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import androidx.annotation.ColorInt
+import cn.jingzhuan.tableview.dp
+import cn.jingzhuan.tableview.sp
 import kotlin.math.max
 
 abstract class TextColumn : DrawableColumn() {
 
     @Transient
-    private var rectLayout: Rect? = null
+    private var drawRegionLeft = 0
     @Transient
-    private var rectDraw: Rect? = null
+    private var drawRegionTop = 0
+    @Transient
+    private var drawRegionRight = 0
+    @Transient
+    private var drawRegionBottom = 0
 
-    @Transient
-    private var paint: TextPaint? = null
-    @Transient
-    private var paintInBackgroundThread: TextPaint? = null
-
-    @Transient
-    private var path: Path? = null
     @Transient
     private var boringLayout: BoringLayout? = null
     @Transient
@@ -62,14 +61,13 @@ abstract class TextColumn : DrawableColumn() {
 
     abstract fun getText(context: Context): CharSequence?
 
-    override fun measure(context: Context) {
-        super.measure(context)
-        val paint = getPaint(context)
-        val paintInBackgroundThread = getPaintInBackgroundThread(context)
-
+    override fun measure(context: Context, rowShareElements: RowShareElements) {
+        super.measure(context, rowShareElements)
+        val textSize = context.sp(textSizeSp(context))
         val color = color(context)
-        if (paint.color != color) paint.color = color
-        if (paintInBackgroundThread.color != color) paintInBackgroundThread.color = color
+        val typeface = typeface(context)
+
+        val paint = rowShareElements.getPaint(textSize, color, typeface)
 
         val text = getText(context)
         if (TextUtils.equals(
@@ -81,8 +79,8 @@ abstract class TextColumn : DrawableColumn() {
             measuredTextWidth = 0
             measuredTextHeight = 0
         } else {
-            val rectLayout = getRectLayout()
-            paintInBackgroundThread.getTextBounds(text.toString(), 0, text!!.length, rectLayout)
+            val rectLayout = rowShareElements.rect1
+            paint.getTextBounds(text.toString(), 0, text!!.length, rectLayout)
             measuredTextWidth = max(rectLayout.width(), 0)
             measuredTextHeight = rectLayout.height()
         }
@@ -93,7 +91,7 @@ abstract class TextColumn : DrawableColumn() {
         if (!TextUtils.isEmpty(text) && text is String) {
             // before lollipop, BoringLayout.isBoring may return null
             val params =
-                BoringLayout.isBoring(text, paintInBackgroundThread)
+                BoringLayout.isBoring(text, paint)
                     ?: BoringLayout.Metrics().apply {
                         top = paint.fontMetricsInt.top
                         ascent = paint.fontMetricsInt.ascent
@@ -102,11 +100,11 @@ abstract class TextColumn : DrawableColumn() {
                         leading = paint.fontMetricsInt.leading
                         this.width = measuredTextWidth
                     }
-            // when meet chinese words, BoringLayout on some devices may not working
+            // BoringLayout may not working on some devices when meet chinese words
             if (null == boringLayout) {
                 boringLayout = BoringLayout.make(
                     text,
-                    paintInBackgroundThread,
+                    paint,
                     measuredTextWidth,
                     Layout.Alignment.ALIGN_NORMAL,
                     0F,
@@ -119,7 +117,7 @@ abstract class TextColumn : DrawableColumn() {
             } else {
                 boringLayout!!.replaceOrMake(
                     text,
-                    paintInBackgroundThread,
+                    paint,
                     measuredTextWidth,
                     Layout.Alignment.ALIGN_NORMAL,
                     0F,
@@ -169,9 +167,10 @@ abstract class TextColumn : DrawableColumn() {
         left: Int,
         top: Int,
         right: Int,
-        bottom: Int
+        bottom: Int,
+        rowShareElements: RowShareElements
     ) {
-        super.layout(context, left, top, right, bottom)
+        super.layout(context, left, top, right, bottom, rowShareElements)
         val margins = margins(context)
         val padding = padding(context)
 
@@ -179,12 +178,16 @@ abstract class TextColumn : DrawableColumn() {
         val contentTop = top + margins[1] + padding[1]
         val contentRight = right - margins[2] - padding[2]
         val contentBottom = bottom - margins[3] - padding[3]
-        val rectLayout = getRectLayout()
+        val rectLayout = rowShareElements.rect1
         rectLayout.set(contentLeft, contentTop, contentRight, contentBottom)
 
         val gravity = gravity()
-        val rectDraw = getRectDraw()
+        val rectDraw = rowShareElements.rect2
         Gravity.apply(gravity, measuredTextWidth, measuredTextHeight, rectLayout, rectDraw)
+        drawRegionLeft = rectDraw.left
+        drawRegionTop = rectDraw.top
+        drawRegionRight = rectDraw.right
+        drawRegionBottom = rectDraw.bottom
     }
 
     override fun shouldIgnoreDraw(container: View): Boolean {
@@ -192,22 +195,25 @@ abstract class TextColumn : DrawableColumn() {
         val right = left + container.width
         val top = container.scrollY
         val bottom = top + container.height
-        val rectDraw = getRectDraw()
-        return rectDraw.right < left || rectDraw.left > right || rectDraw.bottom < top || rectDraw.top > bottom
+        return drawRegionRight < left || drawRegionLeft > right || drawRegionBottom < top || drawRegionTop > bottom
     }
 
     override fun draw(
         context: Context,
-        canvas: Canvas
+        canvas: Canvas,
+        rowShareElements: RowShareElements
     ) {
-        super.draw(context, canvas)
+        super.draw(context, canvas, rowShareElements)
 
-        val paint = getPaint(context)
-        val rectDraw = getRectDraw()
+        val textSize = context.sp(textSizeSp(context))
+        val color = color(context)
+        val typeface = typeface(context)
+        val paint = rowShareElements.getPaint(textSize, color, typeface)
         val text = getText(context) ?: ""
 
-        val drawLeft = rectDraw.left.toFloat()
-        val drawTop = rectDraw.top.toFloat()
+        val drawLeft = drawRegionLeft.toFloat()
+        val drawTop = drawRegionTop.toFloat()
+        val drawRegionHeight = drawRegionBottom - drawRegionTop
         canvas.save()
         if (text is String && null != boringLayout) {
             if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
@@ -220,63 +226,9 @@ abstract class TextColumn : DrawableColumn() {
             canvas.translate(drawLeft, drawTop - paint.descent())
             staticLayout?.draw(canvas)
         } else {
-            canvas.drawText(text.toString(), drawLeft, drawTop + rectDraw.height(), paint)
+            canvas.drawText(text.toString(), drawLeft, drawTop + drawRegionHeight, paint)
         }
         canvas.restore()
-    }
-
-    private fun getRectLayout(): Rect {
-        if (null == rectLayout) rectLayout = Rect()
-        return rectLayout!!
-    }
-
-    private fun getRectDraw(): Rect {
-        if (null == rectDraw) rectDraw = Rect()
-        return rectDraw!!
-    }
-
-    private fun getPath(): Path {
-        if (null == path) path = Path()
-        return path!!
-    }
-
-    private fun getPaint(context: Context): TextPaint {
-        if (null == paint) paint = initPaint(context)
-        return paint!!
-    }
-
-    private fun initPaint(context: Context): TextPaint {
-        val paint = TextPaint()
-        paint.isDither = true
-        paint.isAntiAlias = true
-        paint.textSize = TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_SP, textSizeSp(context), context.resources.displayMetrics
-        )
-        paint.typeface = Typeface.create(
-            typeface(context),
-            if (isBold(context)) Typeface.BOLD else Typeface.NORMAL
-        )
-        return paint
-    }
-
-    private fun getPaintInBackgroundThread(context: Context): TextPaint {
-        if (null == paintInBackgroundThread) paintInBackgroundThread =
-            initPaintInBackgroundThread(context)
-        return paintInBackgroundThread!!
-    }
-
-    private fun initPaintInBackgroundThread(context: Context): TextPaint {
-        val paint = TextPaint()
-        paint.isDither = true
-        paint.isAntiAlias = true
-        paint.textSize = TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_SP, textSizeSp(context), context.resources.displayMetrics
-        )
-        paint.typeface = Typeface.create(
-            typeface(context),
-            if (isBold(context)) Typeface.BOLD else Typeface.NORMAL
-        )
-        return paint
     }
 
 }

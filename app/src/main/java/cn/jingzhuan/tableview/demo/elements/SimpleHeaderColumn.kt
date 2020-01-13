@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.view.Gravity
 import cn.jingzhuan.tableview.demo.dp
+import cn.jingzhuan.tableview.element.RowShareElements
 import cn.jingzhuan.tableview.element.TextColumn
 
 class SimpleHeaderColumn(val source: RowData) : TextColumn() {
@@ -33,7 +34,7 @@ class SimpleHeaderColumn(val source: RowData) : TextColumn() {
         return true
     }
 
-    override fun draw(context: Context, canvas: Canvas) {
+    override fun draw(context: Context, canvas: Canvas, rowShareElements: RowShareElements) {
         canvas.drawRect(
             columnLeft.toFloat(),
             columnTop.toFloat(),
@@ -41,7 +42,7 @@ class SimpleHeaderColumn(val source: RowData) : TextColumn() {
             columnBottom.toFloat(),
             backgroundPaint
         )
-        super.draw(context, canvas)
+        super.draw(context, canvas, rowShareElements)
     }
 
 }

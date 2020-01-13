@@ -23,9 +23,9 @@ abstract class DrawableColumn : Column() {
     paint
   }
 
-  open fun prepareForMeasure(context: Context) {}
+  open fun prepareForMeasure(context: Context, rowShareElements: RowShareElements) {}
 
-  open fun measure(context: Context) {}
+  open fun measure(context: Context, rowShareElements: RowShareElements) {}
 
   open fun shouldIgnoreDraw(container: View): Boolean {
     val left = container.scrollX
@@ -37,7 +37,8 @@ abstract class DrawableColumn : Column() {
 
   open fun draw(
     context: Context,
-    canvas: Canvas
+    canvas: Canvas,
+    rowShareElements: RowShareElements
   ) {
     if (debugUI()) {
       debugPaint.color = Color.RED

@@ -117,7 +117,7 @@ class ColumnsLayoutManager : Serializable {
         for (index in 0 until maxSize) {
             val column = row.columns[index]
 
-            measureColumnInBackground(context, column)
+            measureColumnInBackground(context, row, column)
             if (compareAndSetColumnsSizeWithMargins(index, column)) columnsSizeChanged = true
 
             // 记录 maxHeight，由于此函数属于热点代码，节省从 visibleColumnsHeightWithMargins 遍历得到的开销
@@ -142,12 +142,12 @@ class ColumnsLayoutManager : Serializable {
         return columnsSizeChanged
     }
 
-    private fun measureColumnInBackground(context: Context, column: Column) {
+    private fun measureColumnInBackground(context: Context, row: Row<*>, column: Column) {
         if (!column.visible()) return
 
         if (column is DrawableColumn) {
-            column.prepareForMeasure(context)
-            column.measure(context)
+            column.prepareForMeasure(context, row.rowShareElements)
+            column.measure(context, row.rowShareElements)
             return
         }
 
@@ -248,7 +248,7 @@ class ColumnsLayoutManager : Serializable {
                 // this may happens when columns changed
                 if (column.widthWithMargins == 0 || column.heightWithMargins == 0 || columnsWidthWithMargins[index] == 0 || columnsHeightWithMargins[index] == 0) {
                     // measure drawable column in necessary
-                    measureColumnInBackground(context, column)
+                    measureColumnInBackground(context, row, column)
                     compareAndSetColumnsSizeWithMargins(index, column)
                 }
                 continue
@@ -329,12 +329,6 @@ class ColumnsLayoutManager : Serializable {
         } else if (!stretchMode) {
             scrollableContainer.postInvalidate()
         }
-    }
-
-    private fun IntArray.total(): Int {
-        var total = 0
-        forEach { total += it }
-        return total
     }
 
     /**
@@ -429,7 +423,7 @@ class ColumnsLayoutManager : Serializable {
                     val top = verticalExtra / 2
                     val bottom = top + column.heightWithMargins
                     val left = virtualRight - column.widthWithMargins
-                    column.layout(context, left, top, virtualRight, bottom)
+                    column.layout(context, left, top, virtualRight, bottom, row.rowShareElements)
                 }
             }
             x += widthWithMargins
@@ -483,7 +477,7 @@ class ColumnsLayoutManager : Serializable {
                     val bottom = top + column.heightWithMargins
                     val right = virtualRight - margins[2]
                     val left = virtualRight - columnWidth + margins[0]
-                    column.layout(context, left, top, right, bottom)
+                    column.layout(context, left, top, right, bottom, row.rowShareElements)
                 }
             }
 

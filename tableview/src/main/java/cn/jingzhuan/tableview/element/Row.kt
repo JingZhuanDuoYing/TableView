@@ -22,6 +22,9 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     private var isSticky = false
     internal var forceLayout = true
 
+    @Transient
+    internal val rowShareElements = RowShareElements()
+
     fun setSticky(sticky: Boolean) {
         isSticky = sticky
     }
@@ -71,7 +74,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
             val column = visibleColumns[i]
             if (stretchMode) {
                 if (column.laidOut) {
-                    column.layout(context, column.left, column.top, column.right, column.bottom)
+                    column.layout(context, column.left, column.top, column.right, column.bottom, rowShareElements)
                 }
                 continue
             }
@@ -95,7 +98,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
 
             val right = x + columnWidthWithMargins
             val left = right - column.widthWithMargins
-            column.layout(context, left, top, right, bottom)
+            column.layout(context, left, top, right, bottom, rowShareElements)
             x += columnWidthWithMargins
         }
     }
@@ -112,7 +115,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         for (i in 0 until stickyColumns) {
             val column = visibleColumns[i] as? DrawableColumn
                 ?: continue
-            column.draw(context, canvas)
+            column.draw(context, canvas, rowShareElements)
         }
     }
 
@@ -126,7 +129,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
             val column = visibleColumns[i] as? DrawableColumn
                 ?: continue
             if (column.shouldIgnoreDraw(container)) continue
-            column.draw(context, canvas)
+            column.draw(context, canvas, rowShareElements)
         }
     }
 

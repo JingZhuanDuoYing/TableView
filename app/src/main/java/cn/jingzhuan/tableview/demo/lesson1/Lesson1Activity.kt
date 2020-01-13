@@ -21,7 +21,7 @@ class Lesson1Activity : AppCompatActivity() {
         )
 
         subscribe()
-        viewModel.fetch(this, 1000)
+        viewModel.fetch(this, 300)
     }
 
     private fun subscribe() {
