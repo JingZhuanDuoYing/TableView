@@ -11,13 +11,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name="cn.jingzhuan.tableview.demo.MainActivity"></activity>
-        <activity android:name="cn.jingzhuan.tableview.demo.lesson1.SimpleTableViewActivity">
+        <activity android:name="cn.jingzhuan.tableview.demo.lesson1.Lesson1Activity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".lesson2.Lesson2Activity" />
     </application>
 
 </manifest>

@@ -1,27 +1,19 @@
-package cn.jingzhuan.tableview.demo.lesson1.elements
+package cn.jingzhuan.tableview.demo.elements
 
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import cn.jingzhuan.tableview.element.Column
-import cn.jingzhuan.tableview.element.Row
+import cn.jingzhuan.tableview.element.HeaderRow
 
-class TitleRow(columns: List<Column>): Row<Column>(columns) {
+class TitleRow(columns: List<Column>): HeaderRow<Column>(columns) {
 
     private val backgroundPaint = Paint().apply {
         isAntiAlias = true
         isDither = true
         style = Paint.Style.FILL
         color = Color.parseColor("#B1B3B3")
-    }
-
-    override fun type(): Int {
-        return 1
-    }
-
-    override fun id(): Long {
-        return Long.MAX_VALUE
     }
 
     override fun visible(): Boolean {

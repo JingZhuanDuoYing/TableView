@@ -2,40 +2,21 @@ package cn.jingzhuan.tableview.adapter
 
 import android.util.SparseArray
 import android.view.ViewGroup
-import androidx.core.util.contains
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import cn.jingzhuan.tableview.RowListViewHolder
 import cn.jingzhuan.tableview.TableViewLog
+import cn.jingzhuan.tableview.element.HeaderRow
 import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.fallback.EmptyRow
 import cn.jingzhuan.tableview.fallback.RowListEmptyViewHolder
-import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
 
 open class RowListAdapterDelegate : IRowListAdapterDelegate {
 
-    var titleRow: Row<*>? = null
-        private set
-    var stickyRows: MutableList<Row<*>>? = null
-        private set
-    var rows: MutableList<Row<*>>? = null
-        private set
-    override var columnsLayoutManager: ColumnsLayoutManager? = null
+    override var headerRow: HeaderRow<*>? = null
 
     private val adapters = mutableListOf<RowListAdapter>()
     private val headerTypeRowMap = SparseArray<Row<*>>()
     private val typeRowMap = SparseArray<Row<*>>()
-
-    override fun setTitleRow(row: Row<*>?) {
-        titleRow = row
-    }
-
-    override fun setRows(rows: List<Row<*>>?) {
-        this.rows = if(rows is MutableList<Row<*>>) rows else rows?.toMutableList()
-    }
-
-    override fun setStickyRows(rows: List<Row<*>>?) {
-        stickyRows = if(rows is MutableList<Row<*>>) rows else rows?.toMutableList()
-    }
 
     override fun createViewHolder(
         parent: ViewGroup,
@@ -74,40 +55,39 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
 
         val row = getRow(position, fromHeader)
         if (null == row) {
-            TableViewLog.e(
-                this::class.java.name,
-                "row should not be null"
-            )
+            TableViewLog.e(this::class.java.name, "row should not be null")
             return
         }
 
-        val layoutManager = columnsLayoutManager
-        if (null == layoutManager) {
-            TableViewLog.e(this::class.java.name, "layoutManager should not be null")
+        val headerRow = headerRow
+        if (null == headerRow) {
+            TableViewLog.e(this::class.java.name, "HeaderRow should not be null")
             return
         }
 
-        (holder as? RowListViewHolder)?.bindData(row, layoutManager)
+        (holder as? RowListViewHolder)?.bindData(row, headerRow.layoutManager)
     }
 
     override fun getItemCount(fromHeader: Boolean): Int {
+        val headerRow = headerRow ?: return 0
         return if (fromHeader) {
-            (if (null == titleRow) 0 else 1) + (stickyRows?.size ?: 0)
+            headerRow.stickyRows.size + 1
         } else {
-            rows?.size ?: 0
+            headerRow.rows.size
         }
-
     }
 
     override fun getItemViewType(
         position: Int,
         fromHeader: Boolean
     ): Int {
+        val headerRow = headerRow ?: return IRowListAdapterDelegate.INVALID_VIEW_TYPE
         return if (fromHeader) {
-            if (position == 0) titleRow?.type() ?: 0
-            else stickyRows?.get(position - 1)?.type() ?: 0
+            if (position == 0) headerRow.type()
+            else headerRow.stickyRows.getOrNull(position - 1)?.type()
+                ?: IRowListAdapterDelegate.INVALID_VIEW_TYPE
         } else {
-            rows?.get(position)?.type() ?: 0
+            headerRow.rows.getOrNull(position)?.type() ?: IRowListAdapterDelegate.INVALID_VIEW_TYPE
         }
     }
 
@@ -115,12 +95,7 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
         position: Int,
         fromHeader: Boolean
     ): Long {
-        return if (fromHeader) {
-            if (position == 0) titleRow?.id() ?: 0
-            else stickyRows?.get(position - 1)?.id() ?: 0
-        } else {
-            rows?.get(position)?.id() ?: 0
-        }
+        return position.toLong()
     }
 
     override fun notifyDataSetChanged() {
@@ -138,31 +113,32 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
         position: Int,
         fromHeader: Boolean
     ): Row<*>? {
+        val headerRow = headerRow ?: return EmptyRow()
         if (fromHeader) {
-            if (null != titleRow && position == 0) return titleRow!!
-            val relativePosition = if (null != titleRow) position - 1 else position
-            return stickyRows?.get(relativePosition) ?: EmptyRow()
+            if (position == 0) return headerRow
+            return headerRow.stickyRows.getOrNull(position - 1) ?: EmptyRow()
         } else {
-            return rows?.get(position) ?: EmptyRow()
+            return headerRow.rows.getOrNull(position) ?: EmptyRow()
         }
     }
 
     private fun getRowForType(type: Int): Row<*>? {
         if (type == IRowListAdapterDelegate.INVALID_VIEW_TYPE) return EmptyRow()
-        if (typeRowMap.contains(type)) return typeRowMap[type]
-        rows?.distinctBy { it.type() }
-            ?.forEach { typeRowMap.put(it.type(), it) }
-        return typeRowMap[type]
+        val headerRow = headerRow ?: return EmptyRow()
+        headerRow.rows.distinctBy { it.type() }.forEach {
+            typeRowMap.put(it.type(), it)
+        }
+        return typeRowMap[type] ?: EmptyRow()
     }
 
     private fun getHeaderRowForType(type: Int): Row<*>? {
         if (type == IRowListAdapterDelegate.INVALID_VIEW_TYPE) return EmptyRow()
-        if (headerTypeRowMap.contains(type)) return headerTypeRowMap[type]
-        titleRow?.apply { headerTypeRowMap.put(type, this) }
-        stickyRows?.toList()
-            ?.distinctBy { it.type() }
-            ?.forEach { headerTypeRowMap.put(type, it) }
-        return headerTypeRowMap[type]
+        val headerRow = headerRow ?: return EmptyRow()
+        if (type == IRowListAdapterDelegate.HEADER_VIEW_TYPE) return headerRow
+        headerRow.stickyRows.distinctBy { it.type() }.forEach {
+            headerTypeRowMap.put(it.type(), it)
+        }
+        return headerTypeRowMap[type] ?: EmptyRow()
     }
 
 }

@@ -15,7 +15,7 @@ import cn.jingzhuan.tableview.adapter.IRowListAdapterDelegate
 import cn.jingzhuan.tableview.adapter.RowListAdapter
 import cn.jingzhuan.tableview.adapter.RowListAdapterDelegate
 import cn.jingzhuan.tableview.directionlock.DirectionLockRecyclerView
-import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
+import cn.jingzhuan.tableview.element.HeaderRow
 import cn.jingzhuan.tableview.layoutmanager.RowListLayoutManager
 import cn.jingzhuan.tableview.layoutmanager.RowListStretchLayoutManager
 import kotlin.math.max
@@ -33,11 +33,13 @@ open class TableView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
-    var adapter: IRowListAdapterDelegate = RowListAdapterDelegate()
+    var headerRow: HeaderRow<*>? = null
         set(value) {
             field = value
-            onAdapterChanged(value)
+            adapter.headerRow = value
         }
+
+    private var adapter: IRowListAdapterDelegate = RowListAdapterDelegate()
 
     var scrolledVerticalCallback: (() -> Unit)? = null
     var scrolledHorizontalCallback: (() -> Unit)? = null
@@ -58,14 +60,13 @@ open class TableView @JvmOverloads constructor(
             }
 
     private val headerLayoutManager = RowListLayoutManager(context) { dx, _ ->
-        columnsLayoutManager.scrollHorizontallyBy(dx)
+        headerRow?.layoutManager?.scrollHorizontallyBy(dx) ?: 0
     }
     private val mainLayoutManager = RowListLayoutManager(context) { dx, _ ->
-        columnsLayoutManager.scrollHorizontallyBy(dx)
+        headerRow?.layoutManager?.scrollHorizontallyBy(dx) ?: 0
     }
     private val headerStretchLayoutManager by lazyNone { RowListStretchLayoutManager(context) }
     private val mainStretchLayoutManager by lazyNone { RowListStretchLayoutManager(context) }
-    val columnsLayoutManager = ColumnsLayoutManager()
 
     private val scrollListener =
         RecyclerViewScrollListener(
@@ -80,7 +81,7 @@ open class TableView @JvmOverloads constructor(
     init {
         orientation = VERTICAL
 
-        onAdapterChanged(adapter)
+        setAdapter(adapter)
         setStretchMode(false)
         header.addOnScrollListener(scrollListener)
         main.addOnScrollListener(scrollListener)
@@ -176,9 +177,12 @@ open class TableView @JvmOverloads constructor(
     }
 
     // </editor-fold desc="Glow">    ---------------------------------------------------------
+    fun notifyDataSetChanged() {
+        adapter.notifyDataSetChanged()
+    }
 
-    private fun onAdapterChanged(adapter: IRowListAdapterDelegate) {
-        adapter.columnsLayoutManager = columnsLayoutManager
+    private fun setAdapter(adapter: IRowListAdapterDelegate) {
+        this.adapter = adapter
         header.setAdapter(true, adapter)
         main.setAdapter(false, adapter)
         restorePositionController.attach(main, main.adapter!!)

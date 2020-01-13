@@ -9,8 +9,6 @@ import java.io.Serializable
  */
 interface IElement : Serializable {
 
-  fun id(): Long
-
   fun visible(): Boolean
 
   fun height(context: Context): Int

@@ -26,8 +26,6 @@ abstract class Column : IElement {
 
     var laidOut = false
 
-    override fun id() = Long.MAX_VALUE
-
     open fun minWidth(context: Context): Int {
         return context.dp(90F).toInt()
     }

@@ -1,4 +1,4 @@
-package cn.jingzhuan.tableview.demo.lesson1.elements
+package cn.jingzhuan.tableview.demo.elements
 
 import android.content.Context
 import android.view.Gravity

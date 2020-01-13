@@ -2,8 +2,7 @@ package cn.jingzhuan.tableview.adapter
 
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
-import cn.jingzhuan.tableview.element.Row
-import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
+import cn.jingzhuan.tableview.element.HeaderRow
 
 /**
  * Chenyikang
@@ -14,15 +13,10 @@ interface IRowListAdapterDelegate {
   companion object {
     const val INVALID_VIEW_TYPE = Int.MIN_VALUE
     const val INVALID_ITEM_ID = Long.MIN_VALUE
+    const val HEADER_VIEW_TYPE = 110
   }
 
-  var columnsLayoutManager: ColumnsLayoutManager?
-
-  fun setTitleRow(row: Row<*>?)
-
-  fun setRows(rows: List<Row<*>>?)
-
-  fun setStickyRows(rows: List<Row<*>>?)
+  var headerRow: HeaderRow<*>?
 
   fun createViewHolder(
     parent: ViewGroup,

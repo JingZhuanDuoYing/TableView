@@ -32,11 +32,8 @@ class RowLayout @JvmOverloads constructor(
         setWillNotDraw(false)
     }
 
-    private val extraRight by lazyNone {
-        context.dp(10F).toInt()
-    }
-
-    private var row: Row<*>? = null
+    var row: Row<*>? = null
+        private set
     private var layoutManager: ColumnsLayoutManager? = null
 
     private var lastUpX = 0F
@@ -150,14 +147,6 @@ class RowLayout @JvmOverloads constructor(
         val row = row ?: return
         layoutManager?.measureAndLayoutInStretchMode(context, row, this, scrollableContainer)
     }
-
-    fun computeScrollRange(): Int {
-        val rowScrollableWidth =
-            layoutManager?.scrollableWidthWithMargins ?: scrollableContainer.width
-        return rowScrollableWidth - scrollableContainer.width + extraRight
-    }
-
-    fun computeScrollWidth() = scrollableContainer.width
 
     // -----------------------------    private    -----------------------------
     private fun onClick(

@@ -20,6 +20,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     var height = 0
     var stretchMode = false
     private var isSticky = false
+    internal var forceLayout = true
 
     fun setSticky(sticky: Boolean) {
         isSticky = sticky

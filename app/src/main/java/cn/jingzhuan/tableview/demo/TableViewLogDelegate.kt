@@ -1,8 +1,10 @@
 package cn.jingzhuan.tableview.demo
 
+import android.annotation.SuppressLint
 import android.util.Log
 import cn.jingzhuan.tableview.TableViewLog
 
+@SuppressLint("LogNotTimber")
 class TableViewLogDelegate : TableViewLog.TableViewLogDelegate {
 
     override fun e(tag: String?, msg: String?, vararg obj: Any?) {

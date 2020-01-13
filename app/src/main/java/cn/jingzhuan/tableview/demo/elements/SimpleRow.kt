@@ -1,4 +1,4 @@
-package cn.jingzhuan.tableview.demo.lesson1.elements
+package cn.jingzhuan.tableview.demo.elements
 
 import cn.jingzhuan.tableview.element.Column
 import cn.jingzhuan.tableview.element.Row
@@ -7,10 +7,6 @@ class SimpleRow(val source: RowData, columns: List<Column>) : Row<Column>(column
 
     override fun type(): Int {
         return 2
-    }
-
-    override fun id(): Long {
-        return source.id.hashCode().toLong()
     }
 
     override fun visible(): Boolean {
