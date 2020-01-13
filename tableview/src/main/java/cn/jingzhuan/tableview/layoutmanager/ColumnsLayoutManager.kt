@@ -5,7 +5,6 @@ import android.view.View.MeasureSpec
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
 import cn.jingzhuan.tableview.RowLayout
-import cn.jingzhuan.tableview.TableViewLog
 import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.element.Column
 import cn.jingzhuan.tableview.element.DrawableColumn
@@ -225,7 +224,6 @@ class ColumnsLayoutManager : Serializable {
         if (row.height <= 0) {
             // measure drawable columns first of all
             measureAndLayoutInBackground(context, row)
-            TableViewLog.d(this::class.java.simpleName, "measureAndLayoutRowInBackground()")
             if (row.height <= 0) {
                 row.height = rowLayout.height
                 // stretchMode 不能传 true, 否则会跳过第一次Layout

@@ -5,8 +5,11 @@ import android.graphics.Canvas
 import android.view.View
 import android.view.ViewGroup
 import cn.jingzhuan.tableview.RowLayout
+import cn.jingzhuan.tableview.TableView
+import cn.jingzhuan.tableview.TableViewLog
 import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
+import kotlin.math.absoluteValue
 import kotlin.math.min
 
 /**
@@ -68,13 +71,20 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
             height(context) > 0 -> height(context)
             else -> minHeight(context)
         }
-        val maxSize = min(visibleColumns.size, columnsWidthWithMargins.size)
+        val maxSize = min(columns.size, columnsWidthWithMargins.size)
         for (i in 0 until maxSize) {
             if (i == stickyColumns) x = 0
-            val column = visibleColumns[i]
+            val column = columns[i]
             if (stretchMode) {
                 if (column.laidOut) {
-                    column.layout(context, column.left, column.top, column.right, column.bottom, rowShareElements)
+                    column.layout(
+                        context,
+                        column.left,
+                        column.top,
+                        column.right,
+                        column.bottom,
+                        rowShareElements
+                    )
                 }
                 continue
             }
@@ -113,7 +123,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         stickyColumns: Int
     ) {
         for (i in 0 until stickyColumns) {
-            val column = visibleColumns[i] as? DrawableColumn
+            val column = columns[i] as? DrawableColumn
                 ?: continue
             column.draw(context, canvas, rowShareElements)
         }
@@ -125,11 +135,17 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         container: View,
         stickyColumns: Int
     ) {
-        for (i in stickyColumns until visibleColumns.size) {
-            val column = visibleColumns[i] as? DrawableColumn
+        val startIndex = findDrawStartIndexInScrollable(container, stickyColumns, columns.size)
+        var count = 0
+        for (i in startIndex until columns.size) {
+            val column = columns[i] as? DrawableColumn
                 ?: continue
             if (column.shouldIgnoreDraw(container)) continue
+            if (column.columnLeft > container.scrollX + container.width) {
+                break
+            }
             column.draw(context, canvas, rowShareElements)
+            count++
         }
     }
 
@@ -151,6 +167,18 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         x: Float = 0F,
         y: Float = 0F
     ) {
+    }
+
+    private fun findDrawStartIndexInScrollable(container: View, start: Int, end: Int): Int {
+        if ((start - end).absoluteValue <= 1) return start
+        val center = (start + end) / 2
+        val column = columns[center]
+        if (column.columnLeft <= container.scrollX && column.columnRight >= container.scrollX) return center
+        return if (column.columnLeft > container.scrollX) findDrawStartIndexInScrollable(
+            container,
+            start,
+            center
+        ) else findDrawStartIndexInScrollable(container, center, end)
     }
 
 }
