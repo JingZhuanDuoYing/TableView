@@ -133,21 +133,35 @@ abstract class TextColumn : DrawableColumn() {
                 measuredTextHeight = max(measuredTextHeight, this)
             }
         } else if (!TextUtils.isEmpty(text) && text is Spannable) {
-            staticLayout = if (VERSION.SDK_INT >= VERSION_CODES.M) {
-                StaticLayout.Builder.obtain(text, 0, text.length, paint, Int.MAX_VALUE)
-                    .build()
-            } else {
-                StaticLayout(
-                    text,
-                    paint,
-                    Int.MAX_VALUE,
-                    Layout.Alignment.ALIGN_NORMAL,
-                    0F,
-                    0F,
-                    true
-                )
+            staticLayout = when {
+                VERSION.SDK_INT >= VERSION_CODES.M -> {
+                    StaticLayout.Builder.obtain(
+                        text,
+                        0,
+                        text.length,
+                        paint,
+                        Int.MAX_VALUE
+                    )
+                        .build()
+                }
+                VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP -> {
+                    StaticLayout(
+                        text,
+                        paint,
+                        Int.MAX_VALUE,
+                        Layout.Alignment.ALIGN_NORMAL,
+                        0F,
+                        0F,
+                        true
+                    )
+                }
+                else -> null
             }
-            measuredTextWidth = max(staticLayout!!.getLineWidth(0).toInt(), 0)
+            measuredTextWidth = if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+                max(staticLayout!!.getLineWidth(0).toInt(), 0)
+            } else {
+                StaticLayout.getDesiredWidth(text, 0, text.length, paint).toInt()
+            }
         }
 
         val minWidth = max(width(context), minWidth(context))
@@ -223,8 +237,12 @@ abstract class TextColumn : DrawableColumn() {
             }
             boringLayout?.draw(canvas)
         } else if (text is Spannable && null != staticLayout) {
-            canvas.translate(drawLeft, drawTop - paint.descent())
-            staticLayout?.draw(canvas)
+            if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+                canvas.translate(drawLeft, drawTop - paint.descent())
+                staticLayout?.draw(canvas)
+            } else {
+                canvas.drawText(text, 0, text.length, drawLeft, drawTop + drawRegionHeight, paint)
+            }
         } else {
             canvas.drawText(text.toString(), drawLeft, drawTop + drawRegionHeight, paint)
         }

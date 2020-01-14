@@ -2,6 +2,7 @@ package cn.jingzhuan.tableview.demo.lesson1
 
 import android.content.Context
 import android.text.SpannableString
+import android.text.SpannableStringBuilder
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import cn.jingzhuan.tableview.demo.elements.*
@@ -44,11 +45,11 @@ class Lesson1ViewModel : ViewModel() {
 
     private fun constructRowData(columnsCount: Int): List<RowData> {
         val rows = mutableListOf<RowData>()
-        for (i in 0 until 300) {
+        for (i in 0 until 30) {
             val columns = mutableListOf<ColumnData>()
             val row = RowData(title = "Row${i + 1}", columns = columns)
             for (j in 0 until columnsCount) {
-                columns.add(ColumnData("${i + 1} - ${j + 1}"))
+                columns.add(ColumnData(SpannableStringBuilder("${i + 1} - ${j + 1}")))
             }
             rows.add(row)
         }
