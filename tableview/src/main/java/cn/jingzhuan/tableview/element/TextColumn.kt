@@ -4,17 +4,10 @@ import android.content.Context
 import android.graphics.*
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
-import android.text.BoringLayout
-import android.text.Layout
-import android.text.Spannable
-import android.text.StaticLayout
-import android.text.TextPaint
-import android.text.TextUtils
-import android.util.TypedValue
+import android.text.*
 import android.view.Gravity
 import android.view.View
 import androidx.annotation.ColorInt
-import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.sp
 import kotlin.math.max
 
@@ -33,6 +26,8 @@ abstract class TextColumn : DrawableColumn() {
     private var boringLayout: BoringLayout? = null
     @Transient
     private var staticLayout: StaticLayout? = null
+    @Transient
+    private var dynamicLayout: DynamicLayout? = null
     @Transient
     private var lastMeasuredValue: CharSequence? = null
 
@@ -79,10 +74,8 @@ abstract class TextColumn : DrawableColumn() {
             measuredTextWidth = 0
             measuredTextHeight = 0
         } else {
-            val rectLayout = rowShareElements.rect1
-            paint.getTextBounds(text.toString(), 0, text!!.length, rectLayout)
-            measuredTextWidth = max(rectLayout.width(), 0)
-            measuredTextHeight = rectLayout.height()
+            measuredTextWidth = paint.measureText(text.toString(), 0, text!!.length).toInt()
+            measuredTextHeight = (paint.descent() - paint.ascent()).toInt()
         }
 
         val margins = margins(context)
@@ -133,8 +126,8 @@ abstract class TextColumn : DrawableColumn() {
                 measuredTextHeight = max(measuredTextHeight, this)
             }
         } else if (!TextUtils.isEmpty(text) && text is Spannable) {
-            staticLayout = when {
-                VERSION.SDK_INT >= VERSION_CODES.M -> {
+            if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+                staticLayout = if (VERSION.SDK_INT >= VERSION_CODES.M) {
                     StaticLayout.Builder.obtain(
                         text,
                         0,
@@ -143,8 +136,7 @@ abstract class TextColumn : DrawableColumn() {
                         Int.MAX_VALUE
                     )
                         .build()
-                }
-                VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP -> {
+                } else {
                     StaticLayout(
                         text,
                         paint,
@@ -155,12 +147,19 @@ abstract class TextColumn : DrawableColumn() {
                         true
                     )
                 }
-                else -> null
-            }
-            measuredTextWidth = if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-                max(staticLayout!!.getLineWidth(0).toInt(), 0)
+                measuredTextWidth = max(staticLayout!!.getLineWidth(0).toInt(), 0)
             } else {
-                StaticLayout.getDesiredWidth(text, 0, text.length, paint).toInt()
+                dynamicLayout = DynamicLayout(
+                    text,
+                    paint,
+                    Int.MAX_VALUE,
+                    Layout.Alignment.ALIGN_NORMAL,
+                    0F,
+                    0F,
+                    true
+                )
+                measuredTextWidth =
+                    DynamicLayout.getDesiredWidth(text, 0, text.length, paint).toInt()
             }
         }
 
@@ -236,12 +235,35 @@ abstract class TextColumn : DrawableColumn() {
                 canvas.translate(drawLeft, drawTop - paint.descent())
             }
             boringLayout?.draw(canvas)
-        } else if (text is Spannable && null != staticLayout) {
+        } else if (text is Spannable) {
             if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-                canvas.translate(drawLeft, drawTop - paint.descent())
-                staticLayout?.draw(canvas)
+                if (null != staticLayout) {
+                    canvas.translate(drawLeft, drawTop - paint.descent())
+                    staticLayout?.draw(canvas)
+                } else {
+                    canvas.drawText(
+                        text,
+                        0,
+                        text.length,
+                        drawLeft,
+                        drawTop + drawRegionHeight,
+                        paint
+                    )
+                }
             } else {
-                canvas.drawText(text, 0, text.length, drawLeft, drawTop + drawRegionHeight, paint)
+                if (null != dynamicLayout) {
+                    canvas.translate(drawLeft, drawTop - paint.descent())
+                    dynamicLayout?.draw(canvas)
+                } else {
+                    canvas.drawText(
+                        text,
+                        0,
+                        text.length,
+                        drawLeft,
+                        drawTop + drawRegionHeight,
+                        paint
+                    )
+                }
             }
         } else {
             canvas.drawText(text.toString(), drawLeft, drawTop + drawRegionHeight, paint)
