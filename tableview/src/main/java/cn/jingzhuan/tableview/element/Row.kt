@@ -18,7 +18,6 @@ import kotlin.math.min
 abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     IElement {
 
-    val visibleColumns = columns.filter { it.visible() }
     var height = 0
     internal var forceLayout = true
 
@@ -100,6 +99,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
             layoutColumn(context, i, column, x, rowHeight, specs)
             x = column.columnRight
         }
+        forceLayout = false
     }
 
     open fun draw(context: Context, canvas: Canvas, stickyWidthWithMargins: Int) {

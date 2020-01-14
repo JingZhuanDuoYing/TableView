@@ -76,8 +76,7 @@ class ColumnsLayoutManager : Serializable {
         context: Context,
         row: Row<*>,
         rowLayout: RowLayout,
-        scrollableContainer: ViewGroup,
-        skipLayout: Boolean = false
+        scrollableContainer: ViewGroup
     ) {
         // 如果rowLayout持有scrollableContainer，说明rowLayout之前已经初始化过了，不需要重新创建View对象
         val initialized = rowLayout.indexOfChild(scrollableContainer) >= 0
@@ -150,7 +149,7 @@ class ColumnsLayoutManager : Serializable {
         }
 
         // 列宽发生变化或者第一次初始化，都需要Layout
-        if (!skipLayout && (pendingLayout || !initialized || row.forceLayout)) {
+        if (pendingLayout || !initialized || row.forceLayout) {
             row.layout(context, specs)
             specs.onColumnsWidthChanged()
 
@@ -162,8 +161,6 @@ class ColumnsLayoutManager : Serializable {
                 val view = rowLayout.getChildAt(currentViewIndex) ?: return@forEachIndexed
                 column.layoutView(view)
             }
-            // erase forceLayout after real layout
-            row.forceLayout = false
         }
 
         if (!initialized) {
