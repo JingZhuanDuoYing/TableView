@@ -15,6 +15,11 @@ abstract class TextColumn : DrawableColumn() {
 
     private val drawSimpleTextDirectly = true
 
+    init {
+        paddingLeft = 10
+        paddingRight = 10
+    }
+
     @Transient
     private var drawRegionLeft = 0
     @Transient
@@ -88,19 +93,41 @@ abstract class TextColumn : DrawableColumn() {
             }
         }
 
-        val margins = margins(context)
-        val padding = padding(context)
-
         val minWidth = max(width(context), minWidth(context))
         val minHeight = max(height(context), minHeight(context))
-        val minWidthWithMargins = margins[0] + minWidth + margins[2]
-        val minHeightWithMargins = margins[1] + minHeight + margins[3]
-        widthWithMargins = margins[0] + padding[0] + measuredTextWidth + padding[2] + margins[2]
-        heightWithMargins = margins[1] + padding[1] + measuredTextHeight + padding[3] + margins[3]
+        val minWidthWithMargins = leftMargin + minWidth + rightMargin
+        val minHeightWithMargins = topMargin + minHeight + bottomMargin
+        widthWithMargins = leftMargin + paddingLeft + measuredTextWidth + paddingRight + rightMargin
+        heightWithMargins = topMargin + paddingTop + measuredTextHeight + paddingBottom + bottomMargin
         widthWithMargins = max(minWidthWithMargins, widthWithMargins)
         heightWithMargins = max(minHeightWithMargins, heightWithMargins)
 
         lastMeasuredValue = text
+    }
+
+    override fun layout(
+        context: Context,
+        left: Int,
+        top: Int,
+        right: Int,
+        bottom: Int,
+        rowShareElements: RowShareElements
+    ) {
+        super.layout(context, left, top, right, bottom, rowShareElements)
+
+        val contentLeft = left + leftMargin + paddingLeft
+        val contentTop = top + topMargin + paddingTop
+        val contentRight = right - rightMargin - paddingRight
+        val contentBottom = bottom - bottomMargin - paddingBottom
+        val rectLayout = rowShareElements.rect1
+        rectLayout.set(contentLeft, contentTop, contentRight, contentBottom)
+
+        val rectDraw = rowShareElements.rect2
+        Gravity.apply(gravity, measuredTextWidth, measuredTextHeight, rectLayout, rectDraw)
+        drawRegionLeft = rectDraw.left
+        drawRegionTop = rectDraw.top
+        drawRegionRight = rectDraw.right
+        drawRegionBottom = rectDraw.bottom
     }
 
     override fun prepareToDraw(context: Context, rowShareElements: RowShareElements) {
@@ -193,42 +220,6 @@ abstract class TextColumn : DrawableColumn() {
         }
     }
 
-    override fun layout(
-        context: Context,
-        left: Int,
-        top: Int,
-        right: Int,
-        bottom: Int,
-        rowShareElements: RowShareElements
-    ) {
-        super.layout(context, left, top, right, bottom, rowShareElements)
-        val margins = margins(context)
-        val padding = padding(context)
-
-        val contentLeft = left + margins[0] + padding[0]
-        val contentTop = top + margins[1] + padding[1]
-        val contentRight = right - margins[2] - padding[2]
-        val contentBottom = bottom - margins[3] - padding[3]
-        val rectLayout = rowShareElements.rect1
-        rectLayout.set(contentLeft, contentTop, contentRight, contentBottom)
-
-        val gravity = gravity()
-        val rectDraw = rowShareElements.rect2
-        Gravity.apply(gravity, measuredTextWidth, measuredTextHeight, rectLayout, rectDraw)
-        drawRegionLeft = rectDraw.left
-        drawRegionTop = rectDraw.top
-        drawRegionRight = rectDraw.right
-        drawRegionBottom = rectDraw.bottom
-    }
-
-    override fun shouldIgnoreDraw(container: View): Boolean {
-        val left = container.scrollX
-        val right = left + container.width
-        val top = container.scrollY
-        val bottom = top + container.height
-        return drawRegionRight < left || drawRegionLeft > right || drawRegionBottom < top || drawRegionTop > bottom
-    }
-
     override fun draw(
         context: Context,
         canvas: Canvas,
@@ -287,6 +278,14 @@ abstract class TextColumn : DrawableColumn() {
             canvas.drawText(text.toString(), drawLeft, drawTop + drawRegionHeight, paint)
         }
         canvas.restore()
+    }
+
+    override fun shouldIgnoreDraw(container: View): Boolean {
+        val left = container.scrollX
+        val right = left + container.width
+        val top = container.scrollY
+        val bottom = top + container.height
+        return drawRegionRight < left || drawRegionLeft > right || drawRegionBottom < top || drawRegionTop > bottom
     }
 
 }

@@ -27,7 +27,7 @@ internal class RowListViewHolder(
         layoutManager: ColumnsLayoutManager
     ) {
         this.data = data
-        data.bindView(itemView as ViewGroup, layoutManager)
+        (itemView as? RowLayout)?.bindRow(data, layoutManager)
     }
 
 }

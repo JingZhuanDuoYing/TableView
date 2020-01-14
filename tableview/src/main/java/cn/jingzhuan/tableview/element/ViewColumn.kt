@@ -7,11 +7,31 @@ import android.view.ViewGroup.MarginLayoutParams
 
 abstract class ViewColumn : Column() {
 
-  var forceLayout = true
+  internal var forceLayout = true
+
+  internal var left = 0
+  internal var top = 0
+  internal var right = 0
+  internal var bottom = 0
 
   abstract fun createView(context: Context): View
 
   abstract fun bindView(view: View)
+
+  override fun layout(
+    context: Context,
+    left: Int,
+    top: Int,
+    right: Int,
+    bottom: Int,
+    rowShareElements: RowShareElements
+  ) {
+    super.layout(context, left, top, right, bottom, rowShareElements)
+    this.left = left
+    this.top = top
+    this.right = right
+    this.bottom = bottom
+  }
 
   open fun measureView(view: View) {
     val lp = view.layoutParams

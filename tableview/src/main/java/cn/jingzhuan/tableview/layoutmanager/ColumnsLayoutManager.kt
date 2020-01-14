@@ -12,47 +12,21 @@ import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.element.ViewColumn
 import cn.jingzhuan.tableview.screenWidth
 import java.io.Serializable
-import java.util.concurrent.Executors
 import kotlin.math.max
 import kotlin.math.min
 
 class ColumnsLayoutManager : Serializable {
 
-    private var columnsSize = 0
-    var stickyColumns = 0
-        private set
-
-    var stretchMode = false
-
-    @Transient
-    var onColumnsWidthWithMarginsChanged: ((ColumnsLayoutManager) -> Unit)? = null
-
-    var columnsWidthWithMargins = IntArray(0)
-        private set
-
-    var columnsHeightWithMargins = IntArray(0)
-        private set
-
-    var stickyWidthWithMargins = 0
-        private set
-    var scrollableWidthWithMargins = 0
-        private set
-    private var scrollableWidth = 0
-    private val insetRight = 15F
-
-    var scrollX = 0
-        private set
+    internal val specs = TableSpecs(this)
 
     @Transient
     private val attachedRows = mutableSetOf<RowLayout>()
 
     fun updateTableSize(
-        columnsSize: Int = this.columnsSize,
-        stickyColumns: Int = this.stickyColumns
+        columnsSize: Int = this.specs.columnsCount,
+        stickyColumns: Int = this.specs.stickyColumnsCount
     ) {
-        this.columnsSize = columnsSize
-        this.stickyColumns = stickyColumns
-        onColumnsSizeChanged()
+        specs.updateTableSize(columnsSize, stickyColumns)
         attachedRows.forEach { it.row?.forceLayout = true }
     }
 
@@ -78,34 +52,32 @@ class ColumnsLayoutManager : Serializable {
 
     fun scrollHorizontallyBy(dx: Int): Int {
         if (attachedRows.isEmpty()) return 0
-        val scrollRange = computeScrollRange()
+        val scrollRange = specs.computeScrollRange()
         val consumed = when {
             dx > 0 -> {
-                val maxDx = scrollRange - scrollX
+                val maxDx = scrollRange - specs.scrollX
                 min(dx, maxDx)
             }
             dx < 0 -> {
-                val minDx = -scrollX
+                val minDx = -specs.scrollX
                 max(dx, minDx)
             }
             else -> 0
         }
-        if (consumed == 0 && scrollX <= scrollRange) return 0
-        if (scrollX > scrollRange) scrollX = scrollRange
-        scrollX += consumed
+        if (consumed == 0 && specs.scrollX <= scrollRange) return 0
+        if (specs.scrollX > scrollRange) specs.scrollX = scrollRange
+        specs.scrollX += consumed
         // 调整当前持有的所有RowLayout
-        attachedRows.forEach { it.scrollTo(scrollX, 0) }
+        attachedRows.forEach { it.scrollTo(specs.scrollX, 0) }
         return consumed
-    }
-
-    private fun computeScrollRange(): Int {
-        return max(0F, scrollableWidthWithMargins - scrollableWidth + insetRight).toInt()
     }
 
     /**
      * 用于在非主线程预先 Measure/Layout 内容，减轻实际展示内容时的工作量
      * 对于 [DrawableColumn] 其内容是可直接 Measure/Layout 的
      * 对于 非 [DrawableColumn] 直接使用 column 本身提供的尺寸
+     *
+     * @return whether table columns width changed
      */
     fun measureAndLayoutInBackground(
         context: Context,
@@ -113,12 +85,16 @@ class ColumnsLayoutManager : Serializable {
     ): Boolean {
         var maxHeight = 0
         var columnsSizeChanged = false
-        val maxSize = min(row.columns.size, columnsWidthWithMargins.size)
+        val maxSize = min(row.columns.size, specs.columnsCount)
         for (index in 0 until maxSize) {
             val column = row.columns[index]
 
             measureColumnInBackground(context, row, column)
-            if (compareAndSetColumnsSizeWithMargins(index, column)) columnsSizeChanged = true
+            if (specs.compareAndSetColumnsWidth(
+                    index,
+                    column.widthWithMargins
+                )
+            ) columnsSizeChanged = true
 
             // 记录 maxHeight，由于此函数属于热点代码，节省从 visibleColumnsHeightWithMargins 遍历得到的开销
             maxHeight = max(maxHeight, column.heightWithMargins)
@@ -135,8 +111,8 @@ class ColumnsLayoutManager : Serializable {
         }
 
         // Layout 步骤由 row 自行实现
-        if (!stretchMode && row.height > 0) {
-            row.layout(context, false, stickyColumns, columnsWidthWithMargins)
+        if (!specs.stretchMode && row.height > 0) {
+            row.layout(context, specs)
         }
 
         return columnsSizeChanged
@@ -157,60 +133,19 @@ class ColumnsLayoutManager : Serializable {
             return
         }
 
-        val margins = column.margins(context)
-
         if (column.widthWithMargins <= 0) {
             val minWidth = column.minWidth(context)
             val width = column.width(context)
             val columnWidth = max(minWidth, width)
-            column.widthWithMargins = columnWidth + margins[0] + margins[2]
+            column.widthWithMargins = columnWidth + column.leftMargin + column.rightMargin
         }
 
         if (column.heightWithMargins <= 0) {
             val minHeight = column.minHeight(context)
             val height = column.height(context)
             val columnHeight = max(minHeight, height)
-            column.heightWithMargins = columnHeight + margins[1] + margins[3]
+            column.heightWithMargins = columnHeight + column.topMargin + column.bottomMargin
         }
-    }
-
-    /**
-     * 当表整体列宽有变化时调用
-     */
-    fun onColumnsWidthWithMarginsChanged() {
-        // 重新计算固定列总宽度和滑动列总宽度
-        stickyWidthWithMargins = 0
-        scrollableWidthWithMargins = 0
-        for (i in columnsHeightWithMargins.indices) {
-            if (i < stickyColumns) {
-                stickyWidthWithMargins += columnsWidthWithMargins[i]
-            } else {
-                scrollableWidthWithMargins += columnsWidthWithMargins[i]
-            }
-        }
-        onColumnsWidthWithMarginsChanged?.invoke(this)
-    }
-
-    private fun onColumnsSizeChanged() {
-        if (columnsWidthWithMargins.size != columnsSize) {
-            columnsWidthWithMargins = enlargeIntArray(columnsWidthWithMargins, columnsSize)
-        }
-        if (columnsHeightWithMargins.size != columnsSize) {
-            columnsHeightWithMargins = enlargeIntArray(columnsHeightWithMargins, columnsSize)
-        }
-    }
-
-    private fun compareAndSetColumnsSizeWithMargins(index: Int, column: Column): Boolean {
-        var columnsSizeChanged = false
-        if (columnsWidthWithMargins[index] < column.widthWithMargins) {
-            columnsWidthWithMargins[index] = column.widthWithMargins
-            columnsSizeChanged = true
-        }
-        if (columnsHeightWithMargins[index] < column.heightWithMargins) {
-            columnsHeightWithMargins[index] = column.heightWithMargins
-            columnsSizeChanged = true
-        }
-        return columnsSizeChanged
     }
 
     fun measureAndLayoutInForeground(
@@ -229,27 +164,27 @@ class ColumnsLayoutManager : Serializable {
             if (row.height <= 0) {
                 row.height = rowLayout.height
                 // stretchMode 不能传 true, 否则会跳过第一次Layout
-                row.layout(context, false, stickyColumns, columnsWidthWithMargins)
+                row.layout(context, specs)
             }
         }
         var pendingLayout = false
 
         // 普通View的Measure/Layout流程
         var viewIndex = 0
-        val maxSize = min(row.columns.size, columnsWidthWithMargins.size)
+        val maxSize = min(row.columns.size, specs.columnsCount)
         for (index in 0 until maxSize) {
             val column = row.columns[index]
 
-            val sticky = index < stickyColumns
+            val sticky = index < specs.stickyColumnsCount
 
             if (!column.visible()) continue
 
             if (column is DrawableColumn) {
                 // this may happens when columns changed
-                if (column.widthWithMargins == 0 || column.heightWithMargins == 0 || columnsWidthWithMargins[index] == 0 || columnsHeightWithMargins[index] == 0) {
+                if (column.widthWithMargins == 0 || column.heightWithMargins == 0 || specs.columnsWidth[index] == 0) {
                     // measure drawable column in necessary
                     measureColumnInBackground(context, row, column)
-                    compareAndSetColumnsSizeWithMargins(index, column)
+                    specs.compareAndSetColumnsWidth(index, column.widthWithMargins)
                 }
                 continue
             }
@@ -283,8 +218,7 @@ class ColumnsLayoutManager : Serializable {
                 column.measureView(view)
             }
 
-            // 实际Measure后，如果宽度超过预测量宽度，需要反馈刷新一些保存的状态值
-            if (compareAndSetColumnsSizeWithMargins(index, column)) {
+            if (specs.compareAndSetColumnsWidth(index, column.widthWithMargins)) {
                 pendingLayout = true
             }
 
@@ -295,8 +229,8 @@ class ColumnsLayoutManager : Serializable {
 
         // 列宽发生变化或者第一次初始化，都需要Layout
         if (!skipLayout && (pendingLayout || !initialized || row.forceLayout)) {
-            row.layout(context, stretchMode, stickyColumns, columnsWidthWithMargins)
-            onColumnsWidthWithMarginsChanged()
+            row.layout(context, specs)
+            specs.onColumnsWidthChanged()
 
             viewIndex = 0
             row.columns.forEachIndexed { _, column ->
@@ -316,17 +250,17 @@ class ColumnsLayoutManager : Serializable {
         }
 
         // scrollableContainer检查是否需要Measure/Layout
-        if (!stretchMode) {
-            scrollableWidth =
+        if (!specs.stretchMode) {
+            specs.scrollableVirtualWidth =
                 measureAndLayoutScrollableContainer(context, row, rowLayout, scrollableContainer)
         }
 
         // 校准scrollX
-        val scrollRange = computeScrollRange()
-        if (scrollX > scrollRange) scrollX = scrollRange
-        if (scrollableContainer.scrollX != scrollX) {
-            scrollableContainer.scrollTo(scrollX, 0)
-        } else if (!stretchMode) {
+        val scrollRange = specs.computeScrollRange()
+        if (specs.scrollX > scrollRange) specs.scrollX = scrollRange
+        if (scrollableContainer.scrollX != specs.scrollX) {
+            scrollableContainer.scrollTo(specs.scrollX, 0)
+        } else if (!specs.stretchMode) {
             scrollableContainer.postInvalidate()
         }
     }
@@ -344,7 +278,7 @@ class ColumnsLayoutManager : Serializable {
         val maxWidth =
             if (rowLayout.width <= 0) context.screenWidth() else rowLayout.width
         val scrollableContainerWidth =
-            maxWidth - rowLayout.paddingLeft - rowLayout.paddingRight - stickyWidthWithMargins
+            maxWidth - rowLayout.paddingLeft - rowLayout.paddingRight - specs.stickyWidth
 
         // 实际宽度发生变化重新执行Measure
         if (scrollableContainer.width != scrollableContainerWidth) {
@@ -355,7 +289,7 @@ class ColumnsLayoutManager : Serializable {
         }
 
         // 检查是否需要Layout，并执行
-        val left = rowLayout.paddingLeft + stickyWidthWithMargins
+        val left = rowLayout.paddingLeft + specs.stickyWidth
         val right = left + scrollableContainer.measuredWidth
         val bottom = when {
             rowLayout.height > 0 -> rowLayout.height
@@ -390,10 +324,10 @@ class ColumnsLayoutManager : Serializable {
         var x = rowLayout.paddingLeft
 
         // Measure/Layout 固定列
-        for (i in 0 until stickyColumns) {
+        for (i in 0 until specs.stickyColumnsCount) {
             val column = columns[i]
             if (!column.visible()) continue
-            val widthWithMargins = columnsWidthWithMargins.getOrNull(i) ?: continue
+            val widthWithMargins = specs.columnsWidth.getOrNull(i) ?: continue
             val virtualRight = x + widthWithMargins
 
             when (column) {
@@ -443,16 +377,15 @@ class ColumnsLayoutManager : Serializable {
         // 按剩余的空间计算列宽，Measure/Layout 剩下的列
         val extraRight = context.dp(10F).toInt()
         var scrollableContainerVisibleColumns = 0
-        for (i in stickyColumns until columns.size) {
+        for (i in specs.stickyColumnsCount until columns.size) {
             val column = columns[i]
             if (column.visible()) scrollableContainerVisibleColumns++
         }
         val columnWidth =
             (scrollableContainerWidth - extraRight) / scrollableContainerVisibleColumns
         x = 0
-        for (i in stickyColumns until columns.size) {
+        for (i in specs.stickyColumnsCount until columns.size) {
             val column = columns[i]
-            val margins = column.margins(context)
             val virtualRight = x + columnWidth
 
             when (column) {
@@ -462,36 +395,27 @@ class ColumnsLayoutManager : Serializable {
                     rowLayout.getChildAt(index)
                         ?.let {
                             val verticalExtra =
-                                rowHeight - it.measuredHeight - margins[1] - margins[3]
-                            val top = verticalExtra / 2 + margins[1]
+                                rowHeight - it.measuredHeight - column.topMargin - column.bottomMargin
+                            val top = verticalExtra / 2 + column.topMargin
                             val bottom = top + it.measuredHeight
-                            val right = virtualRight - margins[2]
-                            val left = virtualRight - columnWidth + margins[0]
+                            val right = virtualRight - column.rightMargin
+                            val left = virtualRight - columnWidth + column.leftMargin
                             it.layout(left, top, right, bottom)
                         }
                 }
                 is DrawableColumn -> {
                     val verticalExtra =
-                        rowHeight - column.heightWithMargins - margins[1] - margins[3]
-                    val top = verticalExtra / 2 + margins[1]
+                        rowHeight - column.heightWithMargins - column.topMargin - column.bottomMargin
+                    val top = verticalExtra / 2 + column.topMargin
                     val bottom = top + column.heightWithMargins
-                    val right = virtualRight - margins[2]
-                    val left = virtualRight - columnWidth + margins[0]
+                    val right = virtualRight - column.rightMargin
+                    val left = virtualRight - columnWidth + column.leftMargin
                     column.layout(context, left, top, right, bottom, row.rowShareElements)
                 }
             }
 
             x += columnWidth
         }
-    }
-
-    private fun enlargeIntArray(
-        original: IntArray,
-        newCapacity: Int
-    ): IntArray {
-        val newArray = IntArray(newCapacity)
-        System.arraycopy(original, 0, newArray, 0, min(original.size, newCapacity))
-        return newArray
     }
 
 }

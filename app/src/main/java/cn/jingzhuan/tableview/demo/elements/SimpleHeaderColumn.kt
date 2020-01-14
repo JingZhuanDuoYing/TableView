@@ -11,19 +11,16 @@ import cn.jingzhuan.tableview.element.TextColumn
 
 class SimpleHeaderColumn(val source: RowData) : TextColumn() {
 
+    init {
+        gravity = Gravity.CENTER
+        paddingRight = 20
+    }
+
     private val backgroundPaint = Paint().apply {
         isAntiAlias = true
         isDither = true
         style = Paint.Style.FILL
         color = Color.parseColor("#D4D4D4")
-    }
-
-    override fun padding(context: Context): Array<Int> {
-        return arrayOf(0, 0, context.dp(12F).toInt(), 0)
-    }
-
-    override fun gravity(): Int {
-        return Gravity.CENTER
     }
 
     override fun getText(context: Context): CharSequence? {

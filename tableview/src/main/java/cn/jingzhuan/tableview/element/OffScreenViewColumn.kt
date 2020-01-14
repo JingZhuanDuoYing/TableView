@@ -56,8 +56,8 @@ abstract class OffScreenViewColumn : DrawableColumn() {
     val leftMargin = mlp?.leftMargin ?: 0
     val topMargin = mlp?.topMargin ?: 0
 
-    val drawLeft = left + leftMargin.toFloat()
-    val drawTop = top + topMargin.toFloat()
+    val drawLeft = columnLeft + leftMargin.toFloat()
+    val drawTop = columnTop + topMargin.toFloat()
     canvas.save()
     canvas.translate(drawLeft, drawTop)
     view.draw(canvas)

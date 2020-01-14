@@ -9,7 +9,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import androidx.core.view.GestureDetectorCompat
-import cn.jingzhuan.tableview.element.Column
 import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
 
@@ -54,7 +53,7 @@ class RowLayout @JvmOverloads constructor(
             layoutManager ?: return super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 
         val totalWidth =
-            layoutManager.columnsWidthWithMargins.sum() + paddingLeft + paddingRight
+            layoutManager.specs.columnsWidth.sum() + paddingLeft + paddingRight
         val rowHeight = when {
             row.height > 0 -> row.height
             row.height(context) > 0 -> row.height(context)
@@ -68,7 +67,7 @@ class RowLayout @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         layoutManager?.attachRowLayout(this)
-        if (null != layoutManager) scrollX = layoutManager!!.scrollX
+        if (null != layoutManager) scrollX = layoutManager!!.specs.scrollX
     }
 
     override fun onDetachedFromWindow() {
@@ -89,8 +88,8 @@ class RowLayout @JvmOverloads constructor(
         super.onDraw(canvas)
         val row = row ?: return
         val layoutManager = layoutManager ?: return
-        row.draw(context, canvas, layoutManager.stickyWidthWithMargins)
-        row.drawSticky(context, canvas, layoutManager.stickyColumns)
+        row.draw(context, canvas, layoutManager.specs.stickyWidth)
+        row.layoutAndDrawSticky(context, canvas, layoutManager.specs)
         scrollableContainer.invalidate()
     }
 
@@ -110,10 +109,10 @@ class RowLayout @JvmOverloads constructor(
 
     override fun getChildAt(index: Int): View? {
         val layoutManager = layoutManager ?: return null
-        return if (index < layoutManager.stickyColumns) {
+        return if (index < layoutManager.specs.stickyColumnsCount) {
             super.getChildAt(index)
         } else {
-            scrollableContainer.getChildAt(index - layoutManager.stickyColumns)
+            scrollableContainer.getChildAt(index - layoutManager.specs.stickyColumnsCount)
         }
     }
 
@@ -138,9 +137,7 @@ class RowLayout @JvmOverloads constructor(
         this.row = row
         this.layoutManager = layoutManager
         this.layoutManager?.attachRowLayout(this)
-        this.layoutManager?.measureAndLayoutInForeground(
-            context, row, this, scrollableContainer, layoutManager.stretchMode
-        )
+        this.layoutManager?.measureAndLayoutInForeground(context, row, this, scrollableContainer)
     }
 
     fun relayoutInStretchMode() {
@@ -155,124 +152,80 @@ class RowLayout @JvmOverloads constructor(
     ) {
         val row = row ?: return
         val layoutManager = layoutManager ?: return
-        var found: Column? = null
-        var isFoundSticky = false
+        val specs = layoutManager.specs
+        val index = findColumnIndexByX(x) ?: return
+        val isSticky = index < specs.stickyColumnsCount
+        val column = row.columns[index]
 
-        for (i in row.columns.indices) {
-            val column = row.columns[i]
-            val sticky = i < layoutManager.stickyColumns
-
-            val offset = if (sticky) 0 else {
-                scrollableContainer.left - scrollableContainer.scrollX
-            }
-            val start = column.left + offset
-            val end = column.right + offset
-            if (lastUpX < end && lastUpX > start) {
-                found = column
-                isFoundSticky = sticky
-                break
-            }
-        }
-
-        if (null == found) {
-            val columnsSize = layoutManager.columnsWidthWithMargins
-            var last = 0
-            for (i in columnsSize.indices) {
-                val column = row.visibleColumns.getOrNull(i) ?: continue
-                val sticky = i < layoutManager.stickyColumns
-
-                val offset = if (sticky) 0 else {
-                    scrollableContainer.left - scrollableContainer.scrollX
-                }
-                val start = last + offset
-                val end = last + columnsSize[i] + offset
-                if (lastUpX < end && lastUpX > start) {
-                    found = column
-                    isFoundSticky = sticky
-                    break
-                }
-                last = end
-            }
-        }
-
-        found?.apply {
-            val columnView = findViewByCoordinate(isFoundSticky, x, y)
-            if (null == columnView) {
-                row.onClick(context, this@RowLayout, this)
+        val columnView = findViewByCoordinate(isSticky, x, y)
+        if (null == columnView) {
+            row.onClick(context, this@RowLayout, column)
+        } else {
+            val relativeX = if (isSticky) {
+                x - columnView.left
             } else {
-                val relativeX = if (isFoundSticky) {
-                    x - columnView.left
-                } else {
-                    x - scrollableContainer.left + scrollableContainer.scrollX - columnView.left
-                }
-                val relativeY = y - columnView.top
-                row.onClick(context, this@RowLayout, this, columnView, relativeX, relativeY)
+                x - scrollableContainer.left + scrollableContainer.scrollX - columnView.left
             }
+            val relativeY = y - columnView.top
+            row.onClick(context, this@RowLayout, column, columnView, relativeX, relativeY)
         }
     }
 
     private fun onLongClick() {
         val row = row ?: return
         val layoutManager = layoutManager ?: return
-        var found: Column? = null
-        var isFoundSticky = false
+        val specs = layoutManager.specs
+        val index = findColumnIndexByX(x) ?: return
+        val isSticky = index < specs.stickyColumnsCount
+        val column = row.columns[index]
 
-        row.columns.forEachIndexed { index, column ->
-            val sticky = index < layoutManager.stickyColumns
-            val offset = if (sticky) 0 else {
-                scrollableContainer.left - scrollableContainer.scrollX
-            }
-            val thisStart = column.left + offset
-            val nextStart = column.left + offset
-            if (!sticky) {
-                if (nextStart < scrollableContainer.left) return@forEachIndexed
-                if (thisStart > scrollableContainer.right) {
-                    found = column
-                    isFoundSticky = sticky
-                    return@forEachIndexed
-                }
-            }
-            if (lastUpX >= thisStart && lastUpX <= nextStart) {
-                found = column
-                return@forEachIndexed
-            }
-        }
-
-        if (null == found) {
-            val columnsSize = layoutManager.columnsWidthWithMargins
-            var last = 0
-            for (i in columnsSize.indices) {
-                val column = row.columns.getOrNull(i) ?: continue
-                val sticky = i < layoutManager.stickyColumns
-
-                val offset = if (sticky) 0 else {
-                    scrollableContainer.left - scrollableContainer.scrollX
-                }
-                val start = last + offset
-                val end = last + columnsSize[i] + offset
-                if (lastUpX < end && lastUpX > start) {
-                    found = column
-                    isFoundSticky = sticky
-                    break
-                }
-                last = end
-            }
-        }
-
-        found?.apply {
-            val columnView = findViewByCoordinate(isFoundSticky, x, y)
-            if (null == columnView) {
-                row.onLongClick(context, this@RowLayout, this)
+        val columnView = findViewByCoordinate(isSticky, x, y)
+        if (null == columnView) {
+            row.onLongClick(context, this@RowLayout, column)
+        } else {
+            val relativeX = if (isSticky) {
+                x - columnView.left
             } else {
-                val relativeX = if (isFoundSticky) {
-                    x - columnView.left
-                } else {
-                    x - scrollableContainer.left + scrollableContainer.scrollX - columnView.left
+                x - scrollableContainer.left + scrollableContainer.scrollX - columnView.left
+            }
+            val relativeY = y - columnView.top
+            row.onLongClick(context, this@RowLayout, column, columnView, relativeX, relativeY)
+        }
+    }
+
+    private fun findColumnIndexByX(x: Float): Int? {
+        val row = row ?: return null
+        val layoutManager = layoutManager ?: return null
+        val specs = layoutManager.specs
+
+        if (x < specs.stickyWidth) {
+            var stickyColumnLeft = 0
+            for (i in 0 until specs.stickyColumnsCount) {
+                val columnLeft = stickyColumnLeft
+                val columnRight = columnLeft + specs.columnsWidth[i]
+                if (lastUpX < columnLeft && lastUpX > columnRight) {
+                    return i
                 }
-                val relativeY = y - columnView.top
-                row.onLongClick(context, this@RowLayout, this, columnView, relativeX, relativeY)
+                stickyColumnLeft += specs.columnsWidth[i]
             }
         }
+
+        val drawStartIndex = row.findScrollableDrawStartColumnIndex(
+            scrollableContainer,
+            specs.stickyColumnsCount,
+            specs.columnsCount
+        )
+        var scrollableColumnLeft = 0
+        for (i in drawStartIndex until specs.columnsCount) {
+            val columnLeft = scrollableColumnLeft + specs.stickyWidth
+            val columnRight = columnLeft + specs.columnsWidth[i]
+            if (lastUpX < columnLeft && lastUpX > columnRight) {
+                return i
+            }
+            scrollableColumnLeft += specs.columnsWidth[i]
+        }
+
+        return null
     }
 
     private fun findViewByCoordinate(
@@ -318,10 +271,15 @@ class RowLayout @JvmOverloads constructor(
     }
 
     // -----------------------------    private    -----------------------------
-    fun drawScrollableContent(canvas: Canvas) {
+    private fun drawScrollableContent(canvas: Canvas) {
         val row = row ?: return
         val layoutManager = layoutManager ?: return
-        row.drawScrollable(context, canvas, scrollableContainer, layoutManager.stickyColumns)
+        row.layoutAndDrawScrollable(
+            context,
+            canvas,
+            scrollableContainer,
+            layoutManager.specs
+        )
     }
 
 }

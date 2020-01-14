@@ -5,10 +5,8 @@ import android.graphics.Canvas
 import android.view.View
 import android.view.ViewGroup
 import cn.jingzhuan.tableview.RowLayout
-import cn.jingzhuan.tableview.TableView
-import cn.jingzhuan.tableview.TableViewLog
 import cn.jingzhuan.tableview.dp
-import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
+import cn.jingzhuan.tableview.layoutmanager.TableSpecs
 import kotlin.math.absoluteValue
 import kotlin.math.min
 
@@ -22,28 +20,10 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     val visibleColumns = columns.filter { it.visible() }
     var height = 0
     var stretchMode = false
-    private var isSticky = false
     internal var forceLayout = true
 
     @Transient
     internal val rowShareElements = RowShareElements()
-
-    fun setSticky(sticky: Boolean) {
-        isSticky = sticky
-    }
-
-    open fun isSticky() = isSticky
-
-    open fun createView(context: Context): ViewGroup {
-        val rowLayout = RowLayout(context)
-        rowLayout.layoutParams = ViewGroup.LayoutParams(width(context), height(context))
-        rowLayout.minimumHeight = minHeight(context)
-        return rowLayout
-    }
-
-    open fun bindView(view: ViewGroup, layoutManager: ColumnsLayoutManager) {
-        (view as? RowLayout)?.bindRow(this, layoutManager)
-    }
 
     abstract fun type(): Int
 
@@ -59,57 +39,26 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         return ViewGroup.LayoutParams.MATCH_PARENT
     }
 
-    fun layout(
+    open fun createView(context: Context): ViewGroup {
+        val rowLayout = RowLayout(context)
+        rowLayout.layoutParams = ViewGroup.LayoutParams(width(context), height(context))
+        rowLayout.minimumHeight = minHeight(context)
+        return rowLayout
+    }
+
+    internal fun layout(
         context: Context,
-        stretchMode: Boolean,
-        stickyColumns: Int,
-        columnsWidthWithMargins: IntArray
+        specs: TableSpecs
     ) {
+        if (stretchMode) return
         var x = 0
-        val rowHeight = when {
-            height > 0 -> height
-            height(context) > 0 -> height(context)
-            else -> minHeight(context)
-        }
-        val maxSize = min(columns.size, columnsWidthWithMargins.size)
+        val rowHeight = getRowHeight(context)
+        val maxSize = min(columns.size, specs.columnsCount)
         for (i in 0 until maxSize) {
-            if (i == stickyColumns) x = 0
+            if (i == specs.stickyColumnsCount) x = 0
             val column = columns[i]
-            if (stretchMode) {
-                if (column.laidOut) {
-                    column.layout(
-                        context,
-                        column.left,
-                        column.top,
-                        column.right,
-                        column.bottom,
-                        rowShareElements
-                    )
-                }
-                continue
-            }
-
-            val columnWidthWithMargins = columnsWidthWithMargins.getOrNull(i) ?: continue
-
-            column.columnLeft = x
-            column.columnTop = 0
-            column.columnRight = x + columnWidthWithMargins
-            column.columnBottom = height
-
-            val top: Int
-            val bottom: Int
-            if (rowHeight <= 0 && column.heightWithMargins > 0) {
-                top = 0
-                bottom = column.heightWithMargins
-            } else {
-                top = (rowHeight - column.heightWithMargins) / 2
-                bottom = rowHeight - top
-            }
-
-            val right = x + columnWidthWithMargins
-            val left = right - column.widthWithMargins
-            column.layout(context, left, top, right, bottom, rowShareElements)
-            x += columnWidthWithMargins
+            layoutColumn(context, i, column, x, rowHeight, specs)
+            x = column.columnRight
         }
     }
 
@@ -117,35 +66,52 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
 
     }
 
-    open fun drawSticky(
+    internal fun layoutAndDrawSticky(
         context: Context,
         canvas: Canvas,
-        stickyColumns: Int
+        specs: TableSpecs
     ) {
-        for (i in 0 until stickyColumns) {
-            val column = columns[i] as? DrawableColumn
-                ?: continue
-            column.draw(context, canvas, rowShareElements)
+        val rowHeight = when {
+            height > 0 -> height
+            height(context) > 0 -> height(context)
+            else -> minHeight(context)
+        }
+        var x = 0
+        for (i in 0 until specs.stickyColumnsCount) {
+            val column = columns[i]
+            layoutColumn(context, i, column, x, rowHeight, specs)
+            if (column is DrawableColumn) column.draw(context, canvas, rowShareElements)
+            x = column.columnRight
         }
     }
 
-    open fun drawScrollable(
+    internal fun layoutAndDrawScrollable(
         context: Context,
         canvas: Canvas,
         container: View,
-        stickyColumns: Int
+        specs: TableSpecs
     ) {
-        val startIndex = findDrawStartIndexInScrollable(container, stickyColumns, columns.size)
-        var count = 0
-        for (i in startIndex until columns.size) {
-            val column = columns[i] as? DrawableColumn
-                ?: continue
-            if (column.shouldIgnoreDraw(container)) continue
-            if (column.columnLeft > container.scrollX + container.width) {
-                break
+        val rowHeight = when {
+            height > 0 -> height
+            height(context) > 0 -> height(context)
+            else -> minHeight(context)
+        }
+
+        val startIndex =
+            findScrollableDrawStartColumnIndex(
+                container,
+                specs.stickyColumnsCount,
+                specs.columnsCount
+            )
+        var x = specs.getScrollableColumnLeftByIndex(startIndex)
+        for (i in startIndex until specs.columnsCount) {
+            val column = columns[i]
+            layoutColumn(context, i, column, x, rowHeight, specs)
+            if (column is DrawableColumn && !column.shouldIgnoreDraw(container)) {
+                if (column.columnLeft > container.scrollX + container.width) break
+                column.draw(context, canvas, rowShareElements)
             }
-            column.draw(context, canvas, rowShareElements)
-            count++
+            x = column.columnRight
         }
     }
 
@@ -169,16 +135,52 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     ) {
     }
 
-    private fun findDrawStartIndexInScrollable(container: View, start: Int, end: Int): Int {
+    internal fun findScrollableDrawStartColumnIndex(container: View, start: Int, end: Int): Int {
         if ((start - end).absoluteValue <= 1) return start
         val center = (start + end) / 2
         val column = columns[center]
         if (column.columnLeft <= container.scrollX && column.columnRight >= container.scrollX) return center
-        return if (column.columnLeft > container.scrollX) findDrawStartIndexInScrollable(
+        return if (column.columnLeft > container.scrollX) findScrollableDrawStartColumnIndex(
             container,
             start,
             center
-        ) else findDrawStartIndexInScrollable(container, center, end)
+        ) else findScrollableDrawStartColumnIndex(container, center, end)
+    }
+
+    private fun getRowHeight(context: Context): Int {
+        return when {
+            height > 0 -> height
+            height(context) > 0 -> height(context)
+            else -> minHeight(context)
+        }
+    }
+
+    private fun layoutColumn(
+        context: Context,
+        index: Int,
+        column: Column,
+        x: Int,
+        rowHeight: Int,
+        specs: TableSpecs
+    ) {
+        column.columnLeft = x
+        column.columnTop = 0
+        column.columnRight = x + specs.columnsWidth[index]
+        column.columnBottom = height
+
+        val top: Int
+        val bottom: Int
+        if (rowHeight <= 0 && column.heightWithMargins > 0) {
+            top = 0
+            bottom = column.heightWithMargins
+        } else {
+            top = (rowHeight - column.heightWithMargins) / 2
+            bottom = rowHeight - top
+        }
+
+        val right = column.columnRight
+        val left = right - column.widthWithMargins
+        column.layout(context, left, top, right, bottom, rowShareElements)
     }
 
 }

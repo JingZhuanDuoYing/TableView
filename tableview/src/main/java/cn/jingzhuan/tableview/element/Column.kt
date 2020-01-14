@@ -12,19 +12,32 @@ import cn.jingzhuan.tableview.dp
 abstract class Column : IElement {
 
     var widthWithMargins = 0
+        internal set
     var heightWithMargins = 0
-
-    var left = 0
-    var top = 0
-    var right = 0
-    var bottom = 0
+        internal set
 
     var columnLeft = 0
+        internal set
     var columnTop = 0
+        internal set
     var columnRight = 0
+        internal set
     var columnBottom = 0
+        internal set
 
-    var laidOut = false
+    var leftMargin = 0
+    var topMargin = 0
+    var rightMargin = 0
+    var bottomMargin = 0
+
+    var paddingLeft = 0
+    var paddingTop = 0
+    var paddingRight = 0
+    var paddingBottom = 0
+
+    var gravity: Int = Gravity.END or Gravity.CENTER_VERTICAL
+
+    internal var laidOut = false
 
     open fun minWidth(context: Context): Int {
         return context.dp(90F).toInt()
@@ -42,19 +55,7 @@ abstract class Column : IElement {
         return ViewGroup.LayoutParams.WRAP_CONTENT
     }
 
-    open fun gravity(): Int {
-        return Gravity.END or Gravity.CENTER_VERTICAL
-    }
-
-    open fun margins(context: Context): Array<Int> {
-        return arrayOf(0, 0, 0, 0)
-    }
-
-    open fun padding(context: Context): Array<Int> {
-        return arrayOf(context.dp(15F).toInt(), 0, context.dp(10F).toInt(), 0)
-    }
-
-    open fun layout(
+    internal open fun layout(
         context: Context,
         left: Int,
         top: Int,
@@ -62,10 +63,6 @@ abstract class Column : IElement {
         bottom: Int,
         rowShareElements: RowShareElements
     ) {
-        this.left = left
-        this.top = top
-        this.right = right
-        this.bottom = bottom
         laidOut = true
     }
 

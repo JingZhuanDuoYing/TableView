@@ -21,7 +21,7 @@ class Lesson1ViewModel : ViewModel() {
                 val data = constructRowData(it)
                 val dataRows = constructRows(data)
                 titleRow.rows.addAll(dataRows)
-                titleRow.measureAndLayoutInBackground(context)
+//                titleRow.measureAndLayoutInBackground(context)
                 titleRow
             }
             .subscribeOn(Schedulers.io())
@@ -43,7 +43,7 @@ class Lesson1ViewModel : ViewModel() {
 
     private fun constructRowData(columnsCount: Int): List<RowData> {
         val rows = mutableListOf<RowData>()
-        for (i in 0 until 300) {
+        for (i in 0 until 1000) {
             val columns = mutableListOf<ColumnData>()
             val row = RowData(title = "Row${i + 1}", columns = columns)
             for (j in 0 until columnsCount) {
