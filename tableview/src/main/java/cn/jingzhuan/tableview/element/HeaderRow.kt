@@ -29,10 +29,10 @@ open class HeaderRow<COLUMN : Column>(columns: List<COLUMN>) : Row<COLUMN>(colum
         layoutManager.updateTableSize(columns, stickyColumnsCount)
     }
 
-    fun measureAndLayoutInBackground(context: Context) {
-        layoutManager.measureAndLayoutInBackground(context, this)
-        stickyRows.forEach { layoutManager.measureAndLayoutInBackground(context, it) }
-        rows.forEach { layoutManager.measureAndLayoutInBackground(context, it) }
+    fun preMeasureAllRows(context: Context) {
+        measure(context, layoutManager.specs)
+        stickyRows.forEach { it.measure(context, layoutManager.specs) }
+        rows.forEach { it.measure(context, layoutManager.specs) }
     }
 
 }

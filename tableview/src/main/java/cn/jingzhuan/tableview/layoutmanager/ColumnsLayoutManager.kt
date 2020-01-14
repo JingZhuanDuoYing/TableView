@@ -72,83 +72,7 @@ class ColumnsLayoutManager : Serializable {
         return consumed
     }
 
-    /**
-     * 用于在非主线程预先 Measure/Layout 内容，减轻实际展示内容时的工作量
-     * 对于 [DrawableColumn] 其内容是可直接 Measure/Layout 的
-     * 对于 非 [DrawableColumn] 直接使用 column 本身提供的尺寸
-     *
-     * @return whether table columns width changed
-     */
-    fun measureAndLayoutInBackground(
-        context: Context,
-        row: Row<*>
-    ): Boolean {
-        var maxHeight = 0
-        var columnsSizeChanged = false
-        val maxSize = min(row.columns.size, specs.columnsCount)
-        for (index in 0 until maxSize) {
-            val column = row.columns[index]
-
-            measureColumnInBackground(context, row, column)
-            if (specs.compareAndSetColumnsWidth(
-                    index,
-                    column.widthWithMargins
-                )
-            ) columnsSizeChanged = true
-
-            // 记录 maxHeight，由于此函数属于热点代码，节省从 visibleColumnsHeightWithMargins 遍历得到的开销
-            maxHeight = max(maxHeight, column.heightWithMargins)
-        }
-
-        // 记录 row 自身的测量高度
-        val rowHeight = row.height(context)
-        if (rowHeight > 0) {
-            row.height = rowHeight
-        } else {
-            val rowMinHeight = row.minHeight(context)
-            val height = max(maxHeight, rowMinHeight)
-            row.height = height
-        }
-
-        // Layout 步骤由 row 自行实现
-        if (!specs.stretchMode && row.height > 0) {
-            row.layout(context, specs)
-        }
-
-        return columnsSizeChanged
-    }
-
-    private fun measureColumnInBackground(context: Context, row: Row<*>, column: Column) {
-        if (!column.visible()) return
-
-        if (column is DrawableColumn) {
-            column.prepareToMeasure(context, row.rowShareElements)
-            column.measure(context, row.rowShareElements)
-            column.prepareToDraw(context, row.rowShareElements)
-            return
-        }
-
-        // 已经有尺寸的，不管是预先Measure得到的还是实际展示时Measure得到的，都不需要重复执行下面代码了
-        if (column.widthWithMargins > 0 && column.heightWithMargins > 0) {
-            return
-        }
-
-        if (column.widthWithMargins <= 0) {
-            val minWidth = column.minWidth(context)
-            val width = column.width(context)
-            val columnWidth = max(minWidth, width)
-            column.widthWithMargins = columnWidth + column.leftMargin + column.rightMargin
-        }
-
-        if (column.heightWithMargins <= 0) {
-            val minHeight = column.minHeight(context)
-            val height = column.height(context)
-            val columnHeight = max(minHeight, height)
-            column.heightWithMargins = columnHeight + column.topMargin + column.bottomMargin
-        }
-    }
-
-    fun measureAndLayoutInForeground(
+    internal fun measureAndLayout(
         context: Context,
         row: Row<*>,
         rowLayout: RowLayout,
@@ -160,11 +84,9 @@ class ColumnsLayoutManager : Serializable {
 
         if (row.height <= 0) {
             // measure drawable columns first of all
-            measureAndLayoutInBackground(context, row)
+            row.measure(context, specs)
             if (row.height <= 0) {
                 row.height = rowLayout.height
-                // stretchMode 不能传 true, 否则会跳过第一次Layout
-                row.layout(context, specs)
             }
         }
         var pendingLayout = false
@@ -183,7 +105,7 @@ class ColumnsLayoutManager : Serializable {
                 // this may happens when columns changed
                 if (column.widthWithMargins == 0 || column.heightWithMargins == 0 || specs.columnsWidth[index] == 0) {
                     // measure drawable column in necessary
-                    measureColumnInBackground(context, row, column)
+                    row.measure(context, specs)
                     specs.compareAndSetColumnsWidth(index, column.widthWithMargins)
                 }
                 continue

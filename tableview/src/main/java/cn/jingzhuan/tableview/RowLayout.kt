@@ -137,7 +137,7 @@ class RowLayout @JvmOverloads constructor(
         this.row = row
         this.layoutManager = layoutManager
         this.layoutManager?.attachRowLayout(this)
-        this.layoutManager?.measureAndLayoutInForeground(context, row, this, scrollableContainer)
+        this.layoutManager?.measureAndLayout(context, row, this, scrollableContainer)
     }
 
     fun relayoutInStretchMode() {
