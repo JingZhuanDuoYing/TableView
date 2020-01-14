@@ -1,12 +1,6 @@
 package cn.jingzhuan.tableview.demo.lesson1
 
 import android.content.Context
-import android.graphics.Color
-import android.text.Spannable
-import android.text.SpannableString
-import android.text.SpannableStringBuilder
-import android.text.Spanned
-import android.text.style.ForegroundColorSpan
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import cn.jingzhuan.tableview.demo.elements.*
@@ -49,13 +43,11 @@ class Lesson1ViewModel : ViewModel() {
 
     private fun constructRowData(columnsCount: Int): List<RowData> {
         val rows = mutableListOf<RowData>()
-        for (i in 0 until 30) {
+        for (i in 0 until 300) {
             val columns = mutableListOf<ColumnData>()
             val row = RowData(title = "Row${i + 1}", columns = columns)
             for (j in 0 until columnsCount) {
-                val sb = SpannableString("${i + 1} - ${j + 1}")
-                sb.setSpan(ForegroundColorSpan(Color.RED), 0, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                columns.add(ColumnData(sb))
+                columns.add(ColumnData("${i + 1} - ${j + 1}"))
             }
             rows.add(row)
         }

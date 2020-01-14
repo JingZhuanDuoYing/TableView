@@ -8,11 +8,12 @@ import android.text.*
 import android.view.Gravity
 import android.view.View
 import androidx.annotation.ColorInt
-import cn.jingzhuan.tableview.TableViewLog
 import cn.jingzhuan.tableview.sp
 import kotlin.math.max
 
 abstract class TextColumn : DrawableColumn() {
+
+    private val drawSimpleTextDirectly = true
 
     @Transient
     private var drawRegionLeft = 0
@@ -113,7 +114,8 @@ abstract class TextColumn : DrawableColumn() {
 
         val text = getText(context)
 
-        if (!TextUtils.isEmpty(text) && text is String) {
+        if (!TextUtils.isEmpty(text) && text is String && !drawSimpleTextDirectly) {
+            if(null != boringLayout && text == boringLayout!!.text) return
             // before lollipop, BoringLayout.isBoring may return null
             val params =
                 BoringLayout.isBoring(text, paint)
@@ -155,6 +157,7 @@ abstract class TextColumn : DrawableColumn() {
             }
         } else if (!TextUtils.isEmpty(text) && text is Spannable) {
             if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+                if(null != staticLayout && text == staticLayout!!.text) return
                 staticLayout = if (VERSION.SDK_INT >= VERSION_CODES.M) {
                     StaticLayout.Builder.obtain(
                         text,
@@ -176,6 +179,7 @@ abstract class TextColumn : DrawableColumn() {
                     )
                 }
             } else {
+                if(null != dynamicLayout && text == dynamicLayout!!.text) return
                 dynamicLayout = DynamicLayout(
                     text,
                     paint,

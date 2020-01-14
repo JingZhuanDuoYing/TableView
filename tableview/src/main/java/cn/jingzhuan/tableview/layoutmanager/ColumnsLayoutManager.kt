@@ -18,8 +18,6 @@ import kotlin.math.min
 
 class ColumnsLayoutManager : Serializable {
 
-    private val service = Executors.newFixedThreadPool(3)
-
     private var columnsSize = 0
     var stickyColumns = 0
         private set
