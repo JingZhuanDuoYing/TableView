@@ -8,6 +8,7 @@ import android.text.*
 import android.view.Gravity
 import android.view.View
 import androidx.annotation.ColorInt
+import cn.jingzhuan.tableview.TableViewLog
 import cn.jingzhuan.tableview.sp
 import kotlin.math.max
 
@@ -70,16 +71,47 @@ abstract class TextColumn : DrawableColumn() {
             ) && widthWithMargins > 0 && heightWithMargins > 0
         ) return
 
-        if (TextUtils.isEmpty(text)) {
-            measuredTextWidth = 0
-            measuredTextHeight = 0
-        } else {
-            measuredTextWidth = paint.measureText(text.toString(), 0, text!!.length).toInt()
-            measuredTextHeight = (paint.descent() - paint.ascent()).toInt()
+        when {
+            TextUtils.isEmpty(text) -> {
+                measuredTextWidth = 0
+                measuredTextHeight = 0
+            }
+            text is Spannable -> {
+                measuredTextWidth =
+                    DynamicLayout.getDesiredWidth(text, 0, text.length, paint).toInt()
+                measuredTextHeight = (paint.descent() - paint.ascent()).toInt()
+            }
+            else -> {
+                measuredTextWidth = paint.measureText(text.toString(), 0, text!!.length).toInt()
+                measuredTextHeight = (paint.descent() - paint.ascent()).toInt()
+            }
         }
 
         val margins = margins(context)
         val padding = padding(context)
+
+        val minWidth = max(width(context), minWidth(context))
+        val minHeight = max(height(context), minHeight(context))
+        val minWidthWithMargins = margins[0] + minWidth + margins[2]
+        val minHeightWithMargins = margins[1] + minHeight + margins[3]
+        widthWithMargins = margins[0] + padding[0] + measuredTextWidth + padding[2] + margins[2]
+        heightWithMargins = margins[1] + padding[1] + measuredTextHeight + padding[3] + margins[3]
+        widthWithMargins = max(minWidthWithMargins, widthWithMargins)
+        heightWithMargins = max(minHeightWithMargins, heightWithMargins)
+
+        lastMeasuredValue = text
+    }
+
+    override fun prepareToDraw(context: Context, rowShareElements: RowShareElements) {
+        super.prepareToDraw(context, rowShareElements)
+
+        val textSize = context.sp(textSizeSp(context))
+        val color = color(context)
+        val typeface = typeface(context)
+
+        val paint = rowShareElements.getPaint(textSize, color, typeface)
+
+        val text = getText(context)
 
         if (!TextUtils.isEmpty(text) && text is String) {
             // before lollipop, BoringLayout.isBoring may return null
@@ -121,10 +153,6 @@ abstract class TextColumn : DrawableColumn() {
                     measuredTextWidth
                 )
             }
-            boringLayout?.height?.apply {
-                // before lollipop, this may be zero
-                measuredTextHeight = max(measuredTextHeight, this)
-            }
         } else if (!TextUtils.isEmpty(text) && text is Spannable) {
             if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
                 staticLayout = if (VERSION.SDK_INT >= VERSION_CODES.M) {
@@ -147,7 +175,6 @@ abstract class TextColumn : DrawableColumn() {
                         true
                     )
                 }
-                measuredTextWidth = max(staticLayout!!.getLineWidth(0).toInt(), 0)
             } else {
                 dynamicLayout = DynamicLayout(
                     text,
@@ -158,21 +185,8 @@ abstract class TextColumn : DrawableColumn() {
                     0F,
                     true
                 )
-                measuredTextWidth =
-                    DynamicLayout.getDesiredWidth(text, 0, text.length, paint).toInt()
             }
         }
-
-        val minWidth = max(width(context), minWidth(context))
-        val minHeight = max(height(context), minHeight(context))
-        val minWidthWithMargins = margins[0] + minWidth + margins[2]
-        val minHeightWithMargins = margins[1] + minHeight + margins[3]
-        widthWithMargins = margins[0] + padding[0] + measuredTextWidth + padding[2] + margins[2]
-        heightWithMargins = margins[1] + padding[1] + measuredTextHeight + padding[3] + margins[3]
-        widthWithMargins = max(minWidthWithMargins, widthWithMargins)
-        heightWithMargins = max(minHeightWithMargins, heightWithMargins)
-
-        lastMeasuredValue = text
     }
 
     override fun layout(

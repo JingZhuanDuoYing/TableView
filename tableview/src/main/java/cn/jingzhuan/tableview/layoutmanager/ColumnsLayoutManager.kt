@@ -12,10 +12,13 @@ import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.element.ViewColumn
 import cn.jingzhuan.tableview.screenWidth
 import java.io.Serializable
+import java.util.concurrent.Executors
 import kotlin.math.max
 import kotlin.math.min
 
 class ColumnsLayoutManager : Serializable {
+
+    private val service = Executors.newFixedThreadPool(3)
 
     private var columnsSize = 0
     var stickyColumns = 0
@@ -145,8 +148,9 @@ class ColumnsLayoutManager : Serializable {
         if (!column.visible()) return
 
         if (column is DrawableColumn) {
-            column.prepareForMeasure(context, row.rowShareElements)
+            column.prepareToMeasure(context, row.rowShareElements)
             column.measure(context, row.rowShareElements)
+            column.prepareToDraw(context, row.rowShareElements)
             return
         }
 

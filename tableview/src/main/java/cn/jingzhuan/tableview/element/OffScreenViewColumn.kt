@@ -14,7 +14,7 @@ abstract class OffScreenViewColumn : DrawableColumn() {
 
   abstract fun createView(context: Context): View
 
-  override fun prepareForMeasure(context: Context, rowShareElements: RowShareElements) {
+  override fun prepareToMeasure(context: Context, rowShareElements: RowShareElements) {
     if (null == view) view = createView(context)
   }
 
