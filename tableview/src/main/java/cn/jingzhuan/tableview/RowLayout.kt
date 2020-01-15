@@ -11,6 +11,7 @@ import android.widget.FrameLayout
 import androidx.core.view.GestureDetectorCompat
 import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
+import kotlin.math.max
 
 class RowLayout @JvmOverloads constructor(
     context: Context,
@@ -121,7 +122,7 @@ class RowLayout @JvmOverloads constructor(
         return null
     }
 
-    override fun getChildCount() = super.getChildCount() - 1 + scrollableContainer.childCount
+    override fun getChildCount() = max(0, super.getChildCount() - 1 + scrollableContainer.childCount)
 
     override fun setScrollX(value: Int) {
         scrollableContainer.scrollX = value

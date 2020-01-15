@@ -23,10 +23,6 @@ abstract class DrawableColumn : Column() {
         paint
     }
 
-    override fun visible(): Boolean {
-        return true
-    }
-
     open fun prepareToMeasure(context: Context, rowShareElements: RowShareElements) {}
 
     open fun measure(context: Context, rowShareElements: RowShareElements) {}

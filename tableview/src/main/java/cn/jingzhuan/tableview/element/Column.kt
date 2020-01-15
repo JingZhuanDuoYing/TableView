@@ -39,6 +39,8 @@ abstract class Column : IElement {
 
     var weight = 1
 
+    internal var visible = true
+
     internal var laidOut = false
 
     open fun minWidth(context: Context): Int {

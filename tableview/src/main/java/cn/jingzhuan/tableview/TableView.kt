@@ -96,6 +96,7 @@ open class TableView @JvmOverloads constructor(
     fun setHeaderRow(row: HeaderRow<*>?) {
         headerRow = row
         row?.layoutManager = columnsLayoutManager
+        columnsLayoutManager.specs.headerRow = row
         if (null != row && columnsLayoutManager.specs.columnsCount == 0 && columnsLayoutManager.specs.stickyColumnsCount == 0) {
             columnsLayoutManager.updateTableSize(row.columns.size, 1)
         }

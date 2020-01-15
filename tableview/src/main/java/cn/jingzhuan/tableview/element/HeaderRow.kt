@@ -17,8 +17,8 @@ open class HeaderRow<COLUMN : Column>(columns: List<COLUMN>) : Row<COLUMN>(colum
         return IRowListAdapterDelegate.HEADER_VIEW_TYPE
     }
 
-    override fun visible(): Boolean {
-        return true
+    fun setColumnVisibility(index: Int, visible: Boolean) {
+        columns[index].visible = visible
     }
 
     fun preMeasureAllRows(context: Context) {

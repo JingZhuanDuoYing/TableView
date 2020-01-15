@@ -94,10 +94,10 @@ class ColumnsLayoutManager : Serializable {
             val column = row.columns[index]
 
             val sticky = index < specs.stickyColumnsCount
-
-            if (!column.visible()) continue
+            val visible = specs.isColumnVisible(index)
 
             if (column is DrawableColumn) {
+                if(!visible) continue
                 // this may happens when columns changed
                 if (column.widthWithMargins == 0 || column.heightWithMargins == 0 || specs.columnsWidth[index] == 0) {
                     // measure drawable column in necessary
@@ -117,10 +117,10 @@ class ColumnsLayoutManager : Serializable {
                 else column.createView(context)
             viewIndex++
 
-            view.visibility = if(column.visible()) View.VISIBLE else View.GONE
-            if(!column.visible()) {
+            view.visibility = if (visible) View.VISIBLE else View.GONE
+            if (!visible) {
                 column.widthWithMargins = 0
-                if(specs.compareAndSetColumnsWidth(index, column.widthWithMargins)) {
+                if (specs.compareAndSetColumnsWidth(index, column.widthWithMargins)) {
                     pendingLayout = true
                 }
                 continue

@@ -32,10 +32,6 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         return null
     }
 
-    override fun visible(): Boolean {
-        return true
-    }
-
     open fun minHeight(context: Context): Int {
         return context.dp(50F).toInt()
     }
@@ -72,7 +68,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         for (index in 0 until maxSize) {
             val column = columns[index]
 
-            if (column.visible()) {
+            if (specs.isColumnVisible(index)) {
                 measureColumn(context, column)
             } else {
                 column.widthWithMargins = 0
@@ -130,6 +126,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         val rowHeight = getRowHeight(context)
         var x = 0
         for (i in 0 until specs.stickyColumnsCount) {
+            if(!specs.isColumnVisible(i)) continue
             val column = columns[i]
             layoutColumn(context, i, column, x, rowHeight, specs)
             if (column is DrawableColumn) column.draw(context, canvas, rowShareElements)
@@ -154,6 +151,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         var x = specs.getScrollableColumnLeftByIndex(startIndex)
 
         for (i in startIndex until specs.columnsCount) {
+            if(!specs.isColumnVisible(i)) continue
             val column = columns[i]
             layoutColumn(context, i, column, x, rowHeight, specs)
             if (column is DrawableColumn && !column.shouldIgnoreDraw(container)) {
@@ -206,8 +204,6 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     }
 
     private fun measureColumn(context: Context, column: Column) {
-        if (!column.visible()) return
-
         if (column is DrawableColumn) {
             column.prepareToMeasure(context, rowShareElements)
             column.measure(context, rowShareElements)

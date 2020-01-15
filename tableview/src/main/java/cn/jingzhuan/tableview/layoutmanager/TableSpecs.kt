@@ -3,9 +3,12 @@ package cn.jingzhuan.tableview.layoutmanager
 import android.graphics.Paint
 import android.util.SparseIntArray
 import androidx.annotation.ColorInt
+import cn.jingzhuan.tableview.element.HeaderRow
 import kotlin.math.max
 
 class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
+
+    internal var headerRow: HeaderRow<*>? = null
 
     val columnsWidth = SparseIntArray()
 
@@ -102,6 +105,10 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         }
 
         return changed
+    }
+
+    internal fun isColumnVisible(index: Int): Boolean {
+        return headerRow?.columns?.getOrNull(index)?.visible ?: true
     }
 
     fun computeScrollRange(): Int {

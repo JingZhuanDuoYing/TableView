@@ -16,8 +16,4 @@ internal class EmptyRow : Row<EmptyColumn>(listOf()) {
         return IRowListAdapterDelegate.INVALID_VIEW_TYPE
     }
 
-    override fun visible(): Boolean {
-        return true
-    }
-
 }
