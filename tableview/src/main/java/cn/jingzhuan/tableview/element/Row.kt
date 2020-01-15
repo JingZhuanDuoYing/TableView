@@ -2,7 +2,6 @@ package cn.jingzhuan.tableview.element
 
 import android.content.Context
 import android.graphics.Canvas
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
@@ -73,12 +72,14 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         for (index in 0 until maxSize) {
             val column = columns[index]
 
-            measureColumn(context, column)
-            if (specs.compareAndSetColumnsWidth(
-                    index,
-                    column.widthWithMargins
-                )
-            ) columnsSizeChanged = true
+            if (column.visible()) {
+                measureColumn(context, column)
+            } else {
+                column.widthWithMargins = 0
+            }
+            if (specs.compareAndSetColumnsWidth(index, column.widthWithMargins)) {
+                columnsSizeChanged = true
+            }
 
             // 记录 maxHeight，由于此函数属于热点代码，节省从 visibleColumnsHeightWithMargins 遍历得到的开销
             maxHeight = max(maxHeight, column.heightWithMargins)

@@ -1,6 +1,7 @@
 package cn.jingzhuan.tableview.layoutmanager
 
 import android.content.Context
+import android.view.View
 import android.view.View.MeasureSpec
 import android.view.ViewGroup
 import cn.jingzhuan.tableview.RowLayout
@@ -115,6 +116,15 @@ class ColumnsLayoutManager : Serializable {
                     rowLayout.getChildAt(viewIndex) ?: column.createView(context)
                 else column.createView(context)
             viewIndex++
+
+            view.visibility = if(column.visible()) View.VISIBLE else View.GONE
+            if(!column.visible()) {
+                column.widthWithMargins = 0
+                if(specs.compareAndSetColumnsWidth(index, column.widthWithMargins)) {
+                    pendingLayout = true
+                }
+                continue
+            }
 
             // 绑定column和view
             column.bindView(view)

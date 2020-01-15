@@ -85,6 +85,12 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
             changed = true
         }
 
+        // force set 0 when column was invisible
+        if (width == 0 && columnsWidth[index] != 0) {
+            columnsWidth.put(index, 0)
+            changed = true
+        }
+
         if (changed && index < stickyColumnsCount) {
             var stickyWidth = 0
             for (i in 0 until stickyColumnsCount) {
