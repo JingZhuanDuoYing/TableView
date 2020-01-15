@@ -15,7 +15,8 @@
         <activity android:name=".lesson2.Lesson2Activity" />
         <activity android:name=".lesson3.Lesson3Activity" />
         <activity android:name=".lesson4.Lesson4Activity" />
-        <activity android:name=".lesson5.Lesson5Activity" >
+        <activity android:name=".lesson5.Lesson5Activity" />
+        <activity android:name=".lesson6.Lesson6Activity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
