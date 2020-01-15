@@ -11,7 +11,7 @@ import cn.jingzhuan.tableview.demo.databinding.ActivityLesson1Binding
 class Lesson1Activity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLesson1Binding
-    private val viewModel by lazy { ViewModelProviders.of(this)[Lesson1ViewModel::class.java] }
+    private lateinit var viewModel: Lesson1ViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,11 +19,14 @@ class Lesson1Activity : AppCompatActivity() {
             this,
             R.layout.activity_lesson_1
         )
+        viewModel = ViewModelProviders.of(this)[Lesson1ViewModel::class.java]
+
         binding.tableView.setRowsDividerEnabled(true)
         binding.tableView.setColumnsDividerEnabled(true)
         binding.tableView.updateTableSize(100, 1)
+
         subscribe()
-        viewModel.fetch(100)
+        viewModel.fetch(100, 100)
     }
 
     private fun subscribe() {

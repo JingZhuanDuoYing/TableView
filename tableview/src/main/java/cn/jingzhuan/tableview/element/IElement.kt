@@ -15,6 +15,6 @@ interface IElement : Serializable {
 
   fun width(context: Context): Int
 
-  fun debugUI() = true
+  fun debugUI() = false
 
 }

@@ -199,24 +199,21 @@ class ColumnsLayoutManager : Serializable {
         val scrollableContainerWidth =
             maxWidth - rowLayout.paddingLeft - rowLayout.paddingRight - specs.stickyWidth
 
+        val rowHeight = row.getRowHeight(context)
+
         // 实际宽度发生变化重新执行Measure
-        if (scrollableContainer.width != scrollableContainerWidth) {
+        if (scrollableContainer.width != scrollableContainerWidth || scrollableContainer.height != rowHeight) {
             val widthMeasureSpec =
                 MeasureSpec.makeMeasureSpec(max(0, scrollableContainerWidth), MeasureSpec.EXACTLY)
-            val heightMeasureSpec = MeasureSpec.makeMeasureSpec(row.height, MeasureSpec.EXACTLY)
+            val heightMeasureSpec = MeasureSpec.makeMeasureSpec(rowHeight, MeasureSpec.EXACTLY)
             scrollableContainer.measure(widthMeasureSpec, heightMeasureSpec)
         }
 
         // 检查是否需要Layout，并执行
         val left = rowLayout.paddingLeft + specs.stickyWidth
         val right = left + scrollableContainer.measuredWidth
-        val bottom = when {
-            rowLayout.height > 0 -> rowLayout.height
-            row.height(context) > 0 -> row.height(context)
-            else -> row.minHeight(context)
-        }
-        if (scrollableContainer.left != left || scrollableContainer.top != 0 || scrollableContainer.right != right || scrollableContainer.bottom != bottom) {
-            scrollableContainer.layout(left, 0, right, bottom)
+        if (scrollableContainer.left != left || scrollableContainer.top != 0 || scrollableContainer.right != right || scrollableContainer.bottom != rowHeight) {
+            scrollableContainer.layout(left, 0, right, rowHeight)
         }
         return scrollableContainer.measuredWidth
     }

@@ -2,10 +2,12 @@ package cn.jingzhuan.tableview.element
 
 import android.content.Context
 import android.graphics.Canvas
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
 import cn.jingzhuan.tableview.RowLayout
+import cn.jingzhuan.tableview.TableViewLog
 import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.layoutmanager.TableSpecs
 import kotlin.math.absoluteValue
@@ -144,7 +146,6 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         specs: TableSpecs
     ) {
         val rowHeight = getRowHeight(context)
-
         val startIndex =
             findScrollableDrawStartColumnIndex(
                 container,
@@ -197,7 +198,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         ) else findScrollableDrawStartColumnIndex(container, center, end)
     }
 
-    private fun getRowHeight(context: Context): Int {
+    internal fun getRowHeight(context: Context): Int {
         return when {
             height > 0 -> height
             height(context) > 0 -> height(context)
@@ -211,7 +212,6 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         if (column is DrawableColumn) {
             column.prepareToMeasure(context, rowShareElements)
             column.measure(context, rowShareElements)
-            column.prepareToDraw(context, rowShareElements)
             return
         }
 
@@ -246,7 +246,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         column.columnLeft = x
         column.columnTop = 0
         column.columnRight = x + specs.columnsWidth[index]
-        column.columnBottom = height
+        column.columnBottom = rowHeight
 
         val top: Int
         val bottom: Int
@@ -261,13 +261,16 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         val right = column.columnRight
         val left = right - column.widthWithMargins
         column.layout(context, left, top, right, bottom, rowShareElements)
+        if (column is DrawableColumn) {
+            column.prepareToDraw(context, rowShareElements)
+        }
     }
 
     private fun drawColumnsDivider(canvas: Canvas, column: Column, specs: TableSpecs) {
         if (!specs.enableColumnsDivider) return
         canvas.drawLine(
             column.columnRight.toFloat(),
-            0F,
+            column.columnTop.toFloat(),
             column.columnRight.toFloat(),
             column.columnBottom.toFloat(),
             specs.columnsDividerPaint

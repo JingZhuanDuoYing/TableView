@@ -54,11 +54,8 @@ class RowLayout @JvmOverloads constructor(
 
         val totalWidth =
             layoutManager.specs.columnsWidth.sum() + paddingLeft + paddingRight
-        val rowHeight = when {
-            row.height > 0 -> row.height
-            row.height(context) > 0 -> row.height(context)
-            else -> row.minHeight(context)
-        }
+
+        val rowHeight = row.getRowHeight(context)
         val resolvedWidth = View.resolveSizeAndState(totalWidth, widthMeasureSpec, 0)
         val resolvedHeight = View.resolveSizeAndState(rowHeight, heightMeasureSpec, 0)
         setMeasuredDimension(resolvedWidth, resolvedHeight)

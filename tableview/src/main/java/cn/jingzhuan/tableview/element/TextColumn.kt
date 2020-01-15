@@ -49,10 +49,6 @@ abstract class TextColumn : DrawableColumn() {
         return 18F
     }
 
-    override fun visible(): Boolean {
-        return true
-    }
-
     @ColorInt
     open fun color(context: Context): Int {
         return Color.BLACK
@@ -255,16 +251,12 @@ abstract class TextColumn : DrawableColumn() {
         val drawRegionHeight = drawRegionBottom - drawRegionTop
         canvas.save()
         if (text is String && null != boringLayout) {
-            if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-                canvas.translate(drawLeft, drawTop)
-            } else {
-                canvas.translate(drawLeft, drawTop - paint.descent())
-            }
+            canvas.translate(drawLeft, drawTop + boringLayout!!.topPadding)
             boringLayout?.draw(canvas)
         } else if (text is Spannable) {
             if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
                 if (null != staticLayout) {
-                    canvas.translate(drawLeft, drawTop - paint.descent())
+                    canvas.translate(drawLeft, drawTop + staticLayout!!.topPadding)
                     staticLayout?.draw(canvas)
                 } else {
                     canvas.drawText(
@@ -278,7 +270,7 @@ abstract class TextColumn : DrawableColumn() {
                 }
             } else {
                 if (null != dynamicLayout) {
-                    canvas.translate(drawLeft, drawTop - paint.descent())
+                    canvas.translate(drawLeft, drawTop + dynamicLayout!!.topPadding)
                     dynamicLayout?.draw(canvas)
                 } else {
                     canvas.drawText(
@@ -286,13 +278,13 @@ abstract class TextColumn : DrawableColumn() {
                         0,
                         text.length,
                         drawLeft,
-                        drawTop + drawRegionHeight,
+                        drawTop + drawRegionHeight - paint.descent(),
                         paint
                     )
                 }
             }
         } else {
-            canvas.drawText(text.toString(), drawLeft, drawTop + drawRegionHeight, paint)
+            canvas.drawText(text.toString(), drawLeft, drawTop + drawRegionHeight - paint.descent(), paint)
         }
         canvas.restore()
     }

@@ -5,7 +5,9 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Paint.Style.STROKE
+import android.view.Gravity
 import android.view.View
+import cn.jingzhuan.tableview.drawRect
 import cn.jingzhuan.tableview.lazyNone
 
 abstract class DrawableColumn : Column() {
@@ -19,6 +21,10 @@ abstract class DrawableColumn : Column() {
         paint.strokeWidth = 1F
         paint.style = STROKE
         paint
+    }
+
+    override fun visible(): Boolean {
+        return true
     }
 
     open fun prepareToMeasure(context: Context, rowShareElements: RowShareElements) {}
@@ -41,28 +47,15 @@ abstract class DrawableColumn : Column() {
         rowShareElements: RowShareElements
     ) {
         if (debugUI()) {
-//            debugPaint.color = Color.RED
-//            canvas.drawRect(left, top, right, bottom, debugPaint)
-//            val center = (top + bottom) / 2
-//            canvas.drawLine(left, center - 1, right, center + 1, debugPaint)
-//
-//            debugPaint.color = Color.YELLOW
-//            canvas.drawRect(
-//                left + leftMargin,
-//                top + topMargin,
-//                right - rightMargin,
-//                bottom - bottomMargin,
-//                debugPaint
-//            )
-//
-//            debugPaint.color = Color.BLUE
-//            canvas.drawRect(
-//                left + leftMargin + paddingLeft,
-//                top + topMargin + paddingTop,
-//                right - rightMargin - paddingRight,
-//                bottom - bottomMargin - paddingBottom,
-//                debugPaint
-//            )
+            debugPaint.color = Color.RED
+            canvas.drawRect(columnLeft, columnTop, columnRight, columnBottom, debugPaint)
+
+            debugPaint.color = Color.BLUE
+            val container = rowShareElements.rect1
+            container.set(columnLeft, columnTop, columnRight, columnBottom)
+            val outRect = rowShareElements.rect2
+            Gravity.apply(gravity, widthWithMargins, heightWithMargins, container, outRect)
+            canvas.drawRect(outRect, debugPaint)
         }
     }
 

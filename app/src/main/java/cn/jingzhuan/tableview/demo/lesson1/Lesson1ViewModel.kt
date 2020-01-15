@@ -13,7 +13,7 @@ class Lesson1ViewModel : ViewModel() {
     val liveData = MutableLiveData<TitleRow>()
     private var disposable: Disposable? = null
 
-    fun fetch(columnsCount: Int) {
+    fun fetch(rowsCount: Int, columnsCount: Int) {
         disposable = Flowable.fromCallable { columnsCount }
             .map {
 
@@ -24,7 +24,7 @@ class Lesson1ViewModel : ViewModel() {
                 }
                 val titleRow = TitleRow(titleColumns)
 
-                for (rowIndex in 0 until 100) {
+                for (rowIndex in 0 until rowsCount) {
                     val rowColumns = mutableListOf<Column>()
                     rowColumns.add(SimpleHeaderColumn("Row${rowIndex + 1}"))
                     for (columnIndex in 0 until columnsCount) {
@@ -35,7 +35,7 @@ class Lesson1ViewModel : ViewModel() {
 
                 titleRow
             }
-            .subscribeOn(Schedulers.io())
+            .subscribeOn(Schedulers.computation())
             .subscribe({
                 liveData.postValue(it)
             }, {
