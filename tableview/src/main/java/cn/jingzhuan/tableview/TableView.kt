@@ -16,6 +16,7 @@ import cn.jingzhuan.tableview.adapter.RowListAdapter
 import cn.jingzhuan.tableview.adapter.RowListAdapterDelegate
 import cn.jingzhuan.tableview.directionlock.DirectionLockRecyclerView
 import cn.jingzhuan.tableview.element.HeaderRow
+import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
 import cn.jingzhuan.tableview.layoutmanager.RowListLayoutManager
 import cn.jingzhuan.tableview.layoutmanager.RowListStretchLayoutManager
 import kotlin.math.max
@@ -34,10 +35,7 @@ open class TableView @JvmOverloads constructor(
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
     var headerRow: HeaderRow<*>? = null
-        set(value) {
-            field = value
-            adapter.headerRow = value
-        }
+        private set
 
     private var adapter: IRowListAdapterDelegate = RowListAdapterDelegate()
 
@@ -67,14 +65,14 @@ open class TableView @JvmOverloads constructor(
     }
     private val headerStretchLayoutManager by lazyNone { RowListStretchLayoutManager(context) }
     private val mainStretchLayoutManager by lazyNone { RowListStretchLayoutManager(context) }
+    private val columnsLayoutManager = ColumnsLayoutManager()
 
     private val scrollListener =
         RecyclerViewScrollListener(
             verticalScrollCallback = { scrolledVerticalCallback?.invoke() },
             horizontalScrollCallback = { scrolledHorizontalCallback?.invoke() }
         )
-    private val restorePositionController =
-        RestorePositionController()
+    private val restorePositionController = RestorePositionController()
 
     private val glowHelper by lazyNone { GlowHelper(this) }
 
@@ -97,6 +95,15 @@ open class TableView @JvmOverloads constructor(
         addView(main, LayoutParams(MATCH_PARENT, MATCH_PARENT))
     }
 
+    fun setHeaderRow(row: HeaderRow<*>?) {
+        headerRow = row
+        row?.layoutManager = columnsLayoutManager
+        if (null != row && columnsLayoutManager.specs.columnsCount == 0 && columnsLayoutManager.specs.stickyColumnsCount == 0) {
+            columnsLayoutManager.updateTableSize(row.columns.size, 1)
+        }
+        adapter.headerRow = row
+    }
+
     fun setStretchMode(isStretch: Boolean) {
         if (isStretch) {
             header.layoutManager = headerStretchLayoutManager
@@ -105,6 +112,30 @@ open class TableView @JvmOverloads constructor(
             header.layoutManager = headerLayoutManager
             main.layoutManager = mainLayoutManager
         }
+    }
+
+    fun updateTableSize(columns: Int, stickyColumnsCount: Int) {
+        columnsLayoutManager.updateTableSize(columns, stickyColumnsCount)
+    }
+
+    fun setRowsDividerEnabled(enable: Boolean) {
+        columnsLayoutManager.specs.enableRowsDivider = enable
+        header.addItemDecoration(
+            TableDecoration(
+                columnsLayoutManager.specs.dividerStrokeWidth,
+                color = columnsLayoutManager.specs.dividerColor
+            )
+        )
+        main.addItemDecoration(
+            TableDecoration(
+                columnsLayoutManager.specs.dividerStrokeWidth,
+                color = columnsLayoutManager.specs.dividerColor
+            )
+        )
+    }
+
+    fun setColumnsDividerEnabled(enable: Boolean) {
+        columnsLayoutManager.specs.enableColumnsDivider = enable
     }
 
     fun firstVisiblePosition(): Int {

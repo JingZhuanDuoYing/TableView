@@ -15,8 +15,4 @@ class TitleHeaderColumn : TextColumn() {
         return "Title"
     }
 
-    override fun visible(): Boolean {
-        return true
-    }
-
 }

@@ -55,17 +55,23 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
 
         val row = getRow(position, fromHeader)
         if (null == row) {
-            TableViewLog.e(this::class.java.name, "row should not be null")
+            TableViewLog.e(this::class.java.simpleName, "row should not be null")
             return
         }
 
         val headerRow = headerRow
         if (null == headerRow) {
-            TableViewLog.e(this::class.java.name, "HeaderRow should not be null")
+            TableViewLog.e(this::class.java.simpleName, "HeaderRow should not be null")
             return
         }
 
-        (holder as? RowListViewHolder)?.bindData(row, headerRow.layoutManager)
+        val layoutManager = headerRow.layoutManager
+        if (null == layoutManager) {
+            TableViewLog.e(this::class.java.simpleName, "LayoutManager should not be null")
+            return
+        }
+
+        (holder as? RowListViewHolder)?.bindData(row, layoutManager)
     }
 
     override fun getItemCount(fromHeader: Boolean): Int {

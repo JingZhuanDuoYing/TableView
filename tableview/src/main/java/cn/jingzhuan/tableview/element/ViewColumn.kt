@@ -14,6 +14,10 @@ abstract class ViewColumn : Column() {
   internal var right = 0
   internal var bottom = 0
 
+  override fun visible(): Boolean {
+    return true
+  }
+
   abstract fun createView(context: Context): View
 
   abstract fun bindView(view: View)

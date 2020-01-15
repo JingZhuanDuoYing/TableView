@@ -8,11 +8,7 @@ open class HeaderRow<COLUMN : Column>(columns: List<COLUMN>) : Row<COLUMN>(colum
 
     val stickyRows = mutableListOf<Row<*>>()
     val rows = mutableListOf<Row<*>>()
-    val layoutManager = ColumnsLayoutManager()
-
-    init {
-        updateTableSize()
-    }
+    internal var layoutManager: ColumnsLayoutManager? = null
 
     /**
      * 子类除特殊情况请不要重写此方法
@@ -25,11 +21,8 @@ open class HeaderRow<COLUMN : Column>(columns: List<COLUMN>) : Row<COLUMN>(colum
         return true
     }
 
-    fun updateTableSize(columns: Int = this.columns.size, stickyColumnsCount: Int = 1) {
-        layoutManager.updateTableSize(columns, stickyColumnsCount)
-    }
-
     fun preMeasureAllRows(context: Context) {
+        val layoutManager = layoutManager ?: return
         measure(context, layoutManager.specs)
         stickyRows.forEach { it.measure(context, layoutManager.specs) }
         rows.forEach { it.measure(context, layoutManager.specs) }

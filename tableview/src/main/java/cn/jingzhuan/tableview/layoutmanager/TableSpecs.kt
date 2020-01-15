@@ -1,5 +1,7 @@
 package cn.jingzhuan.tableview.layoutmanager
 
+import android.graphics.Paint
+import androidx.annotation.ColorInt
 import kotlin.math.max
 import kotlin.math.min
 
@@ -18,13 +20,33 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         internal set
 
     var stickyWidth = 0
+        internal set
     var scrollableWidth = 0
+        internal set
     var scrollableVirtualWidth = 0
+        internal set
+
+    @ColorInt
+    var dividerColor = 0xFF959595.toInt()
+        set(value) {
+            field = value
+            columnsDividerPaint.color = value
+        }
+    var dividerStrokeWidth = 1
+
+    var enableRowsDivider = false
+    var enableColumnsDivider = false
 
     private var lastDrawStartColumnIndex = 0
     private var lastDrawStartColumnLeft = 0
 
     private val insetRight = 15F
+
+    internal val columnsDividerPaint = Paint().apply {
+        isDither = true
+        isAntiAlias = true
+        color = dividerColor
+    }
 
     @Transient
     var onColumnsWidthWithMarginsChanged: ((ColumnsLayoutManager) -> Unit)? = null

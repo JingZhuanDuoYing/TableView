@@ -19,14 +19,16 @@ class Lesson1Activity : AppCompatActivity() {
             this,
             R.layout.activity_lesson_1
         )
-
+        binding.tableView.setRowsDividerEnabled(true)
+        binding.tableView.setColumnsDividerEnabled(true)
+        binding.tableView.updateTableSize(100, 1)
         subscribe()
-        viewModel.fetch(this, 1000)
+        viewModel.fetch(100)
     }
 
     private fun subscribe() {
         viewModel.liveData.observe(this, Observer {
-            binding.tableView.headerRow = it
+            binding.tableView.setHeaderRow(it)
             binding.tableView.notifyDataSetChanged()
         })
     }

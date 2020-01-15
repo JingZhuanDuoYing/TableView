@@ -1,14 +1,20 @@
 package cn.jingzhuan.tableview.element
 
+import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.Typeface
 import android.text.TextPaint
 
 class RowShareElements {
 
-    val rect1 = Rect()
-    val rect2 = Rect()
+    internal val rect1 = Rect()
+    internal val rect2 = Rect()
     private val paintPool = mutableMapOf<Int, TextPaint>()
+    internal val backgroundPaint = Paint().apply {
+        isDither = true
+        isAntiAlias = true
+        style = Paint.Style.FILL
+    }
 
     fun getPaint(textSize: Float, color: Int, typeface: Typeface): TextPaint {
         val key = getKey(textSize, color, typeface)

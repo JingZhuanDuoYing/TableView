@@ -49,6 +49,10 @@ abstract class TextColumn : DrawableColumn() {
         return 18F
     }
 
+    override fun visible(): Boolean {
+        return true
+    }
+
     @ColorInt
     open fun color(context: Context): Int {
         return Color.BLACK
@@ -98,7 +102,8 @@ abstract class TextColumn : DrawableColumn() {
         val minWidthWithMargins = leftMargin + minWidth + rightMargin
         val minHeightWithMargins = topMargin + minHeight + bottomMargin
         widthWithMargins = leftMargin + paddingLeft + measuredTextWidth + paddingRight + rightMargin
-        heightWithMargins = topMargin + paddingTop + measuredTextHeight + paddingBottom + bottomMargin
+        heightWithMargins =
+            topMargin + paddingTop + measuredTextHeight + paddingBottom + bottomMargin
         widthWithMargins = max(minWidthWithMargins, widthWithMargins)
         heightWithMargins = max(minHeightWithMargins, heightWithMargins)
 
@@ -142,7 +147,7 @@ abstract class TextColumn : DrawableColumn() {
         val text = getText(context)
 
         if (!TextUtils.isEmpty(text) && text is String && !drawSimpleTextDirectly) {
-            if(null != boringLayout && text == boringLayout!!.text) return
+            if (null != boringLayout && text == boringLayout!!.text) return
             // before lollipop, BoringLayout.isBoring may return null
             val params =
                 BoringLayout.isBoring(text, paint)
@@ -184,7 +189,7 @@ abstract class TextColumn : DrawableColumn() {
             }
         } else if (!TextUtils.isEmpty(text) && text is Spannable) {
             if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-                if(null != staticLayout && text == staticLayout!!.text) return
+                if (null != staticLayout && text == staticLayout!!.text) return
                 staticLayout = if (VERSION.SDK_INT >= VERSION_CODES.M) {
                     StaticLayout.Builder.obtain(
                         text,
@@ -206,7 +211,7 @@ abstract class TextColumn : DrawableColumn() {
                     )
                 }
             } else {
-                if(null != dynamicLayout && text == dynamicLayout!!.text) return
+                if (null != dynamicLayout && text == dynamicLayout!!.text) return
                 dynamicLayout = DynamicLayout(
                     text,
                     paint,
@@ -226,6 +231,18 @@ abstract class TextColumn : DrawableColumn() {
         rowShareElements: RowShareElements
     ) {
         super.draw(context, canvas, rowShareElements)
+        val backgroundColor = backgroundColor(context)
+        if (null != backgroundColor) {
+            val backgroundPaint = rowShareElements.backgroundPaint
+            if (backgroundColor != backgroundPaint.color) backgroundPaint.color = backgroundColor
+            canvas.drawRect(
+                columnLeft.toFloat(),
+                columnTop.toFloat(),
+                columnRight.toFloat(),
+                columnBottom.toFloat(),
+                backgroundPaint
+            )
+        }
 
         val textSize = context.sp(textSizeSp(context))
         val color = color(context)

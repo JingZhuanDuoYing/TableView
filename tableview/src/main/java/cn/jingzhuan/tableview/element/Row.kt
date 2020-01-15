@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.ColorInt
 import cn.jingzhuan.tableview.RowLayout
 import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.layoutmanager.TableSpecs
@@ -25,6 +26,15 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     internal val rowShareElements = RowShareElements()
 
     abstract fun type(): Int
+
+    @ColorInt
+    open fun backgroundColor(context: Context): Int? {
+        return null
+    }
+
+    override fun visible(): Boolean {
+        return true
+    }
 
     open fun minHeight(context: Context): Int {
         return context.dp(50F).toInt()
@@ -103,7 +113,12 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     }
 
     open fun draw(context: Context, canvas: Canvas, stickyWidthWithMargins: Int) {
-
+        val backgroundColor = backgroundColor(context)
+        if (null != backgroundColor) {
+            val paint = rowShareElements.backgroundPaint
+            if (paint.color != backgroundColor) paint.color = backgroundColor
+            canvas.drawRect(0F, 0F, canvas.width.toFloat(), canvas.height.toFloat(), paint)
+        }
     }
 
     internal fun layoutAndDrawSticky(
@@ -117,6 +132,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
             val column = columns[i]
             layoutColumn(context, i, column, x, rowHeight, specs)
             if (column is DrawableColumn) column.draw(context, canvas, rowShareElements)
+            drawColumnsDivider(canvas, column, specs)
             x = column.columnRight
         }
     }
@@ -144,6 +160,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
                 if (column.columnLeft > container.scrollX + container.width) break
                 column.draw(context, canvas, rowShareElements)
             }
+            drawColumnsDivider(canvas, column, specs)
             x = column.columnRight
         }
     }
@@ -244,6 +261,17 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         val right = column.columnRight
         val left = right - column.widthWithMargins
         column.layout(context, left, top, right, bottom, rowShareElements)
+    }
+
+    private fun drawColumnsDivider(canvas: Canvas, column: Column, specs: TableSpecs) {
+        if (!specs.enableColumnsDivider) return
+        canvas.drawLine(
+            column.columnRight.toFloat(),
+            0F,
+            column.columnRight.toFloat(),
+            column.columnBottom.toFloat(),
+            specs.columnsDividerPaint
+        )
     }
 
 }
