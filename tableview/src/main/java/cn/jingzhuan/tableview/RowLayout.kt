@@ -52,8 +52,7 @@ class RowLayout @JvmOverloads constructor(
         val layoutManager =
             layoutManager ?: return super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 
-        val totalWidth =
-            layoutManager.specs.columnsWidth.sum() + paddingLeft + paddingRight
+        val totalWidth = if(layoutManager.specs.width > 0) layoutManager.specs.width else context.screenWidth()
 
         val rowHeight = row.getRowHeight(context)
         val resolvedWidth = View.resolveSizeAndState(totalWidth, widthMeasureSpec, 0)
@@ -106,7 +105,7 @@ class RowLayout @JvmOverloads constructor(
 
     override fun getChildAt(index: Int): View? {
         // return early if scrollableContainer was not already added in RowLayout yet
-        if(super.getChildCount() == 0) return scrollableContainer.getChildAt(index)
+        if (super.getChildCount() == 0) return scrollableContainer.getChildAt(index)
         for (i in 0 until super.getChildCount()) {
             val child = super.getChildAt(i) ?: return null
             if (i == index && child != scrollableContainer) return child
@@ -140,7 +139,7 @@ class RowLayout @JvmOverloads constructor(
 
     // -----------------------------    public    -----------------------------
     fun bindRow(row: Row<*>, layoutManager: ColumnsLayoutManager) {
-        if(this.row != row) {
+        if (this.row != row) {
             removeAllViews()
             scrollableContainer.removeAllViews()
         }
@@ -148,11 +147,6 @@ class RowLayout @JvmOverloads constructor(
         this.layoutManager = layoutManager
         this.layoutManager?.attachRowLayout(this)
         this.layoutManager?.measureAndLayout(context, row, this, scrollableContainer)
-    }
-
-    fun relayoutInStretchMode() {
-        val row = row ?: return
-        layoutManager?.measureAndLayoutInStretchMode(context, row, this, scrollableContainer)
     }
 
     // -----------------------------    private    -----------------------------

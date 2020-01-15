@@ -18,7 +18,6 @@ import cn.jingzhuan.tableview.directionlock.DirectionLockRecyclerView
 import cn.jingzhuan.tableview.element.HeaderRow
 import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
 import cn.jingzhuan.tableview.layoutmanager.RowListLayoutManager
-import cn.jingzhuan.tableview.layoutmanager.RowListStretchLayoutManager
 import kotlin.math.max
 
 /**
@@ -46,25 +45,11 @@ open class TableView @JvmOverloads constructor(
         DirectionLockRecyclerView(
             context
         )
-            .apply {
-                directionLockEnabled = true
-            }
     protected val main: RecyclerView =
         DirectionLockRecyclerView(
             context
         )
-            .apply {
-                directionLockEnabled = true
-            }
 
-    private val headerLayoutManager = RowListLayoutManager(context) { dx, _ ->
-        headerRow?.layoutManager?.scrollHorizontallyBy(dx) ?: 0
-    }
-    private val mainLayoutManager = RowListLayoutManager(context) { dx, _ ->
-        headerRow?.layoutManager?.scrollHorizontallyBy(dx) ?: 0
-    }
-    private val headerStretchLayoutManager by lazyNone { RowListStretchLayoutManager(context) }
-    private val mainStretchLayoutManager by lazyNone { RowListStretchLayoutManager(context) }
     private val columnsLayoutManager = ColumnsLayoutManager()
 
     private val scrollListener =
@@ -81,8 +66,16 @@ open class TableView @JvmOverloads constructor(
 
         setAdapter(adapter)
         setStretchMode(false)
+        header.layoutManager = RowListLayoutManager(context) { dx, _ ->
+            headerRow?.layoutManager?.scrollHorizontallyBy(dx) ?: 0
+        }
+        main.layoutManager = RowListLayoutManager(context) { dx, _ ->
+            headerRow?.layoutManager?.scrollHorizontallyBy(dx) ?: 0
+        }
         header.addOnScrollListener(scrollListener)
         main.addOnScrollListener(scrollListener)
+        (header as DirectionLockRecyclerView).directionLockEnabled = true
+        (main as DirectionLockRecyclerView).directionLockEnabled = true
         header.itemAnimator = null
         main.itemAnimator = null
 
@@ -95,6 +88,11 @@ open class TableView @JvmOverloads constructor(
         addView(main, LayoutParams(MATCH_PARENT, MATCH_PARENT))
     }
 
+    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        super.onLayout(changed, l, t, r, b)
+        columnsLayoutManager.specs.width = width
+    }
+
     fun setHeaderRow(row: HeaderRow<*>?) {
         headerRow = row
         row?.layoutManager = columnsLayoutManager
@@ -105,13 +103,7 @@ open class TableView @JvmOverloads constructor(
     }
 
     fun setStretchMode(isStretch: Boolean) {
-        if (isStretch) {
-            header.layoutManager = headerStretchLayoutManager
-            main.layoutManager = mainStretchLayoutManager
-        } else {
-            header.layoutManager = headerLayoutManager
-            main.layoutManager = mainLayoutManager
-        }
+        columnsLayoutManager.specs.stretchMode = isStretch
     }
 
     fun updateTableSize(columns: Int, stickyColumnsCount: Int) {

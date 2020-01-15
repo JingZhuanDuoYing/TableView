@@ -37,6 +37,8 @@ abstract class Column : IElement {
 
     var gravity: Int = Gravity.END or Gravity.CENTER_VERTICAL
 
+    var weight = 1
+
     internal var laidOut = false
 
     open fun minWidth(context: Context): Int {

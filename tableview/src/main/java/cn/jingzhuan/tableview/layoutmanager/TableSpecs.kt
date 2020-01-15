@@ -1,14 +1,14 @@
 package cn.jingzhuan.tableview.layoutmanager
 
 import android.graphics.Paint
+import android.util.SparseIntArray
 import androidx.annotation.ColorInt
 import kotlin.math.max
-import kotlin.math.min
 
 class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
 
-    var columnsWidth = IntArray(0)
-        private set
+    val columnsWidth = SparseIntArray()
+
     var stickyColumnsCount = 0
         private set
     var columnsCount = 0
@@ -19,9 +19,9 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
     var scrollX = 0
         internal set
 
-    var stickyWidth = 0
+    var width = 0
         internal set
-    var scrollableWidth = 0
+    var stickyWidth = 0
         internal set
     var scrollableVirtualWidth = 0
         internal set
@@ -64,9 +64,9 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
     }
 
     internal fun updateTableSize(columnsCount: Int, stickyColumnsCount: Int) {
+        if(stickyColumnsCount > columnsCount) throw IllegalArgumentException("stickyColumnsCount must not be greater than columnsCount")
         this.columnsCount = columnsCount
         this.stickyColumnsCount = stickyColumnsCount
-        columnsWidth = make(columnsWidth, columnsCount)
     }
 
     /**
@@ -74,36 +74,34 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
      */
     internal fun compareAndSetColumnsWidth(index: Int, width: Int): Boolean {
         if (columnsWidth[index] < width) {
-            columnsWidth[index] = width
+            columnsWidth.put(index, width)
+            if(index < stickyColumnsCount) {
+                var stickyWidth = 0
+                for(i in 0 until stickyColumnsCount) {
+                    stickyWidth += columnsWidth[i]
+                }
+                this.stickyWidth = stickyWidth
+            }
             return true
         }
         return false
     }
 
     fun computeScrollRange(): Int {
-        return max(0F, scrollableWidth - scrollableVirtualWidth + insetRight).toInt()
+        return max(0F, scrollableVirtualWidth - (width - stickyWidth) + insetRight).toInt()
     }
 
     internal fun onColumnsWidthChanged() {
         stickyWidth = 0
-        scrollableWidth = 0
-        for (i in columnsWidth.indices) {
+        scrollableVirtualWidth = 0
+        for (i in 0 until columnsCount) {
             if (i < stickyColumnsCount) {
                 stickyWidth += columnsWidth[i]
             } else {
-                scrollableWidth += columnsWidth[i]
+                scrollableVirtualWidth += columnsWidth[i]
             }
         }
         onColumnsWidthWithMarginsChanged?.invoke(layoutManager)
-    }
-
-    private fun make(
-        original: IntArray,
-        newCapacity: Int
-    ): IntArray {
-        val newArray = IntArray(newCapacity)
-        System.arraycopy(original, 0, newArray, 0, min(original.size, newCapacity))
-        return newArray
     }
 
 }

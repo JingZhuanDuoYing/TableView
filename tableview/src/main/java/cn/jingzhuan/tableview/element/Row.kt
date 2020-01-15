@@ -101,7 +101,6 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         context: Context,
         specs: TableSpecs
     ) {
-        if (specs.stretchMode) return
         var x = 0
         val rowHeight = getRowHeight(context)
         val maxSize = min(columns.size, specs.columnsCount)
