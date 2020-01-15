@@ -16,8 +16,8 @@ abstract class TextColumn : DrawableColumn() {
     private val drawSimpleTextDirectly = true
 
     init {
-        paddingLeft = 10
-        paddingRight = 10
+        paddingLeft = 30
+        paddingRight = 30
     }
 
     @Transient

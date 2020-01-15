@@ -52,7 +52,7 @@ class RowLayout @JvmOverloads constructor(
         val layoutManager =
             layoutManager ?: return super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 
-        val totalWidth = if(layoutManager.specs.width > 0) layoutManager.specs.width else context.screenWidth()
+        val totalWidth = if(layoutManager.specs.tableWidth > 0) layoutManager.specs.tableWidth else context.screenWidth()
 
         val rowHeight = row.getRowHeight(context)
         val resolvedWidth = View.resolveSizeAndState(totalWidth, widthMeasureSpec, 0)

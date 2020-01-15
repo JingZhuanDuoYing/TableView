@@ -7,7 +7,6 @@ import cn.jingzhuan.tableview.RowLayout
 import cn.jingzhuan.tableview.element.DrawableColumn
 import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.element.ViewColumn
-import cn.jingzhuan.tableview.screenWidth
 import java.io.Serializable
 import kotlin.math.max
 import kotlin.math.min
@@ -191,7 +190,7 @@ class ColumnsLayoutManager : Serializable {
         rowLayout: RowLayout,
         scrollableContainer: ViewGroup
     ): Int {
-        val scrollableContainerWidth = specs.width - specs.stickyWidth
+        val scrollableContainerWidth = specs.tableWidth - specs.stickyWidth
         val rowHeight = row.getRowHeight(context)
 
         // 实际宽度发生变化重新执行Measure

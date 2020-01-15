@@ -90,7 +90,7 @@ open class TableView @JvmOverloads constructor(
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         super.onLayout(changed, l, t, r, b)
-        columnsLayoutManager.specs.width = width
+        columnsLayoutManager.specs.tableWidth = width
     }
 
     fun setHeaderRow(row: HeaderRow<*>?) {

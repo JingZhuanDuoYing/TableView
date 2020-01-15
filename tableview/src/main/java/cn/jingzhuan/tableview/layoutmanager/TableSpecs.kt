@@ -15,11 +15,12 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         private set
 
     var stretchMode = false
+    var stretchColumnWidth = 0
 
     var scrollX = 0
         internal set
 
-    var width = 0
+    var tableWidth = 0
         internal set
     var stickyWidth = 0
         internal set
@@ -39,8 +40,6 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
 
     private var lastDrawStartColumnIndex = 0
     private var lastDrawStartColumnLeft = 0
-
-    private val insetRight = 15F
 
     internal val columnsDividerPaint = Paint().apply {
         isDither = true
@@ -64,7 +63,7 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
     }
 
     internal fun updateTableSize(columnsCount: Int, stickyColumnsCount: Int) {
-        if(stickyColumnsCount > columnsCount) throw IllegalArgumentException("stickyColumnsCount must not be greater than columnsCount")
+        if (stickyColumnsCount > columnsCount) throw IllegalArgumentException("stickyColumnsCount must not be greater than columnsCount")
         this.columnsCount = columnsCount
         this.stickyColumnsCount = stickyColumnsCount
     }
@@ -73,22 +72,35 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
      * @return whether [columnsWidth] have been changed
      */
     internal fun compareAndSetColumnsWidth(index: Int, width: Int): Boolean {
+        var changed = false
+
+        if (stretchMode && index >= stickyColumnsCount) {
+            changed = columnsWidth[index] == stretchColumnWidth
+            columnsWidth.put(index, stretchColumnWidth)
+            return changed
+        }
+
         if (columnsWidth[index] < width) {
             columnsWidth.put(index, width)
-            if(index < stickyColumnsCount) {
-                var stickyWidth = 0
-                for(i in 0 until stickyColumnsCount) {
-                    stickyWidth += columnsWidth[i]
-                }
-                this.stickyWidth = stickyWidth
-            }
-            return true
+            changed = true
         }
-        return false
+
+        if (changed && index < stickyColumnsCount) {
+            var stickyWidth = 0
+            for (i in 0 until stickyColumnsCount) {
+                stickyWidth += columnsWidth[i]
+            }
+            this.stickyWidth = stickyWidth
+            stretchColumnWidth =
+                (this.tableWidth - stickyWidth) / (columnsCount - stickyColumnsCount)
+        }
+
+        return changed
     }
 
     fun computeScrollRange(): Int {
-        return max(0F, scrollableVirtualWidth - (width - stickyWidth) + insetRight).toInt()
+        if (stretchMode) return 0
+        return max(0, scrollableVirtualWidth - (tableWidth - stickyWidth))
     }
 
     internal fun onColumnsWidthChanged() {

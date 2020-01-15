@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
 import cn.jingzhuan.tableview.RowLayout
-import cn.jingzhuan.tableview.TableViewLog
 import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.layoutmanager.TableSpecs
 import kotlin.math.absoluteValue
@@ -211,7 +210,6 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         if (column is DrawableColumn) {
             column.prepareToMeasure(context, rowShareElements)
             column.measure(context, rowShareElements)
-            return
         }
 
         // 已经有尺寸的，不管是预先Measure得到的还是实际展示时Measure得到的，都不需要重复执行下面代码了
