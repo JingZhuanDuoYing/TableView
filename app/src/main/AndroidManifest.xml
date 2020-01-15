@@ -12,7 +12,8 @@
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity" />
         <activity android:name=".lesson1.Lesson1Activity" />
-        <activity android:name=".lesson2.Lesson2Activity">
+        <activity android:name=".lesson2.Lesson2Activity" />
+        <activity android:name=".lesson3.Lesson3Activity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

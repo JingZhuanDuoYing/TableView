@@ -105,12 +105,21 @@ class RowLayout @JvmOverloads constructor(
     }
 
     override fun getChildAt(index: Int): View? {
-        val layoutManager = layoutManager ?: return null
-        return if (index < layoutManager.specs.stickyColumnsCount) {
-            super.getChildAt(index)
-        } else {
-            scrollableContainer.getChildAt(index - layoutManager.specs.stickyColumnsCount)
+        // return early if scrollableContainer was not already added in RowLayout yet
+        if(super.getChildCount() == 0) return scrollableContainer.getChildAt(index)
+        for (i in 0 until super.getChildCount()) {
+            val child = super.getChildAt(i) ?: return null
+            if (i == index && child != scrollableContainer) return child
+            if (child == scrollableContainer) break
+            if (i > index) break
         }
+        val childCountBeforeScrollableContainer = super.getChildCount() - 1
+        for (i in 0 until scrollableContainer.childCount) {
+            val child = scrollableContainer.getChildAt(i) ?: return null
+            if (i + childCountBeforeScrollableContainer == index) return child
+            if (i + childCountBeforeScrollableContainer > index) return null
+        }
+        return null
     }
 
     override fun getChildCount() = super.getChildCount() - 1 + scrollableContainer.childCount
@@ -131,6 +140,10 @@ class RowLayout @JvmOverloads constructor(
 
     // -----------------------------    public    -----------------------------
     fun bindRow(row: Row<*>, layoutManager: ColumnsLayoutManager) {
+        if(this.row != row) {
+            removeAllViews()
+            scrollableContainer.removeAllViews()
+        }
         this.row = row
         this.layoutManager = layoutManager
         this.layoutManager?.attachRowLayout(this)

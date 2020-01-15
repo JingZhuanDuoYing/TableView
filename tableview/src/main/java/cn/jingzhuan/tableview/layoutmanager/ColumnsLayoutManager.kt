@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.View.MeasureSpec
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
+import android.widget.FrameLayout
 import cn.jingzhuan.tableview.RowLayout
 import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.element.Column
@@ -137,6 +138,10 @@ class ColumnsLayoutManager : Serializable {
             if (view.measuredWidth <= 0 || view.measuredHeight <= 0 || column.forceLayout) {
                 // 实际Measure
                 column.measureView(view)
+            }
+            if(column.heightWithMargins > row.height) {
+                row.height = column.heightWithMargins
+                pendingLayout = true
             }
 
             if (specs.compareAndSetColumnsWidth(index, column.widthWithMargins)) {
