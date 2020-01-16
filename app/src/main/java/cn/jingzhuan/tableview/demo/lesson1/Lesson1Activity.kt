@@ -22,10 +22,10 @@ class Lesson1Activity : AppCompatActivity() {
         )
         viewModel = ViewModelProviders.of(this)[Lesson1ViewModel::class.java]
 
-        binding.tableView.updateTableSize(200, 1)
+        binding.tableView.updateTableSize(100, 1)
 
         subscribe()
-        viewModel.fetch(100, 200)
+        viewModel.fetch(100, 100)
     }
 
     private fun subscribe() {

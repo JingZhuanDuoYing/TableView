@@ -199,7 +199,6 @@ class RowLayout @JvmOverloads constructor(
     }
 
     private fun findColumnIndexByX(x: Float): Int? {
-        val row = row ?: return null
         val layoutManager = layoutManager ?: return null
         val specs = layoutManager.specs
 
@@ -215,11 +214,7 @@ class RowLayout @JvmOverloads constructor(
             }
         }
 
-        val drawStartIndex = row.findScrollableDrawStartColumnIndex(
-            scrollableContainer,
-            specs.stickyColumnsCount,
-            specs.columnsCount
-        )
+        val drawStartIndex = specs.scrollableFirstVisibleColumnIndex
         var scrollableColumnLeft = 0
         for (i in drawStartIndex until specs.columnsCount) {
             val columnLeft = scrollableColumnLeft + specs.stickyWidth

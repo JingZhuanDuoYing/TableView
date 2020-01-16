@@ -21,7 +21,9 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
     var stretchColumnWidth = 0
 
     var scrollX = 0
-        internal set
+        private set
+    internal var scrollableFirstVisibleColumnIndex = 0
+    internal var scrollableFirstVisibleColumnLeft = 0
 
     var tableWidth = 0
         internal set
@@ -41,9 +43,6 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
     var enableRowsDivider = false
     var enableColumnsDivider = false
 
-    private var lastDrawStartColumnIndex = 0
-    private var lastDrawStartColumnLeft = 0
-
     internal val columnsDividerPaint = Paint().apply {
         isDither = true
         isAntiAlias = true
@@ -53,22 +52,46 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
     @Transient
     var onColumnsWidthWithMarginsChanged: ((ColumnsLayoutManager) -> Unit)? = null
 
-    @Synchronized
-    internal fun getScrollableColumnLeftByIndex(index: Int): Int {
-        if (lastDrawStartColumnIndex == index) return lastDrawStartColumnLeft
-        var tempLeft = 0
-        for (i in stickyColumnsCount until index) {
-            tempLeft += columnsWidth[i]
+    internal fun updateScrollX(scrollX: Int) {
+        if (this.scrollX == scrollX) return
+        val dx = scrollX - this.scrollX
+        this.scrollX = scrollX
+        if (scrollableFirstVisibleColumnLeft < scrollX && scrollableFirstVisibleColumnLeft + columnsWidth[scrollableFirstVisibleColumnIndex] > scrollX) {
+            return
         }
-        lastDrawStartColumnIndex = index
-        lastDrawStartColumnLeft = tempLeft
-        return tempLeft
+        if (dx > 0) {
+            var left =
+                scrollableFirstVisibleColumnLeft + columnsWidth[scrollableFirstVisibleColumnIndex]
+            for (i in scrollableFirstVisibleColumnIndex + 1 until columnsCount) {
+                if (left <= scrollX && left + columnsWidth[i] >= scrollX) {
+                    scrollableFirstVisibleColumnIndex = i
+                    scrollableFirstVisibleColumnLeft = left
+                    return
+                }
+                left += columnsWidth[i]
+            }
+        } else {
+            var left = scrollableFirstVisibleColumnLeft
+            for (i in scrollableFirstVisibleColumnIndex downTo stickyColumnsCount) {
+                if (left <= scrollX && left + columnsWidth[i] >= scrollX) {
+                    scrollableFirstVisibleColumnIndex = i
+                    scrollableFirstVisibleColumnLeft = left
+                    return
+                }
+                left -= columnsWidth[i]
+            }
+        }
+
+        // fallback
+        resetScrollableFirstVisibleColumn()
     }
 
     internal fun updateTableSize(columnsCount: Int, stickyColumnsCount: Int) {
         if (stickyColumnsCount > columnsCount) throw IllegalArgumentException("stickyColumnsCount must not be greater than columnsCount")
         this.columnsCount = columnsCount
         this.stickyColumnsCount = stickyColumnsCount
+        onColumnsWidthChanged()
+        resetScrollableFirstVisibleColumn()
     }
 
     /**
@@ -104,6 +127,10 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
                 (this.tableWidth - stickyWidth) / (columnsCount - stickyColumnsCount)
         }
 
+        if (scrollableFirstVisibleColumnIndex > index) {
+            resetScrollableFirstVisibleColumn()
+        }
+
         return changed
     }
 
@@ -127,6 +154,18 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
             }
         }
         onColumnsWidthWithMarginsChanged?.invoke(layoutManager)
+    }
+
+    private fun resetScrollableFirstVisibleColumn() {
+        var left = 0
+        for (i in stickyColumnsCount until columnsCount) {
+            if (left <= scrollX && left + columnsWidth[i] >= scrollX) {
+                scrollableFirstVisibleColumnIndex = i
+                scrollableFirstVisibleColumnLeft = left
+                return
+            }
+            left += columnsWidth[i]
+        }
     }
 
 }

@@ -62,8 +62,8 @@ class ColumnsLayoutManager : Serializable {
             else -> 0
         }
         if (consumed == 0 && specs.scrollX <= scrollRange) return 0
-        if (specs.scrollX > scrollRange) specs.scrollX = scrollRange
-        specs.scrollX += consumed
+        specs.updateScrollX(specs.scrollX + consumed)
+        if (specs.scrollX > scrollRange) specs.updateScrollX(scrollRange)
         // 调整当前持有的所有RowLayout
         attachedRows.forEach { it.scrollTo(specs.scrollX, 0) }
         return consumed
@@ -183,7 +183,7 @@ class ColumnsLayoutManager : Serializable {
 
         // 校准scrollX
         val scrollRange = specs.computeScrollRange()
-        if (specs.scrollX > scrollRange) specs.scrollX = scrollRange
+        if (specs.scrollX > scrollRange) specs.updateScrollX(scrollRange)
         if (scrollableContainer.scrollX != specs.scrollX) {
             scrollableContainer.scrollTo(specs.scrollX, 0)
         } else {

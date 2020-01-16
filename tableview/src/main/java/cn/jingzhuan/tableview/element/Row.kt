@@ -2,14 +2,12 @@ package cn.jingzhuan.tableview.element
 
 import android.content.Context
 import android.graphics.Canvas
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
 import cn.jingzhuan.tableview.RowLayout
 import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.layoutmanager.TableSpecs
-import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
 
@@ -142,16 +140,9 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         container: View,
         specs: TableSpecs
     ) {
-        count = 0
         val rowHeight = getRowHeight(context)
-        val startIndex =
-            findScrollableDrawStartColumnIndex(
-                container,
-                specs.stickyColumnsCount,
-                specs.columnsCount
-            )
-        var x = specs.getScrollableColumnLeftByIndex(startIndex)
-        Log.d("12345", "count: $count")
+        val startIndex = specs.scrollableFirstVisibleColumnIndex
+        var x = specs.scrollableFirstVisibleColumnLeft
 
         for (i in startIndex until specs.columnsCount) {
             if (!specs.isColumnVisible(i)) continue
@@ -186,47 +177,6 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         x: Float = 0F,
         y: Float = 0F
     ) {
-    }
-
-    var count = 0
-    internal fun findScrollableDrawStartColumnIndex(
-        container: View,
-        start: Int,
-        end: Int,
-        segments: Int = 2
-    ): Int {
-        count++
-        if ((start - end).absoluteValue <= 1) return start
-        val availableSegments = min(start - end, segments)
-        val segmentLength = (start - end) / availableSegments
-
-        var nextStart = start
-        var nextEnd = end
-
-        for (i in 1 until segmentLength) {
-            val columnIndex = start + segmentLength * i
-            val column = columns[columnIndex]
-            if (column.columnLeft <= container.scrollX && column.columnRight >= container.scrollX) return columnIndex
-            if (column.columnRight <= container.scrollX) {
-                nextStart = columnIndex
-            } else if (column.columnLeft >= container.scrollX + container.width && columnIndex < nextEnd) {
-                nextEnd = columnIndex
-            }
-        }
-
-        if (segmentLength > 1) return findScrollableDrawStartColumnIndex(
-            container,
-            nextStart,
-            nextEnd,
-            segments
-        )
-
-        for (i in start until end) {
-            val column = columns[i]
-            if (column.columnLeft <= container.scrollX && column.columnRight >= container.scrollX) return i
-        }
-
-        return start
     }
 
     internal fun getRowHeight(context: Context): Int {
