@@ -131,6 +131,11 @@ open class TableView @JvmOverloads constructor(
         columnsLayoutManager.specs.enableColumnsDivider = enable
     }
 
+    fun setDirectionLockEnabled(enable: Boolean) {
+        (header as DirectionLockRecyclerView).directionLockEnabled = enable
+        (main as DirectionLockRecyclerView).directionLockEnabled = enable
+    }
+
     fun firstVisiblePosition(): Int {
         return (main.layoutManager as? LinearLayoutManager)?.findFirstVisibleItemPosition() ?: -1
     }
