@@ -10,20 +10,22 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity" />
-        <activity android:name=".lesson1.Lesson1Activity" />
-        <activity android:name=".lesson2.Lesson2Activity" />
-        <activity android:name=".lesson3.Lesson3Activity" />
-        <activity android:name=".lesson4.Lesson4Activity" />
-        <activity android:name=".lesson5.Lesson5Activity" />
-        <activity android:name=".lesson6.Lesson6Activity" />
-        <activity android:name=".lesson7.Lesson7Activity" >
+
+        <activity android:name=".main.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".lesson1.Lesson1Activity" />
+        <activity android:name=".lesson2.Lesson2Activity" />
+        <activity android:name=".lesson3.Lesson3Activity" />
+        <activity android:name=".lesson4.Lesson4Activity" />
+        <activity android:name=".lesson5.Lesson5Activity" />
+        <activity android:name=".lesson6.Lesson6Activity" />
+        <activity android:name=".lesson7.Lesson7Activity" />
     </application>
 
 </manifest>

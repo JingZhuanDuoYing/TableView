@@ -15,6 +15,7 @@ class Lesson3Activity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        title = "Lesson 3"
         binding = DataBindingUtil.setContentView(this, R.layout.activity_lesson_3)
         viewModel = ViewModelProviders.of(this)[Lesson3ViewModel::class.java]
 

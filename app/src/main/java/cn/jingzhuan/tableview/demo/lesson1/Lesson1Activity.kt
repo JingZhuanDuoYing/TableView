@@ -15,14 +15,13 @@ class Lesson1Activity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        title = "Lesson 1"
         binding = DataBindingUtil.setContentView(
             this,
             R.layout.activity_lesson_1
         )
         viewModel = ViewModelProviders.of(this)[Lesson1ViewModel::class.java]
 
-        binding.tableView.setRowsDividerEnabled(true)
-        binding.tableView.setColumnsDividerEnabled(true)
         binding.tableView.updateTableSize(100, 1)
 
         subscribe()
