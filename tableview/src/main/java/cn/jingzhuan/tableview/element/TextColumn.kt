@@ -141,8 +141,14 @@ abstract class TextColumn : DrawableColumn() {
         val paint = rowShareElements.getPaint(textSize, color, typeface)
 
         val text = getText(context)
+        if (TextUtils.isEmpty(text)) {
+            boringLayout = null
+            staticLayout = null
+            dynamicLayout = null
+            return
+        }
 
-        if (!TextUtils.isEmpty(text) && text is String && !drawSimpleTextDirectly) {
+        if (text is String && !drawSimpleTextDirectly) {
             if (null != boringLayout && text == boringLayout!!.text) return
             // before lollipop, BoringLayout.isBoring may return null
             val params =
@@ -183,7 +189,7 @@ abstract class TextColumn : DrawableColumn() {
                     measuredTextWidth
                 )
             }
-        } else if (!TextUtils.isEmpty(text) && text is Spannable) {
+        } else if (text is Spannable) {
             if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
                 if (null != staticLayout && text == staticLayout!!.text) return
                 staticLayout = if (VERSION.SDK_INT >= VERSION_CODES.M) {
@@ -284,7 +290,12 @@ abstract class TextColumn : DrawableColumn() {
                 }
             }
         } else {
-            canvas.drawText(text.toString(), drawLeft, drawTop + drawRegionHeight - paint.descent(), paint)
+            canvas.drawText(
+                text.toString(),
+                drawLeft,
+                drawTop + drawRegionHeight - paint.descent(),
+                paint
+            )
         }
         canvas.restore()
     }

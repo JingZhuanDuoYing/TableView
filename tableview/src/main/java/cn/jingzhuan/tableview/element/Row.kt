@@ -2,6 +2,7 @@ package cn.jingzhuan.tableview.element
 
 import android.content.Context
 import android.graphics.Canvas
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.ColorInt
@@ -118,7 +119,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         }
     }
 
-    internal fun layoutAndDrawSticky(
+    internal open fun layoutAndDrawSticky(
         context: Context,
         canvas: Canvas,
         specs: TableSpecs
@@ -126,7 +127,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         val rowHeight = getRowHeight(context)
         var x = 0
         for (i in 0 until specs.stickyColumnsCount) {
-            if(!specs.isColumnVisible(i)) continue
+            if (!specs.isColumnVisible(i)) continue
             val column = columns[i]
             layoutColumn(context, i, column, x, rowHeight, specs)
             if (column is DrawableColumn) column.draw(context, canvas, rowShareElements)
@@ -135,12 +136,13 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         }
     }
 
-    internal fun layoutAndDrawScrollable(
+    internal open fun layoutAndDrawScrollable(
         context: Context,
         canvas: Canvas,
         container: View,
         specs: TableSpecs
     ) {
+        count = 0
         val rowHeight = getRowHeight(context)
         val startIndex =
             findScrollableDrawStartColumnIndex(
@@ -149,14 +151,17 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
                 specs.columnsCount
             )
         var x = specs.getScrollableColumnLeftByIndex(startIndex)
+        Log.d("12345", "count: $count")
 
         for (i in startIndex until specs.columnsCount) {
-            if(!specs.isColumnVisible(i)) continue
+            if (!specs.isColumnVisible(i)) continue
             val column = columns[i]
             layoutColumn(context, i, column, x, rowHeight, specs)
-            if (column is DrawableColumn && !column.shouldIgnoreDraw(container)) {
+            if (column is DrawableColumn) {
                 if (column.columnLeft > container.scrollX + container.width) break
-                column.draw(context, canvas, rowShareElements)
+                if (!column.shouldIgnoreDraw(container)) {
+                    column.draw(context, canvas, rowShareElements)
+                }
             }
             drawColumnsDivider(canvas, column, specs)
             x = column.columnRight
@@ -183,16 +188,45 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     ) {
     }
 
-    internal fun findScrollableDrawStartColumnIndex(container: View, start: Int, end: Int): Int {
+    var count = 0
+    internal fun findScrollableDrawStartColumnIndex(
+        container: View,
+        start: Int,
+        end: Int,
+        segments: Int = 2
+    ): Int {
+        count++
         if ((start - end).absoluteValue <= 1) return start
-        val center = (start + end) / 2
-        val column = columns[center]
-        if (column.columnLeft <= container.scrollX && column.columnRight >= container.scrollX) return center
-        return if (column.columnLeft > container.scrollX) findScrollableDrawStartColumnIndex(
+        val availableSegments = min(start - end, segments)
+        val segmentLength = (start - end) / availableSegments
+
+        var nextStart = start
+        var nextEnd = end
+
+        for (i in 1 until segmentLength) {
+            val columnIndex = start + segmentLength * i
+            val column = columns[columnIndex]
+            if (column.columnLeft <= container.scrollX && column.columnRight >= container.scrollX) return columnIndex
+            if (column.columnRight <= container.scrollX) {
+                nextStart = columnIndex
+            } else if (column.columnLeft >= container.scrollX + container.width && columnIndex < nextEnd) {
+                nextEnd = columnIndex
+            }
+        }
+
+        if (segmentLength > 1) return findScrollableDrawStartColumnIndex(
             container,
-            start,
-            center
-        ) else findScrollableDrawStartColumnIndex(container, center, end)
+            nextStart,
+            nextEnd,
+            segments
+        )
+
+        for (i in start until end) {
+            val column = columns[i]
+            if (column.columnLeft <= container.scrollX && column.columnRight >= container.scrollX) return i
+        }
+
+        return start
     }
 
     internal fun getRowHeight(context: Context): Int {
