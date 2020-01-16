@@ -56,7 +56,7 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         if (this.scrollX == scrollX) return
         val dx = scrollX - this.scrollX
         this.scrollX = scrollX
-        if (scrollableFirstVisibleColumnLeft < scrollX && scrollableFirstVisibleColumnLeft + columnsWidth[scrollableFirstVisibleColumnIndex] > scrollX) {
+        if (scrollableFirstVisibleColumnLeft <= scrollX && scrollableFirstVisibleColumnLeft + columnsWidth[scrollableFirstVisibleColumnIndex] >= scrollX) {
             return
         }
         if (dx > 0) {
@@ -73,12 +73,12 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         } else {
             var left = scrollableFirstVisibleColumnLeft
             for (i in scrollableFirstVisibleColumnIndex downTo stickyColumnsCount) {
+                if (i != scrollableFirstVisibleColumnIndex) left -= columnsWidth[i]
                 if (left <= scrollX && left + columnsWidth[i] >= scrollX) {
                     scrollableFirstVisibleColumnIndex = i
                     scrollableFirstVisibleColumnLeft = left
                     return
                 }
-                left -= columnsWidth[i]
             }
         }
 
