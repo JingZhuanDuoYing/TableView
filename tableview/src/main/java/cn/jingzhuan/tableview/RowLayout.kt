@@ -53,7 +53,8 @@ class RowLayout @JvmOverloads constructor(
         val layoutManager =
             layoutManager ?: return super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 
-        val totalWidth = if(layoutManager.specs.tableWidth > 0) layoutManager.specs.tableWidth else context.screenWidth()
+        val totalWidth =
+            if (layoutManager.specs.tableWidth > 0) layoutManager.specs.tableWidth else context.screenWidth()
 
         val rowHeight = row.getRowHeight(context)
         val resolvedWidth = View.resolveSizeAndState(totalWidth, widthMeasureSpec, 0)
@@ -122,7 +123,8 @@ class RowLayout @JvmOverloads constructor(
         return null
     }
 
-    override fun getChildCount() = max(0, super.getChildCount() - 1 + scrollableContainer.childCount)
+    override fun getChildCount() =
+        max(0, super.getChildCount() - 1 + scrollableContainer.childCount)
 
     override fun setScrollX(value: Int) {
         scrollableContainer.scrollX = value
@@ -163,17 +165,21 @@ class RowLayout @JvmOverloads constructor(
         val column = row.columns[index]
 
         val columnView = findViewByCoordinate(isSticky, x, y)
-        if (null == columnView) {
-            row.onClick(context, this@RowLayout, column)
+        val relativeX = if (isSticky) {
+            x - column.columnLeft
         } else {
-            val relativeX = if (isSticky) {
-                x - columnView.left
-            } else {
-                x - scrollableContainer.left + scrollableContainer.scrollX - columnView.left
-            }
-            val relativeY = y - columnView.top
-            row.onClick(context, this@RowLayout, column, columnView, relativeX, relativeY)
+            x - scrollableContainer.left + scrollableContainer.scrollX - column.columnLeft
         }
+        val relativeY = y - column.columnTop
+        row.onClick(
+            context,
+            this@RowLayout,
+            columnView,
+            column,
+            isSticky,
+            relativeX.toInt(),
+            relativeY.toInt()
+        )
     }
 
     private fun onLongClick() {
@@ -185,17 +191,21 @@ class RowLayout @JvmOverloads constructor(
         val column = row.columns[index]
 
         val columnView = findViewByCoordinate(isSticky, x, y)
-        if (null == columnView) {
-            row.onLongClick(context, this@RowLayout, column)
+        val relativeX = if (isSticky) {
+            x - column.columnLeft
         } else {
-            val relativeX = if (isSticky) {
-                x - columnView.left
-            } else {
-                x - scrollableContainer.left + scrollableContainer.scrollX - columnView.left
-            }
-            val relativeY = y - columnView.top
-            row.onLongClick(context, this@RowLayout, column, columnView, relativeX, relativeY)
+            x - scrollableContainer.left + scrollableContainer.scrollX - column.columnLeft
         }
+        val relativeY = y - column.columnTop
+        row.onLongClick(
+            context,
+            this@RowLayout,
+            columnView,
+            column,
+            isSticky,
+            relativeX.toInt(),
+            relativeY.toInt()
+        )
     }
 
     private fun findColumnIndexByX(x: Float): Int? {

@@ -5,4 +5,4 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 
 internal class RowListEmptyViewHolder(container: ViewGroup) :
-    RecyclerView.ViewHolder(FrameLayout(container.context))
+    RecyclerView.ViewHolder(FrameLayout(container.context).apply { tag = "Test" })

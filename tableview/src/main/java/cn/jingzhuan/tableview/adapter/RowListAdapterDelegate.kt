@@ -23,11 +23,11 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
         viewType: Int,
         fromHeader: Boolean
     ): ViewHolder {
-        if (viewType == IRowListAdapterDelegate.INVALID_VIEW_TYPE) {
-            return RowListEmptyViewHolder(
-                parent
-            )
-        }
+//        if (viewType == IRowListAdapterDelegate.INVALID_VIEW_TYPE) {
+//            return RowListEmptyViewHolder(
+//                parent
+//            )
+//        }
 
         val type = (if (fromHeader) {
             getHeaderRowForType(viewType)

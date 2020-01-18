@@ -9,7 +9,9 @@ class RowShareElements {
 
     internal val rect1 = Rect()
     internal val rect2 = Rect()
+    @Transient
     private val paintPool = mutableMapOf<Int, TextPaint>()
+    @Transient
     internal val backgroundPaint = Paint().apply {
         isDither = true
         isAntiAlias = true

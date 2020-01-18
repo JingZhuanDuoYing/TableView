@@ -9,7 +9,9 @@ import cn.jingzhuan.tableview.element.Row
 internal class EmptyRow : Row<EmptyColumn>(listOf()) {
 
     override fun createView(context: Context): ViewGroup {
-        return FrameLayout(context)
+        val view = FrameLayout(context)
+        view.tag = EmptyRow::class.java.name
+        return view
     }
 
     override fun type(): Int {

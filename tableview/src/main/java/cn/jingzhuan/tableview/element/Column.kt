@@ -39,7 +39,7 @@ abstract class Column : IElement {
 
     var weight = 1
 
-    internal var visible = true
+    var visible = true
 
     internal var laidOut = false
 

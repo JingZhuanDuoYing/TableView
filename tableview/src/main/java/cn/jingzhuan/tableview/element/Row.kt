@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.annotation.ColorInt
 import cn.jingzhuan.tableview.RowLayout
 import cn.jingzhuan.tableview.dp
+import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
 import cn.jingzhuan.tableview.layoutmanager.TableSpecs
 import kotlin.math.max
 import kotlin.math.min
@@ -48,6 +49,10 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         rowLayout.layoutParams = ViewGroup.LayoutParams(width(context), height(context))
         rowLayout.minimumHeight = minHeight(context)
         return rowLayout
+    }
+
+    open fun onBindView(view: View, layoutManager: ColumnsLayoutManager) {
+
     }
 
     /**
@@ -162,20 +167,22 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     open fun onClick(
         context: Context,
         rowLayout: View,
-        column: Column,
         columnView: View? = null,
-        x: Float = 0F,
-        y: Float = 0F
+        column: Column,
+        sticky: Boolean,
+        x: Int,
+        y: Int
     ) {
     }
 
     open fun onLongClick(
         context: Context,
         rowLayout: View,
-        column: Column,
         columnView: View? = null,
-        x: Float = 0F,
-        y: Float = 0F
+        column: Column,
+        sticky: Boolean,
+        x: Int,
+        y: Int
     ) {
     }
 
