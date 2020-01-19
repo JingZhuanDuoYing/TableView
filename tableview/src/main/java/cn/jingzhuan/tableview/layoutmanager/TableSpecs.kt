@@ -1,6 +1,7 @@
 package cn.jingzhuan.tableview.layoutmanager
 
 import android.graphics.Paint
+import android.util.Log
 import android.util.SparseIntArray
 import androidx.annotation.ColorInt
 import cn.jingzhuan.tableview.element.HeaderRow
@@ -123,8 +124,18 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
                 stickyWidth += columnsWidth[i]
             }
             this.stickyWidth = stickyWidth
-            stretchColumnWidth =
-                (this.tableWidth - stickyWidth) / (columnsCount - stickyColumnsCount)
+
+            if (stretchMode) {
+                var visibleScrollableColumnsCount = 0
+                for (i in stickyColumnsCount until columnsCount) {
+                    if (isColumnVisible(i)) visibleScrollableColumnsCount++
+                }
+                if (visibleScrollableColumnsCount > 0) {
+                    stretchColumnWidth =
+                        (tableWidth - stickyWidth) / visibleScrollableColumnsCount
+                    Log.d("12345", "visibleColumnsCount: $visibleScrollableColumnsCount, columnsWidth: $stretchColumnWidth, scrollableWidth: ${tableWidth - stickyWidth}")
+                }
+            }
         }
 
         if (scrollableFirstVisibleColumnIndex > index) {

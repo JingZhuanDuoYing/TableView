@@ -21,7 +21,6 @@ class Lesson4Activity : AppCompatActivity() {
 
         binding.tableView.setRowsDividerEnabled(true)
         binding.tableView.setColumnsDividerEnabled(true)
-        binding.tableView.updateTableSize(5, 1)
         binding.tableView.setStretchMode(true)
 
         subscribe()

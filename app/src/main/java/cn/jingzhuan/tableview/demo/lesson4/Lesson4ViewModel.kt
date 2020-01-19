@@ -18,15 +18,16 @@ class Lesson4ViewModel : ViewModel() {
         disposable = Flowable.fromCallable {
             val titleColumns = mutableListOf<Column>()
             titleColumns.add(TitleHeaderColumn())
-            for (i in 0 until columnsCount) {
-                titleColumns.add(TitleColumn(i))
+            for (i in 1 until columnsCount) {
+                val column = TitleColumn(i)
+                titleColumns.add(column)
             }
             val titleRow = TitleRow(titleColumns)
 
             for (rowIndex in 0 until rowsCount) {
                 val columns = mutableListOf<Column>()
                 columns.add(SimpleHeaderColumn("Row${rowIndex + 1}"))
-                for (columnIndex in 0 until columnsCount - 1) {
+                for (columnIndex in 1 until columnsCount) {
                     val column = generateColumn(rowIndex, columnIndex)
                     columns.add(column)
                 }

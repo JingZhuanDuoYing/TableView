@@ -36,8 +36,6 @@ class RowLayout @JvmOverloads constructor(
         private set
     private var layoutManager: ColumnsLayoutManager? = null
 
-    private var lastUpX = 0F
-    private var lastUpY = 0F
     private val gestureDetector by lazyNone {
         GestureDetectorCompat(
             context, initGestureListener()
@@ -97,12 +95,8 @@ class RowLayout @JvmOverloads constructor(
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (event.actionMasked == MotionEvent.ACTION_UP) {
-            lastUpX = event.x
-            lastUpY = event.y
-        }
-        super.onTouchEvent(event)
-        return gestureDetector.onTouchEvent(event)
+        if(gestureDetector.onTouchEvent(event)) return true
+        return super.onTouchEvent(event)
     }
 
     override fun getChildAt(index: Int): View? {
@@ -142,7 +136,7 @@ class RowLayout @JvmOverloads constructor(
 
     // -----------------------------    public    -----------------------------
     fun bindRow(row: Row<*>, layoutManager: ColumnsLayoutManager) {
-        if (this.row != row) {
+        if (this.row?.type() != row.type()) {
             removeAllViews()
             scrollableContainer.removeAllViews()
         }
@@ -217,7 +211,7 @@ class RowLayout @JvmOverloads constructor(
             for (i in 0 until specs.stickyColumnsCount) {
                 val columnLeft = stickyColumnLeft
                 val columnRight = columnLeft + specs.columnsWidth[i]
-                if (lastUpX < columnLeft && lastUpX > columnRight) {
+                if (columnLeft <= x && x <= columnRight) {
                     return i
                 }
                 stickyColumnLeft += specs.columnsWidth[i]
@@ -225,11 +219,10 @@ class RowLayout @JvmOverloads constructor(
         }
 
         val drawStartIndex = specs.scrollableFirstVisibleColumnIndex
-        var scrollableColumnLeft = 0
+        var scrollableColumnLeft = specs.scrollableFirstVisibleColumnLeft - specs.scrollX + specs.stickyWidth
         for (i in drawStartIndex until specs.columnsCount) {
-            val columnLeft = scrollableColumnLeft + specs.stickyWidth
-            val columnRight = columnLeft + specs.columnsWidth[i]
-            if (lastUpX < columnLeft && lastUpX > columnRight) {
+            val columnRight = scrollableColumnLeft + specs.columnsWidth[i]
+            if (scrollableColumnLeft <= x && x <= columnRight) {
                 return i
             }
             scrollableColumnLeft += specs.columnsWidth[i]
