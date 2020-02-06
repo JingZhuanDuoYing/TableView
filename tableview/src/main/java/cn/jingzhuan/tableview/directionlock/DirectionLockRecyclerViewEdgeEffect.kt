@@ -1,12 +1,10 @@
 package cn.jingzhuan.tableview.directionlock
 
 import android.graphics.Canvas
+import android.support.v7.widget.RecyclerView
 import android.widget.EdgeEffect
-import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.EdgeEffectFactory
-import androidx.recyclerview.widget.RecyclerView.EdgeEffectFactory.EdgeDirection
 
-internal class DirectionLockRecyclerViewEdgeEffect(private val view: RecyclerView, @EdgeDirection private val direction: Int) :
+internal class DirectionLockRecyclerViewEdgeEffect(private val view: RecyclerView, @RecyclerView.EdgeEffectFactory.EdgeDirection private val direction: Int) :
     EdgeEffect(view.context) {
 
   override fun onPull(deltaDistance: Float) {
@@ -35,10 +33,10 @@ internal class DirectionLockRecyclerViewEdgeEffect(private val view: RecyclerVie
   private fun isEnabled(): Boolean {
     if (view !is DirectionLockRecyclerView) return true
     var enabled = true
-    if (!view.enableHorizontalGlow && (direction == EdgeEffectFactory.DIRECTION_RIGHT || direction == EdgeEffectFactory.DIRECTION_LEFT)) {
+    if (!view.enableHorizontalGlow && (direction == RecyclerView.EdgeEffectFactory.DIRECTION_RIGHT || direction == RecyclerView.EdgeEffectFactory.DIRECTION_LEFT)) {
       enabled = false
     }
-    if (!view.enableVerticalGlow && (direction == EdgeEffectFactory.DIRECTION_TOP || direction == EdgeEffectFactory.DIRECTION_BOTTOM)) {
+    if (!view.enableVerticalGlow && (direction == RecyclerView.EdgeEffectFactory.DIRECTION_TOP || direction == RecyclerView.EdgeEffectFactory.DIRECTION_BOTTOM)) {
       enabled = false
     }
     return enabled

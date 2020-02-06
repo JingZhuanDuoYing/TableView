@@ -1,9 +1,8 @@
 package cn.jingzhuan.tableview.layoutmanager
 
 import android.content.Context
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView.Recycler
-import androidx.recyclerview.widget.RecyclerView.State
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 
 /**
  * Chenyikang
@@ -20,8 +19,8 @@ internal class RowListLayoutManager(
 
     override fun scrollHorizontallyBy(
         dx: Int,
-        recycler: Recycler,
-        state: State
+        recycler: RecyclerView.Recycler,
+        state: RecyclerView.State
     ): Int {
         return scrollHorizontallyBy.invoke(dx, state.remainingScrollHorizontal)
     }

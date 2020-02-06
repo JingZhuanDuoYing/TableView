@@ -5,9 +5,9 @@ import android.graphics.Canvas
 import android.graphics.Point
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
-import androidx.core.graphics.ColorUtils
-import androidx.core.view.ViewCompat
-import androidx.core.widget.EdgeEffectCompat
+import android.support.v4.graphics.ColorUtils
+import android.support.v4.view.ViewCompat
+import android.support.v4.widget.EdgeEffectCompat
 import android.view.MotionEvent
 import android.view.MotionEvent.ACTION_DOWN
 import android.view.View

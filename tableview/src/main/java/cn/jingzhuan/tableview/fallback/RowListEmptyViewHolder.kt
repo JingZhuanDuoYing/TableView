@@ -1,6 +1,6 @@
 package cn.jingzhuan.tableview.fallback
 
-import androidx.recyclerview.widget.RecyclerView
+import android.support.v7.widget.RecyclerView
 import android.view.ViewGroup
 import android.widget.FrameLayout
 

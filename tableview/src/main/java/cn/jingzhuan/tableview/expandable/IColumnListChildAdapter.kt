@@ -1,6 +1,6 @@
 package cn.jingzhuan.tableview.expandable
 
-import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.view.ViewGroup
 
@@ -8,7 +8,7 @@ import android.view.ViewGroup
  * Chenyikang
  * 2018 August 29
  */
-internal abstract class IColumnListChildAdapter<VH: ViewHolder> {
+internal abstract class IColumnListChildAdapter<VH: RecyclerView.ViewHolder> {
 
   protected val defaultStickyChildViewType = -4
   protected val defaultChildViewType = -5

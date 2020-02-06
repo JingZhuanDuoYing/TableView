@@ -1,9 +1,10 @@
 package cn.jingzhuan.tableview.layoutmanager
 
 import android.graphics.Paint
+import android.support.annotation.ColorInt
+import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.util.SparseIntArray
-import androidx.annotation.ColorInt
 import cn.jingzhuan.tableview.element.HeaderRow
 import kotlin.math.max
 
@@ -23,8 +24,13 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
 
     var scrollX = 0
         private set
+    /**
+     * help to locate column by coordinate
+     */
     internal var scrollableFirstVisibleColumnIndex = 0
+        private set
     internal var scrollableFirstVisibleColumnLeft = 0
+        private set
 
     var tableWidth = 0
         internal set
@@ -43,6 +49,8 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
 
     var enableRowsDivider = false
     var enableColumnsDivider = false
+    internal var headerRowsDivider: RecyclerView.ItemDecoration? = null
+    internal var mainRowsDivider: RecyclerView.ItemDecoration? = null
 
     internal val columnsDividerPaint = Paint().apply {
         isDither = true
@@ -133,7 +141,6 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
                 if (visibleScrollableColumnsCount > 0) {
                     stretchColumnWidth =
                         (tableWidth - stickyWidth) / visibleScrollableColumnsCount
-                    Log.d("12345", "visibleColumnsCount: $visibleScrollableColumnsCount, columnsWidth: $stretchColumnWidth, scrollableWidth: ${tableWidth - stickyWidth}")
                 }
             }
         }
@@ -154,7 +161,7 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         return max(0, scrollableVirtualWidth - (tableWidth - stickyWidth))
     }
 
-    internal fun onColumnsWidthChanged() {
+    fun onColumnsWidthChanged() {
         stickyWidth = 0
         scrollableVirtualWidth = 0
         for (i in 0 until columnsCount) {

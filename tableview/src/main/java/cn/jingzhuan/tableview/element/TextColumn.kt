@@ -4,10 +4,11 @@ import android.content.Context
 import android.graphics.*
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
+import android.support.annotation.ColorInt
 import android.text.*
+import android.util.Log
 import android.view.Gravity
 import android.view.View
-import androidx.annotation.ColorInt
 import cn.jingzhuan.tableview.sp
 import kotlin.math.max
 
@@ -72,6 +73,7 @@ abstract class TextColumn : DrawableColumn() {
         val paint = rowShareElements.getPaint(textSize, color, typeface)
 
         val text = getText(context)
+        // if nothing changed, ignore measure process
         if (TextUtils.equals(
                 text, lastMeasuredValue
             ) && widthWithMargins > 0 && heightWithMargins > 0

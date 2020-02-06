@@ -1,7 +1,7 @@
 package cn.jingzhuan.tableview.adapter
 
+import android.support.v7.widget.RecyclerView
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import cn.jingzhuan.tableview.element.HeaderRow
 
 /**
@@ -22,10 +22,10 @@ interface IRowListAdapterDelegate {
     parent: ViewGroup,
     viewType: Int,
     fromHeader: Boolean
-  ): ViewHolder
+  ): RecyclerView.ViewHolder
 
   fun bindViewHolder(
-    holder: ViewHolder,
+    holder: RecyclerView.ViewHolder,
     position: Int,
     fromHeader: Boolean
   )

@@ -3,12 +3,13 @@ package cn.jingzhuan.tableview
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
+import android.support.v4.view.GestureDetectorCompat
 import android.util.AttributeSet
+import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
-import androidx.core.view.GestureDetectorCompat
 import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
 import kotlin.math.max
@@ -95,7 +96,7 @@ class RowLayout @JvmOverloads constructor(
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if(gestureDetector.onTouchEvent(event)) return true
+        if (gestureDetector.onTouchEvent(event)) return true
         return super.onTouchEvent(event)
     }
 
@@ -127,12 +128,16 @@ class RowLayout @JvmOverloads constructor(
     override fun scrollBy(
         x: Int,
         y: Int
-    ) = scrollableContainer.scrollBy(x, y)
+    ) {
+        scrollableContainer.scrollBy(x, y)
+    }
 
     override fun scrollTo(
         x: Int,
         y: Int
-    ) = scrollableContainer.scrollTo(x, y)
+    ) {
+        scrollableContainer.scrollTo(x, y)
+    }
 
     // -----------------------------    public    -----------------------------
     fun bindRow(row: Row<*>, layoutManager: ColumnsLayoutManager) {
@@ -219,7 +224,8 @@ class RowLayout @JvmOverloads constructor(
         }
 
         val drawStartIndex = specs.scrollableFirstVisibleColumnIndex
-        var scrollableColumnLeft = specs.scrollableFirstVisibleColumnLeft - specs.scrollX + specs.stickyWidth
+        var scrollableColumnLeft =
+            specs.scrollableFirstVisibleColumnLeft - specs.scrollX + specs.stickyWidth
         for (i in drawStartIndex until specs.columnsCount) {
             val columnRight = scrollableColumnLeft + specs.columnsWidth[i]
             if (scrollableColumnLeft <= x && x <= columnRight) {

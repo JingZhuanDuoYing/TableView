@@ -2,7 +2,8 @@ package cn.jingzhuan.tableview
 
 import android.content.Context
 import android.graphics.Canvas
-import androidx.recyclerview.widget.RecyclerView
+import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -10,7 +11,6 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import android.view.ViewGroup
-import androidx.recyclerview.widget.LinearLayoutManager
 import cn.jingzhuan.tableview.adapter.IRowListAdapterDelegate
 import cn.jingzhuan.tableview.adapter.RowListAdapter
 import cn.jingzhuan.tableview.adapter.RowListAdapterDelegate
@@ -88,6 +88,11 @@ open class TableView @JvmOverloads constructor(
         addView(main, LayoutParams(MATCH_PARENT, MATCH_PARENT))
     }
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        columnsLayoutManager.specs.tableWidth = measuredWidth
+    }
+
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         super.onLayout(changed, l, t, r, b)
         columnsLayoutManager.specs.tableWidth = width
@@ -111,20 +116,31 @@ open class TableView @JvmOverloads constructor(
         columnsLayoutManager.updateTableSize(columns, stickyColumnsCount)
     }
 
-    fun setRowsDividerEnabled(enable: Boolean) {
-        columnsLayoutManager.specs.enableRowsDivider = enable
-        header.addItemDecoration(
-            TableDecoration(
-                columnsLayoutManager.specs.dividerStrokeWidth,
-                color = columnsLayoutManager.specs.dividerColor
+    fun setRowsDividerEnabled(enable: Boolean, color: Int? = null) {
+        val specs = columnsLayoutManager.specs
+        specs.enableRowsDivider = enable
+        if(null != color) specs.dividerColor = color
+        if(enable) {
+            val headerRowsDivider = TableDecoration(
+                specs.dividerStrokeWidth,
+                color = specs.dividerColor
             )
-        )
-        main.addItemDecoration(
-            TableDecoration(
-                columnsLayoutManager.specs.dividerStrokeWidth,
-                color = columnsLayoutManager.specs.dividerColor
+            val mainRowsDivider = TableDecoration(
+                specs.dividerStrokeWidth,
+                color = specs.dividerColor
             )
-        )
+            specs.headerRowsDivider = headerRowsDivider
+            specs.mainRowsDivider = mainRowsDivider
+            header.addItemDecoration(headerRowsDivider)
+            main.addItemDecoration(mainRowsDivider)
+        } else {
+            if(null != specs.headerRowsDivider) {
+                header.removeItemDecoration(specs.headerRowsDivider!!)
+            }
+            if(null != specs.mainRowsDivider) {
+                main.removeItemDecoration(specs.mainRowsDivider!!)
+            }
+        }
     }
 
     fun setColumnsDividerEnabled(enable: Boolean) {

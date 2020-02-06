@@ -2,9 +2,9 @@ package cn.jingzhuan.tableview.element
 
 import android.content.Context
 import android.graphics.Canvas
+import android.support.annotation.ColorInt
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.ColorInt
 import cn.jingzhuan.tableview.RowLayout
 import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
@@ -110,7 +110,6 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
             layoutColumn(context, i, column, x, rowHeight, specs)
             x = column.columnRight
         }
-        forceLayout = false
     }
 
     open fun draw(context: Context, canvas: Canvas, stickyWidthWithMargins: Int) {

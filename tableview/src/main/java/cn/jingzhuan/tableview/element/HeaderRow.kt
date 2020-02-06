@@ -43,6 +43,16 @@ open class HeaderRow<COLUMN : Column>(columns: List<COLUMN>) : Row<COLUMN>(colum
         rows.forEach { it.measure(context, layoutManager.specs) }
     }
 
+    fun preMeasureRow(context: Context, row: Row<*>) {
+        val layoutManager = layoutManager ?: return
+        if (row.measure(context, layoutManager.specs)) row.forceLayout = true
+    }
+
+    fun preLayoutRowIfNecessary(context: Context, row: Row<*>) {
+        val layoutManager = layoutManager ?: return
+        row.layout(context, layoutManager.specs)
+    }
+
     fun getLayoutManager(): ColumnsLayoutManager? {
         return layoutManager
     }

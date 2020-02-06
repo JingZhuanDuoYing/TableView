@@ -1,8 +1,7 @@
 package cn.jingzhuan.tableview.adapter
 
+import android.support.v7.widget.RecyclerView
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import cn.jingzhuan.tableview.TableViewLog
 import cn.jingzhuan.tableview.fallback.RowListEmptyViewHolder
 
@@ -10,7 +9,7 @@ import cn.jingzhuan.tableview.fallback.RowListEmptyViewHolder
  * Chenyikang
  * 2018 December 22
  */
-class RowListAdapter(private val header: Boolean) : RecyclerView.Adapter<ViewHolder>() {
+class RowListAdapter(private val header: Boolean) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
   var delegate: IRowListAdapterDelegate? = null
 
@@ -21,7 +20,7 @@ class RowListAdapter(private val header: Boolean) : RecyclerView.Adapter<ViewHol
   override fun onCreateViewHolder(
     parent: ViewGroup,
     viewType: Int
-  ): ViewHolder {
+  ): RecyclerView.ViewHolder {
     checkDelegate()
     return delegate?.createViewHolder(parent, viewType, header) ?: RowListEmptyViewHolder(
         parent
@@ -29,7 +28,7 @@ class RowListAdapter(private val header: Boolean) : RecyclerView.Adapter<ViewHol
   }
 
   override fun onBindViewHolder(
-    holder: ViewHolder,
+    holder: RecyclerView.ViewHolder,
     position: Int
   ) {
     checkDelegate()

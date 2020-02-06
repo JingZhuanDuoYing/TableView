@@ -1,8 +1,8 @@
 package cn.jingzhuan.tableview.adapter
 
+import android.support.v7.widget.RecyclerView
 import android.util.SparseArray
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import cn.jingzhuan.tableview.RowListViewHolder
 import cn.jingzhuan.tableview.TableViewLog
 import cn.jingzhuan.tableview.element.HeaderRow
@@ -22,7 +22,7 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
         parent: ViewGroup,
         viewType: Int,
         fromHeader: Boolean
-    ): ViewHolder {
+    ): RecyclerView.ViewHolder {
 //        if (viewType == IRowListAdapterDelegate.INVALID_VIEW_TYPE) {
 //            return RowListEmptyViewHolder(
 //                parent
@@ -41,7 +41,7 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
     }
 
     override fun bindViewHolder(
-        holder: ViewHolder,
+        holder: RecyclerView.ViewHolder,
         position: Int,
         fromHeader: Boolean
     ) {

@@ -1,10 +1,9 @@
 package cn.jingzhuan.tableview.directionlock
 
+import android.support.v7.widget.RecyclerView
 import android.widget.EdgeEffect
-import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.EdgeEffectFactory
 
-internal class DirectionLockRecyclerViewEdgeEffectFactory : EdgeEffectFactory() {
+internal class DirectionLockRecyclerViewEdgeEffectFactory : RecyclerView.EdgeEffectFactory() {
 
   override fun createEdgeEffect(
     view: RecyclerView,

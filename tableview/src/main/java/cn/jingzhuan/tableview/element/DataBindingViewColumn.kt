@@ -1,11 +1,11 @@
 package cn.jingzhuan.tableview.element
 
 import android.content.Context
+import android.databinding.DataBindingUtil
+import android.databinding.ViewDataBinding
+import android.support.annotation.LayoutRes
 import android.view.LayoutInflater
 import android.view.View
-import androidx.annotation.LayoutRes
-import androidx.databinding.DataBindingUtil
-import androidx.databinding.ViewDataBinding
 
 abstract class DataBindingViewColumn<BINDING : ViewDataBinding> : ViewColumn() {
 
