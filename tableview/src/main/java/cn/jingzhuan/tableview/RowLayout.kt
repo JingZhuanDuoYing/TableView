@@ -149,6 +149,7 @@ class RowLayout @JvmOverloads constructor(
         this.layoutManager = layoutManager
         this.layoutManager?.attachRowLayout(this)
         this.layoutManager?.measureAndLayout(context, row, this, scrollableContainer)
+        row.onBindView(this, layoutManager)
     }
 
     // -----------------------------    private    -----------------------------

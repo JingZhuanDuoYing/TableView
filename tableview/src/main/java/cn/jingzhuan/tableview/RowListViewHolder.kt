@@ -28,7 +28,6 @@ internal class RowListViewHolder(
     ) {
         this.data = data
         (itemView as? RowLayout)?.bindRow(data, layoutManager)
-        data.onBindView(itemView, layoutManager)
     }
 
 }

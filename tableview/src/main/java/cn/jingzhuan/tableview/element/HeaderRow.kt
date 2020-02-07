@@ -14,7 +14,7 @@ open class HeaderRow<COLUMN : Column>(columns: List<COLUMN>) : Row<COLUMN>(colum
     var rows = mutableListOf<Row<*>>()
         private set
     @Transient
-    internal var layoutManager: ColumnsLayoutManager? = null
+    var layoutManager: ColumnsLayoutManager? = null
 
     init {
         stickyRows = mutableListOf()
@@ -51,10 +51,6 @@ open class HeaderRow<COLUMN : Column>(columns: List<COLUMN>) : Row<COLUMN>(colum
     fun preLayoutRowIfNecessary(context: Context, row: Row<*>) {
         val layoutManager = layoutManager ?: return
         if (row.forceLayout) row.layout(context, layoutManager.specs)
-    }
-
-    fun getLayoutManager(): ColumnsLayoutManager? {
-        return layoutManager
     }
 
     fun getTableSpecs(): TableSpecs? {

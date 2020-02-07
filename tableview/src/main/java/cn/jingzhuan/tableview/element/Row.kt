@@ -20,7 +20,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     IElement {
 
     var height = 0
-    internal var forceLayout = true
+    var forceLayout = true
 
     @Transient
     internal val rowShareElements = RowShareElements()

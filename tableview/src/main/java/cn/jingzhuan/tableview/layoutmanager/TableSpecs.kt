@@ -10,7 +10,7 @@ import kotlin.math.max
 
 class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
 
-    internal var headerRow: HeaderRow<*>? = null
+    var headerRow: HeaderRow<*>? = null
 
     val columnsWidth = SparseIntArray()
 
