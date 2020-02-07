@@ -50,7 +50,7 @@ open class HeaderRow<COLUMN : Column>(columns: List<COLUMN>) : Row<COLUMN>(colum
 
     fun preLayoutRowIfNecessary(context: Context, row: Row<*>) {
         val layoutManager = layoutManager ?: return
-        row.layout(context, layoutManager.specs)
+        if (row.forceLayout) row.layout(context, layoutManager.specs)
     }
 
     fun getLayoutManager(): ColumnsLayoutManager? {
