@@ -50,7 +50,6 @@ abstract class ViewColumn : Column() {
     val bottomMargin = mlp?.bottomMargin ?: 0
     widthWithMargins = view.measuredWidth + leftMargin + rightMargin
     heightWithMargins = view.measuredHeight + topMargin + bottomMargin
-    forceLayout = false
   }
 
   open fun layoutView(view: View) {
@@ -90,6 +89,10 @@ abstract class ViewColumn : Column() {
     if (view.right != viewRight) return false
     if (view.bottom != viewBottom) return false
     return true
+  }
+
+  fun forceLayout() {
+    forceLayout = true
   }
 
 }

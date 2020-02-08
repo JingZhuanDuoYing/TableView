@@ -140,12 +140,16 @@ class ColumnsLayoutManager : Serializable {
                 }
             }
 
-            if (column.forceLayout) pendingLayout = true
+            if (column.forceLayout) {
+                pendingLayout = true
+            }
 
             if (view.measuredWidth <= 0 || view.measuredHeight <= 0 || column.forceLayout) {
                 // 实际Measure
                 column.measureView(view)
             }
+            column.forceLayout = false
+
             if (column.heightWithMargins > row.height) {
                 row.height = column.heightWithMargins
                 pendingLayout = true
