@@ -163,10 +163,7 @@ class RowLayout @JvmOverloads constructor(
     }
 
     // -----------------------------    private    -----------------------------
-    private fun onClick(
-        x: Float,
-        y: Float
-    ) {
+    private fun onClick(x: Float, y: Float) {
         val row = row ?: return
         val layoutManager = layoutManager ?: return
         val specs = layoutManager.specs
@@ -192,7 +189,7 @@ class RowLayout @JvmOverloads constructor(
         )
     }
 
-    private fun onLongClick() {
+    private fun onLongClick(x: Float, y: Float) {
         val row = row ?: return
         val layoutManager = layoutManager ?: return
         val specs = layoutManager.specs
@@ -284,8 +281,8 @@ class RowLayout @JvmOverloads constructor(
             return super.onSingleTapConfirmed(e)
         }
 
-        override fun onLongPress(e: MotionEvent?) {
-            onLongClick()
+        override fun onLongPress(e: MotionEvent) {
+            onLongClick(e.x, e.y)
             super.onLongPress(e)
         }
     }
