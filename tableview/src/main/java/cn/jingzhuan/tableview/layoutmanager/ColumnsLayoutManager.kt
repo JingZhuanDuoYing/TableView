@@ -102,7 +102,7 @@ class ColumnsLayoutManager : Serializable {
                 if (column.widthWithMargins == 0 || column.heightWithMargins == 0 || specs.columnsWidth[index] == 0) {
                     // measure drawable column in necessary
                     row.measure(context, specs)
-                    if (specs.compareAndSetColumnsWidth(index, column.widthWithMargins)) {
+                    if (specs.compareAndSetColumnsWidth(index, column)) {
                         pendingLayout = true
                     }
                 }
@@ -122,7 +122,7 @@ class ColumnsLayoutManager : Serializable {
             view.visibility = if (visible) View.VISIBLE else View.GONE
             if (!visible) {
                 column.widthWithMargins = 0
-                if (specs.compareAndSetColumnsWidth(index, column.widthWithMargins)) {
+                if (specs.compareAndSetColumnsWidth(index, column)) {
                     pendingLayout = true
                 }
                 continue
@@ -151,7 +151,7 @@ class ColumnsLayoutManager : Serializable {
                 pendingLayout = true
             }
 
-            if (specs.compareAndSetColumnsWidth(index, column.widthWithMargins)) {
+            if (specs.compareAndSetColumnsWidth(index, column)) {
                 pendingLayout = true
             }
 
@@ -203,9 +203,6 @@ class ColumnsLayoutManager : Serializable {
         rowLayout: RowLayout,
         scrollableContainer: ViewGroup
     ): Int {
-        // make sure table width was not zero during pre measure process before layout
-        if (specs.tableWidth == 0) specs.tableWidth = max(rowLayout.width, rowLayout.measuredWidth)
-        if (specs.tableWidth == 0) specs.tableWidth = rowLayout.resources.displayMetrics.widthPixels
         val scrollableContainerWidth = specs.tableWidth - specs.stickyWidth
         val rowHeight = row.getRowHeight(context)
 

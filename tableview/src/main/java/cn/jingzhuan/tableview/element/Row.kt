@@ -77,7 +77,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
             } else {
                 column.widthWithMargins = 0
             }
-            if (specs.compareAndSetColumnsWidth(index, column.widthWithMargins)) {
+            if (specs.compareAndSetColumnsWidth(index, column)) {
                 columnsSizeChanged = true
             }
 

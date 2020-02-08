@@ -48,17 +48,27 @@ class RowLayout @JvmOverloads constructor(
         widthMeasureSpec: Int,
         heightMeasureSpec: Int
     ) {
-        val row = row ?: return super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        val layoutManager =
-            layoutManager ?: return super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        val row = row
+        val layoutManager = layoutManager
+        if (null == row || null == layoutManager) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+            if (layoutManager?.specs?.tableWidth == 0) {
+                layoutManager.specs.tableWidth = max(width, measuredWidth)
+            }
+            return
+        }
 
-        val totalWidth =
-            if (layoutManager.specs.tableWidth > 0) layoutManager.specs.tableWidth else context.screenWidth()
+        val specs = layoutManager.specs
+        val totalWidth = if (specs.tableWidth > 0) specs.tableWidth else context.screenWidth()
 
         val rowHeight = row.getRowHeight(context)
         val resolvedWidth = View.resolveSizeAndState(totalWidth, widthMeasureSpec, 0)
         val resolvedHeight = View.resolveSizeAndState(rowHeight, heightMeasureSpec, 0)
         setMeasuredDimension(resolvedWidth, resolvedHeight)
+
+        // make sure table width was not zero during pre measure process before layout
+        if (specs.tableWidth == 0) specs.tableWidth = max(width, measuredWidth)
+        if (specs.tableWidth == 0) specs.tableWidth = resources.displayMetrics.widthPixels
     }
 
     override fun onAttachedToWindow() {

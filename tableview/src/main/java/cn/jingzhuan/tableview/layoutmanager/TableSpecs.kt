@@ -3,8 +3,8 @@ package cn.jingzhuan.tableview.layoutmanager
 import android.graphics.Paint
 import android.support.annotation.ColorInt
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.util.SparseIntArray
+import cn.jingzhuan.tableview.element.Column
 import cn.jingzhuan.tableview.element.HeaderRow
 import kotlin.math.max
 
@@ -106,7 +106,7 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
     /**
      * @return whether [columnsWidth] have been changed
      */
-    internal fun compareAndSetColumnsWidth(index: Int, width: Int): Boolean {
+    internal fun compareAndSetColumnsWidth(index: Int, column: Column): Boolean {
         var changed = false
 
         if (stretchMode && index >= stickyColumnsCount) {
@@ -115,18 +115,20 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
             return changed
         }
 
-        if (columnsWidth[index] < width) {
-            columnsWidth.put(index, width)
+        if (columnsWidth[index] < column.widthWithMargins) {
+            columnsWidth.put(index, column.widthWithMargins)
             changed = true
         }
 
         // force set 0 when column was invisible
-        if (width == 0 && columnsWidth[index] != 0) {
+        if (!column.visible) {
             columnsWidth.put(index, 0)
             changed = true
         }
 
-        if (changed && index < stickyColumnsCount) {
+        val shouldCalculateStretchColumnWidth = stretchMode && stretchColumnWidth <= 0
+        val calculateStretchColumnWidth = (changed or shouldCalculateStretchColumnWidth) && index < stickyColumnsCount
+        if (calculateStretchColumnWidth) {
             var stickyWidth = 0
             for (i in 0 until stickyColumnsCount) {
                 stickyWidth += columnsWidth[i]
