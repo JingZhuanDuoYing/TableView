@@ -33,7 +33,6 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         private set
 
     var tableWidth = 0
-        internal set
     var stickyWidth = 0
         internal set
     var scrollableVirtualWidth = 0
