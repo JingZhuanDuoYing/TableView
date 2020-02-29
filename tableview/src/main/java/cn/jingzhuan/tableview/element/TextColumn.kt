@@ -22,13 +22,17 @@ abstract class TextColumn : DrawableColumn() {
     }
 
     @Transient
-    private var drawRegionLeft = 0
+    var drawRegionLeft = 0
+        private set
     @Transient
-    private var drawRegionTop = 0
+    var drawRegionTop = 0
+        private set
     @Transient
-    private var drawRegionRight = 0
+    var drawRegionRight = 0
+        private set
     @Transient
-    private var drawRegionBottom = 0
+    var drawRegionBottom = 0
+        private set
 
     @Transient
     private var boringLayout: BoringLayout? = null
@@ -39,8 +43,10 @@ abstract class TextColumn : DrawableColumn() {
     @Transient
     private var lastMeasuredValue: CharSequence? = null
 
-    private var measuredTextWidth = 0
-    private var measuredTextHeight = 0
+    var measuredTextWidth = 0
+        private set
+    var measuredTextHeight = 0
+        private set
 
     open fun typeface(context: Context): Typeface {
         return Typeface.DEFAULT
