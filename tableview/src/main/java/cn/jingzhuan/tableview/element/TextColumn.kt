@@ -215,7 +215,7 @@ abstract class TextColumn : DrawableColumn() {
                         paint,
                         Int.MAX_VALUE,
                         Layout.Alignment.ALIGN_NORMAL,
-                        0F,
+                        1F,
                         0F,
                         true
                     )
@@ -227,7 +227,7 @@ abstract class TextColumn : DrawableColumn() {
                     paint,
                     Int.MAX_VALUE,
                     Layout.Alignment.ALIGN_NORMAL,
-                    0F,
+                    1F,
                     0F,
                     true
                 )
