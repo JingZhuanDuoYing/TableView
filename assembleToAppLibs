@@ -1,0 +1,5 @@
+#!/bin/bash
+
+./gradlew clean
+./gradlew :tableview:assembleRelease
+./jetifier-standalone/bin/jetifier-standalone -i "tableview/build/outputs/aar/tableview-release.aar" -o "app/libs/jz-tableview-release-jetified.aar"
