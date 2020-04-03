@@ -23,6 +23,7 @@ open class HeaderRow<COLUMN : Column>(columns: List<COLUMN>) : Row<COLUMN>(colum
     }
 
     private fun readObject(inputStream: ObjectInputStream) {
+        inputStream.defaultReadObject()
         stickyRows = mutableListOf()
         rows = mutableListOf()
     }

@@ -21,6 +21,7 @@ class ColumnsLayoutManager : Serializable {
     private var attachedRows = mutableSetOf<RowLayout>()
 
     private fun readObject(inputStream: ObjectInputStream) {
+        inputStream.defaultReadObject()
         attachedRows = mutableSetOf()
     }
 

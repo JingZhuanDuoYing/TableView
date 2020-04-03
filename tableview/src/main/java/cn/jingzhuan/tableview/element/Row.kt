@@ -30,6 +30,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     abstract fun type(): Int
 
     private fun readObject(inputStream: ObjectInputStream) {
+        inputStream.defaultReadObject()
         rowShareElements = RowShareElements()
     }
 
