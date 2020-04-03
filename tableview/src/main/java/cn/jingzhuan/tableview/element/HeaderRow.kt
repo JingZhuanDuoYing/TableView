@@ -4,6 +4,7 @@ import android.content.Context
 import cn.jingzhuan.tableview.adapter.IRowListAdapterDelegate
 import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
 import cn.jingzhuan.tableview.layoutmanager.TableSpecs
+import java.io.ObjectInputStream
 
 open class HeaderRow<COLUMN : Column>(columns: List<COLUMN>) : Row<COLUMN>(columns) {
 
@@ -17,6 +18,11 @@ open class HeaderRow<COLUMN : Column>(columns: List<COLUMN>) : Row<COLUMN>(colum
     var layoutManager: ColumnsLayoutManager? = null
 
     init {
+        stickyRows = mutableListOf()
+        rows = mutableListOf()
+    }
+
+    private fun readObject(inputStream: ObjectInputStream) {
         stickyRows = mutableListOf()
         rows = mutableListOf()
     }

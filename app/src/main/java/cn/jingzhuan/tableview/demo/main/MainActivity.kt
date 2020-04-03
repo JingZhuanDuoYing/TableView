@@ -1,8 +1,8 @@
 package cn.jingzhuan.tableview.demo.main
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import cn.jingzhuan.tableview.demo.R
 import cn.jingzhuan.tableview.demo.databinding.ActivityMainBinding

@@ -116,29 +116,58 @@ open class TableView @JvmOverloads constructor(
         columnsLayoutManager.updateTableSize(columns, stickyColumnsCount)
     }
 
-    fun setRowsDividerEnabled(enable: Boolean, color: Int? = null) {
+    fun setRowsDividerEnabled(
+        enable: Boolean,
+        color: Int? = null,
+        height: Int? = null,
+        leftMargin: Int? = null,
+        rightMargin: Int? = null
+    ) {
         val specs = columnsLayoutManager.specs
         specs.enableRowsDivider = enable
-        if(null != color) specs.dividerColor = color
-        if(enable) {
-            val headerRowsDivider = TableDecoration(
-                specs.dividerStrokeWidth,
-                color = specs.dividerColor
-            )
-            val mainRowsDivider = TableDecoration(
-                specs.dividerStrokeWidth,
-                color = specs.dividerColor
-            )
-            specs.headerRowsDivider = headerRowsDivider
-            specs.mainRowsDivider = mainRowsDivider
-            header.addItemDecoration(headerRowsDivider)
-            main.addItemDecoration(mainRowsDivider)
-        } else {
-            if(null != specs.headerRowsDivider) {
-                header.removeItemDecoration(specs.headerRowsDivider!!)
+        if (null != color) specs.dividerColor = color
+
+        val headerRowsDivider = if (enable) TableDecoration(
+            height ?: specs.dividerStrokeWidth,
+            color = specs.dividerColor,
+            decorationLeftMargin = leftMargin ?: 0,
+            decorationRightMargin = rightMargin ?: 0
+        ) else null
+        val mainRowsDivider = if (enable) TableDecoration(
+            height ?: specs.dividerStrokeWidth,
+            color = specs.dividerColor,
+            decorationLeftMargin = leftMargin ?: 0,
+            decorationRightMargin = rightMargin ?: 0
+        ) else null
+        setRowsDividerEnabled(enable, headerRowsDivider, mainRowsDivider)
+    }
+
+    fun setRowsDividerEnabled(
+        enable: Boolean,
+        headerDivider: RecyclerView.ItemDecoration?,
+        mainDivider: RecyclerView.ItemDecoration?
+    ) {
+        val specs = columnsLayoutManager.specs
+        specs.enableRowsDivider = enable
+        if (enable) {
+            if (null != headerDivider) {
+                specs.headerRowsDivider = headerDivider
+                header.addItemDecoration(headerDivider)
             }
-            if(null != specs.mainRowsDivider) {
-                main.removeItemDecoration(specs.mainRowsDivider!!)
+            if (null != mainDivider) {
+                specs.mainRowsDivider = mainDivider
+                main.addItemDecoration(mainDivider)
+            }
+        } else {
+            specs.headerRowsDivider = null
+            specs.mainRowsDivider = null
+            val headerDecorationCount = header.itemDecorationCount
+            for (i in 0 until headerDecorationCount) {
+                header.removeItemDecorationAt(0)
+            }
+            val mainDecorationCount = main.itemDecorationCount
+            for (i in 0 until mainDecorationCount) {
+                main.removeItemDecorationAt(0)
             }
         }
     }

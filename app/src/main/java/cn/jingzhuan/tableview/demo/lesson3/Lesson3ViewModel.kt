@@ -3,6 +3,7 @@ package cn.jingzhuan.tableview.demo.lesson3
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import cn.jingzhuan.tableview.demo.elements.*
+import cn.jingzhuan.tableview.demo.lesson3.elements.CustomViewColumn
 import cn.jingzhuan.tableview.demo.lesson3.elements.DataBindingTextViewColumn
 import cn.jingzhuan.tableview.demo.lesson3.elements.ImageViewColumn
 import cn.jingzhuan.tableview.demo.lesson3.elements.TextViewColumn
@@ -33,7 +34,11 @@ class Lesson3ViewModel : ViewModel() {
                     val column = generateColumn(rowIndex, columnIndex)
                     columns.add(column)
                 }
-                titleRow.rows.add(SimpleRow(columns))
+                if(rowIndex < 5) {
+                    titleRow.rows.add(SimpleRow(columns, rowIndex))
+                } else {
+                    titleRow.rows.add(SimpleRow(columns))
+                }
             }
             titleRow
         }
@@ -50,6 +55,8 @@ class Lesson3ViewModel : ViewModel() {
             TextViewColumn()
         } else if (rowIndex == 3 && columnIndex == 3) {
             DataBindingTextViewColumn()
+        } else if (rowIndex == 4 && columnIndex == 4) {
+            CustomViewColumn()
         } else {
             SimpleColumn("${rowIndex + 1} - ${columnIndex + 1}")
         }

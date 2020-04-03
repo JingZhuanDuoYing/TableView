@@ -9,6 +9,7 @@ import cn.jingzhuan.tableview.RowLayout
 import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
 import cn.jingzhuan.tableview.layoutmanager.TableSpecs
+import java.io.ObjectInputStream
 import kotlin.math.max
 import kotlin.math.min
 
@@ -23,9 +24,14 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     var forceLayout = true
 
     @Transient
-    internal val rowShareElements = RowShareElements()
+    internal var rowShareElements = RowShareElements()
+        private set
 
     abstract fun type(): Int
+
+    private fun readObject(inputStream: ObjectInputStream) {
+        rowShareElements = RowShareElements()
+    }
 
     @ColorInt
     open fun backgroundColor(context: Context): Int? {

@@ -44,7 +44,7 @@ class Lesson6ViewModel : ViewModel() {
                     val column = generateColumn(rowIndex, columnIndex)
                     columns.add(column)
                 }
-                titleRow.rows.add(SimpleRow(columns))
+                titleRow.rows.add(SimpleRow(columns, rowIndex))
             }
             titleRow
         }

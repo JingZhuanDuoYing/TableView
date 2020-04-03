@@ -23,13 +23,7 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
         viewType: Int,
         fromHeader: Boolean
     ): RecyclerView.ViewHolder {
-//        if (viewType == IRowListAdapterDelegate.INVALID_VIEW_TYPE) {
-//            return RowListEmptyViewHolder(
-//                parent
-//            )
-//        }
-
-        val type = (if (fromHeader) {
+        val row = (if (fromHeader) {
             getHeaderRowForType(viewType)
         } else {
             getRowForType(viewType)
@@ -37,7 +31,12 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
             parent
         )
 
-        return RowListViewHolder(parent, type)
+        val rowView = row.createView(parent.context).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        }
+        return RowListViewHolder(rowView)
     }
 
     override fun bindViewHolder(

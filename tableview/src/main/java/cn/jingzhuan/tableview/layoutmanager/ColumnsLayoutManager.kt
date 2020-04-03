@@ -8,6 +8,7 @@ import cn.jingzhuan.tableview.RowLayout
 import cn.jingzhuan.tableview.element.DrawableColumn
 import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.element.ViewColumn
+import java.io.ObjectInputStream
 import java.io.Serializable
 import kotlin.math.max
 import kotlin.math.min
@@ -17,7 +18,11 @@ class ColumnsLayoutManager : Serializable {
     internal val specs = TableSpecs(this)
 
     @Transient
-    private val attachedRows = mutableSetOf<RowLayout>()
+    private var attachedRows = mutableSetOf<RowLayout>()
+
+    private fun readObject(inputStream: ObjectInputStream) {
+        attachedRows = mutableSetOf()
+    }
 
     fun updateTableSize(
         columnsSize: Int = this.specs.columnsCount,
@@ -128,9 +133,6 @@ class ColumnsLayoutManager : Serializable {
                 continue
             }
 
-            // 绑定column和view
-            column.bindView(view)
-
             // 未初始化过，需要将新创建的View添加到ViewGroup
             if (!initialized) {
                 if (sticky) {
@@ -139,6 +141,9 @@ class ColumnsLayoutManager : Serializable {
                     scrollableContainer.addView(view)
                 }
             }
+
+            // 绑定column和view
+            column.bindView(view)
 
             if (column.forceLayout) {
                 pendingLayout = true
@@ -164,6 +169,11 @@ class ColumnsLayoutManager : Serializable {
             }
         }
 
+        if (!initialized) {
+            // 未初始化过，需要将scrollableContainer添加进rowLayout
+            rowLayout.addView(scrollableContainer)
+        }
+
         // 列宽发生变化或者第一次初始化，都需要Layout
         if (pendingLayout || !initialized || row.forceLayout) {
             row.layout(context, specs)
@@ -178,11 +188,6 @@ class ColumnsLayoutManager : Serializable {
                 val view = rowLayout.getChildAt(currentViewIndex) ?: return@forEachIndexed
                 column.layoutView(view)
             }
-        }
-
-        if (!initialized) {
-            // 未初始化过，需要将scrollableContainer添加进rowLayout
-            rowLayout.addView(scrollableContainer)
         }
 
         // scrollableContainer检查是否需要Measure/Layout
