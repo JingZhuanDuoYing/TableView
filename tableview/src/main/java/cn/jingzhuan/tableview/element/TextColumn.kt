@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import cn.jingzhuan.tableview.sp
+import java.io.ObjectInputStream
 import kotlin.math.max
 
 abstract class TextColumn : DrawableColumn() {
@@ -47,6 +48,14 @@ abstract class TextColumn : DrawableColumn() {
         private set
     var measuredTextHeight = 0
         private set
+
+    private fun readObject(inputStream: ObjectInputStream) {
+        inputStream.defaultReadObject()
+        drawRegionLeft = 0
+        drawRegionTop = 0
+        drawRegionRight = 0
+        drawRegionBottom = 0
+    }
 
     open fun typeface(context: Context): Typeface {
         return Typeface.DEFAULT

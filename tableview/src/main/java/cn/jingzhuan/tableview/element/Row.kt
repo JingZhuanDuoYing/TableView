@@ -23,6 +23,12 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     var height = 0
     var forceLayout = true
 
+    /**
+     * expandable
+     */
+    var childRows: MutableList<Row<*>>? = null
+    var expanded = false
+
     @Transient
     internal var rowShareElements = RowShareElements()
         private set
