@@ -160,6 +160,7 @@ class RowLayout @JvmOverloads constructor(
         this.layoutManager?.attachRowLayout(this)
         this.layoutManager?.measureAndLayout(context, row, this, scrollableContainer)
         row.onBindView(this, layoutManager)
+        postInvalidate()
     }
 
     // -----------------------------    private    -----------------------------
