@@ -236,7 +236,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     ) {
         column.columnLeft = x
         column.columnTop = 0
-        column.columnRight = x + specs.columnsWidth[index]
+        column.columnRight = x + specs.visibleColumnsWidth[index]
         column.columnBottom = rowHeight
 
         val top: Int

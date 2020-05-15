@@ -6,9 +6,9 @@ import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.support.annotation.ColorInt
 import android.text.*
-import android.util.Log
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import cn.jingzhuan.tableview.sp
 import java.io.ObjectInputStream
 import kotlin.math.max
@@ -116,15 +116,27 @@ abstract class TextColumn : DrawableColumn() {
             }
         }
 
-        val minWidth = max(width(context), minWidth(context))
-        val minHeight = max(height(context), minHeight(context))
-        val minWidthWithMargins = leftMargin + minWidth + rightMargin
-        val minHeightWithMargins = topMargin + minHeight + bottomMargin
-        widthWithMargins = leftMargin + paddingLeft + measuredTextWidth + paddingRight + rightMargin
-        heightWithMargins =
-            topMargin + paddingTop + measuredTextHeight + paddingBottom + bottomMargin
-        widthWithMargins = max(minWidthWithMargins, widthWithMargins)
-        heightWithMargins = max(minHeightWithMargins, heightWithMargins)
+        val isWrapWidth = width(context) == ViewGroup.LayoutParams.WRAP_CONTENT
+        if (isWrapWidth) {
+            val minWidth = max(width(context), minWidth(context))
+            val minWidthWithMargins = leftMargin + minWidth + rightMargin
+            widthWithMargins =
+                leftMargin + paddingLeft + measuredTextWidth + paddingRight + rightMargin
+            widthWithMargins = max(minWidthWithMargins, widthWithMargins)
+        } else {
+            widthWithMargins = leftMargin + width(context) + rightMargin
+        }
+
+        val isWrapHeight = height(context) == ViewGroup.LayoutParams.WRAP_CONTENT
+        if (isWrapHeight) {
+            val minHeight = max(height(context), minHeight(context))
+            val minHeightWithMargins = topMargin + minHeight + bottomMargin
+            heightWithMargins =
+                topMargin + paddingTop + measuredTextHeight + paddingBottom + bottomMargin
+            heightWithMargins = max(minHeightWithMargins, heightWithMargins)
+        } else {
+            heightWithMargins = topMargin + height(context) + bottomMargin
+        }
 
         lastMeasuredValue = text
     }

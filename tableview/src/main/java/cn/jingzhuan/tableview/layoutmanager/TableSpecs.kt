@@ -12,7 +12,8 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
 
     var headerRow: HeaderRow<*>? = null
 
-    val columnsWidth = SparseIntArray()
+    val visibleColumnsWidth = SparseIntArray()
+    private val realColumnsWidth = SparseIntArray()
 
     var stickyColumnsCount = 0
         private set
@@ -20,10 +21,11 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         private set
 
     var stretchMode = false
-    var stretchColumnWidth = 0
+    private var averageStretchColumnWidth = 0
 
     var scrollX = 0
         private set
+
     /**
      * help to locate column by coordinate
      */
@@ -35,7 +37,9 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
     var tableWidth = 0
     var stickyWidth = 0
         internal set
-    var scrollableVirtualWidth = 0
+    var visibleScrollableVirtualWidth = 0
+        internal set
+    var realScrollableVirtualWidth = 0
         internal set
 
     @ColorInt
@@ -64,25 +68,25 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         if (this.scrollX == scrollX) return
         val dx = scrollX - this.scrollX
         this.scrollX = scrollX
-        if (scrollableFirstVisibleColumnLeft <= scrollX && scrollableFirstVisibleColumnLeft + columnsWidth[scrollableFirstVisibleColumnIndex] >= scrollX) {
+        if (scrollableFirstVisibleColumnLeft <= scrollX && scrollableFirstVisibleColumnLeft + visibleColumnsWidth[scrollableFirstVisibleColumnIndex] >= scrollX) {
             return
         }
         if (dx > 0) {
             var left =
-                scrollableFirstVisibleColumnLeft + columnsWidth[scrollableFirstVisibleColumnIndex]
+                scrollableFirstVisibleColumnLeft + visibleColumnsWidth[scrollableFirstVisibleColumnIndex]
             for (i in scrollableFirstVisibleColumnIndex + 1 until columnsCount) {
-                if (left <= scrollX && left + columnsWidth[i] >= scrollX) {
+                if (left <= scrollX && left + visibleColumnsWidth[i] >= scrollX) {
                     scrollableFirstVisibleColumnIndex = i
                     scrollableFirstVisibleColumnLeft = left
                     return
                 }
-                left += columnsWidth[i]
+                left += visibleColumnsWidth[i]
             }
         } else {
             var left = scrollableFirstVisibleColumnLeft
             for (i in scrollableFirstVisibleColumnIndex downTo stickyColumnsCount) {
-                if (i != scrollableFirstVisibleColumnIndex) left -= columnsWidth[i]
-                if (left <= scrollX && left + columnsWidth[i] >= scrollX) {
+                if (i != scrollableFirstVisibleColumnIndex) left -= visibleColumnsWidth[i]
+                if (left <= scrollX && left + visibleColumnsWidth[i] >= scrollX) {
                     scrollableFirstVisibleColumnIndex = i
                     scrollableFirstVisibleColumnLeft = left
                     return
@@ -103,34 +107,58 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
     }
 
     /**
-     * @return whether [columnsWidth] have been changed
+     * @return whether [visibleColumnsWidth] have been changed
      */
     internal fun compareAndSetColumnsWidth(index: Int, column: Column): Boolean {
         var changed = false
 
+        if (realColumnsWidth[index] < column.widthWithMargins) {
+            val expand = column.widthWithMargins - realColumnsWidth[index]
+            val newRealScrollableVirtualWidth = realScrollableVirtualWidth + expand
+            if(stretchMode && realColumnsWidth[index] > 0) {
+                for(i in stickyColumnsCount until columnsCount) {
+                    val weight = realColumnsWidth[i] / realScrollableVirtualWidth.toFloat()
+                    val newWidth = (newRealScrollableVirtualWidth * weight).toInt()
+                    visibleColumnsWidth.put(i, newWidth)
+                }
+            }
+            realColumnsWidth.put(index, column.widthWithMargins)
+            realScrollableVirtualWidth = newRealScrollableVirtualWidth
+            changed = true
+        }
+
         if (stretchMode && index >= stickyColumnsCount) {
-            changed = columnsWidth[index] == stretchColumnWidth
-            columnsWidth.put(index, stretchColumnWidth)
+            val scrollableLimitedWidth = tableWidth - stickyWidth
+            if (visibleScrollableVirtualWidth == 0 || scrollableLimitedWidth == 0) {
+                changed = visibleColumnsWidth[index] == averageStretchColumnWidth
+                visibleColumnsWidth.put(index, averageStretchColumnWidth)
+            } else {
+                val weight = realColumnsWidth[index] / realScrollableVirtualWidth.toFloat()
+                val proportionWidth = (scrollableLimitedWidth * weight).toInt()
+                changed = visibleColumnsWidth[index] == proportionWidth
+                visibleColumnsWidth.put(index, proportionWidth)
+            }
             return changed
         }
 
-        if (columnsWidth[index] < column.widthWithMargins) {
-            columnsWidth.put(index, column.widthWithMargins)
+        if (visibleColumnsWidth[index] < column.widthWithMargins) {
+            visibleColumnsWidth.put(index, column.widthWithMargins)
             changed = true
         }
 
         // force set 0 when column was invisible
         if (!column.visible) {
-            columnsWidth.put(index, 0)
+            visibleColumnsWidth.put(index, 0)
             changed = true
         }
 
-        val shouldCalculateStretchColumnWidth = stretchMode && stretchColumnWidth <= 0
-        val calculateStretchColumnWidth = (changed or shouldCalculateStretchColumnWidth) && index < stickyColumnsCount
+        val shouldCalculateStretchColumnWidth = stretchMode && averageStretchColumnWidth <= 0
+        val calculateStretchColumnWidth =
+            (changed or shouldCalculateStretchColumnWidth) && index < stickyColumnsCount
         if (calculateStretchColumnWidth) {
             var stickyWidth = 0
             for (i in 0 until stickyColumnsCount) {
-                stickyWidth += columnsWidth[i]
+                stickyWidth += visibleColumnsWidth[i]
             }
             this.stickyWidth = stickyWidth
 
@@ -140,7 +168,7 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
                     if (isColumnVisible(i)) visibleScrollableColumnsCount++
                 }
                 if (visibleScrollableColumnsCount > 0) {
-                    stretchColumnWidth =
+                    averageStretchColumnWidth =
                         (tableWidth - stickyWidth) / visibleScrollableColumnsCount
                 }
             }
@@ -159,17 +187,19 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
 
     fun computeScrollRange(): Int {
         if (stretchMode) return 0
-        return max(0, scrollableVirtualWidth - (tableWidth - stickyWidth))
+        return max(0, visibleScrollableVirtualWidth - (tableWidth - stickyWidth))
     }
 
     fun onColumnsWidthChanged() {
         stickyWidth = 0
-        scrollableVirtualWidth = 0
+        visibleScrollableVirtualWidth = 0
+        realScrollableVirtualWidth = 0
         for (i in 0 until columnsCount) {
             if (i < stickyColumnsCount) {
-                stickyWidth += columnsWidth[i]
+                stickyWidth += visibleColumnsWidth[i]
             } else {
-                scrollableVirtualWidth += columnsWidth[i]
+                visibleScrollableVirtualWidth += visibleColumnsWidth[i]
+                realScrollableVirtualWidth += realColumnsWidth[i]
             }
         }
         onColumnsWidthWithMarginsChanged?.invoke(layoutManager)
@@ -178,12 +208,12 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
     private fun resetScrollableFirstVisibleColumn() {
         var left = 0
         for (i in stickyColumnsCount until columnsCount) {
-            if (left <= scrollX && left + columnsWidth[i] >= scrollX) {
+            if (left <= scrollX && left + visibleColumnsWidth[i] >= scrollX) {
                 scrollableFirstVisibleColumnIndex = i
                 scrollableFirstVisibleColumnLeft = left
                 return
             }
-            left += columnsWidth[i]
+            left += visibleColumnsWidth[i]
         }
     }
 

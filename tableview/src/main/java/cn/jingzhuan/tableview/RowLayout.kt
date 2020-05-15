@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.support.v4.view.GestureDetectorCompat
 import android.util.AttributeSet
-import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -224,11 +223,11 @@ class RowLayout @JvmOverloads constructor(
             var stickyColumnLeft = 0
             for (i in 0 until specs.stickyColumnsCount) {
                 val columnLeft = stickyColumnLeft
-                val columnRight = columnLeft + specs.columnsWidth[i]
+                val columnRight = columnLeft + specs.visibleColumnsWidth[i]
                 if (columnLeft <= x && x <= columnRight) {
                     return i
                 }
-                stickyColumnLeft += specs.columnsWidth[i]
+                stickyColumnLeft += specs.visibleColumnsWidth[i]
             }
         }
 
@@ -236,11 +235,11 @@ class RowLayout @JvmOverloads constructor(
         var scrollableColumnLeft =
             specs.scrollableFirstVisibleColumnLeft - specs.scrollX + specs.stickyWidth
         for (i in drawStartIndex until specs.columnsCount) {
-            val columnRight = scrollableColumnLeft + specs.columnsWidth[i]
+            val columnRight = scrollableColumnLeft + specs.visibleColumnsWidth[i]
             if (scrollableColumnLeft <= x && x <= columnRight) {
                 return i
             }
-            scrollableColumnLeft += specs.columnsWidth[i]
+            scrollableColumnLeft += specs.visibleColumnsWidth[i]
         }
 
         return null

@@ -105,7 +105,7 @@ class ColumnsLayoutManager : Serializable {
             if (column is DrawableColumn) {
                 if (!visible) continue
                 // this may happens when columns changed
-                if (column.widthWithMargins == 0 || column.heightWithMargins == 0 || specs.columnsWidth[index] == 0) {
+                if (column.widthWithMargins == 0 || column.heightWithMargins == 0 || specs.visibleColumnsWidth[index] == 0) {
                     // measure drawable column in necessary
                     row.measure(context, specs)
                     if (specs.compareAndSetColumnsWidth(index, column)) {
