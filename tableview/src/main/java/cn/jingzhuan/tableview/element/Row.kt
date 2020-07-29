@@ -3,6 +3,7 @@ package cn.jingzhuan.tableview.element
 import android.content.Context
 import android.graphics.Canvas
 import android.support.annotation.ColorInt
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import cn.jingzhuan.tableview.RowLayout
@@ -249,9 +250,17 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
             bottom = rowHeight - top
         }
 
-        val right = column.columnRight
-        val left = right - column.widthWithMargins
-        column.layout(context, left, top, right, bottom, rowShareElements)
+        if(column.widthWithMargins >= specs.visibleColumnsWidth[index] && column.heightWithMargins >= rowHeight) {
+            val right = column.columnRight
+            val left = right - column.widthWithMargins
+            column.layout(context, left, top, right, bottom, rowShareElements)
+        } else {
+            val spaceRect = rowShareElements.rect1
+            spaceRect.set(column.columnLeft, column.columnTop, column.columnRight, column.columnBottom)
+            val columnRect = rowShareElements.rect2
+            Gravity.apply(column.gravity, column.widthWithMargins, column.heightWithMargins, spaceRect, columnRect)
+            column.layout(context, columnRect.left, columnRect.top, columnRect.right, columnRect.bottom, rowShareElements)
+        }
         if (column is DrawableColumn) {
             column.prepareToDraw(context, rowShareElements)
         }
