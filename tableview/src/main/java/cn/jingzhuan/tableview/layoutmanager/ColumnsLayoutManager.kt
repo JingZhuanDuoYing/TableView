@@ -84,11 +84,11 @@ class ColumnsLayoutManager : Serializable {
         // 如果rowLayout持有scrollableContainer，说明rowLayout之前已经初始化过了，不需要重新创建View对象
         val initialized = rowLayout.indexOfChild(scrollableContainer) >= 0
 
-        if (row.height <= 0) {
+        if (row.rowHeight <= 0) {
             // measure drawable columns first of all
             row.measure(context, specs)
-            if (row.height <= 0) {
-                row.height = rowLayout.height
+            if (row.rowHeight <= 0) {
+                row.rowHeight = rowLayout.height
             }
         }
         var pendingLayout = false
@@ -154,8 +154,8 @@ class ColumnsLayoutManager : Serializable {
                 column.measureView(view)
             }
 
-            if (column.heightWithMargins > row.height) {
-                row.height = column.heightWithMargins
+            if (column.heightWithMargins > row.rowHeight) {
+                row.rowHeight = column.heightWithMargins
                 pendingLayout = true
             }
 

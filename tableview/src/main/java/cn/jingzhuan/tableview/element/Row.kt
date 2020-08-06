@@ -3,6 +3,8 @@ package cn.jingzhuan.tableview.element
 import android.content.Context
 import android.graphics.Canvas
 import android.support.annotation.ColorInt
+import android.support.annotation.Dimension
+import android.support.annotation.Px
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -21,13 +23,37 @@ import kotlin.math.min
 abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     IElement {
 
-    var height = 0
+    @Px
+    var rowHeight = 0
+    @ColorInt
+    var backgroundColor: Int? = null
+
+    /**
+     * when forceLayout was true, next measure and layout process must not be ignored
+     */
     var forceLayout = true
 
     @Transient
     internal var rowShareElements = RowShareElements()
         private set
 
+    override var debugUI: Boolean = false
+
+    @Dimension(unit = Dimension.DP)
+    override var minWidth: Int = 0
+
+    @Dimension(unit = Dimension.DP)
+    override var minHeight: Int = 50
+
+    @Dimension(unit = Dimension.DP)
+    override var width: Int = ViewGroup.LayoutParams.MATCH_PARENT
+
+    @Dimension(unit = Dimension.DP)
+    override var height: Int = ViewGroup.LayoutParams.WRAP_CONTENT
+
+    /**
+     * as an ID for this row
+     */
     abstract fun type(): Int
 
     private fun readObject(inputStream: ObjectInputStream) {
@@ -35,27 +61,33 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         rowShareElements = RowShareElements()
     }
 
+    @Deprecated("20200806 use variable field instead", ReplaceWith(""))
     @ColorInt
     open fun backgroundColor(context: Context): Int? {
         return null
     }
 
+    @Deprecated("20200806 use variable field instead", ReplaceWith(""))
     open fun minHeight(context: Context): Int {
-        return context.dp(50F).toInt()
+        return context.dp(minHeight).toInt()
     }
 
+    @Deprecated("20200806 use variable field instead", ReplaceWith(""))
     override fun height(context: Context): Int {
         return ViewGroup.LayoutParams.WRAP_CONTENT
     }
 
+    @Deprecated("20200806 use variable field instead", ReplaceWith(""))
     override fun width(context: Context): Int {
         return ViewGroup.LayoutParams.MATCH_PARENT
     }
 
     open fun createView(context: Context): ViewGroup {
         val rowLayout = RowLayout(context)
-        rowLayout.layoutParams = ViewGroup.LayoutParams(width(context), height(context))
-        rowLayout.minimumHeight = minHeight(context)
+        val widthPx = context.dp(width).toInt()
+        val heightPx = context.dp(height).toInt()
+        rowLayout.layoutParams = ViewGroup.LayoutParams(widthPx, heightPx)
+        rowLayout.minimumHeight = context.dp(minHeight).toInt()
         return rowLayout
     }
 
@@ -94,11 +126,11 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         }
 
         // 记录 row 自身的测量高度
-        val rowHeight = height(context)
-        height = if (rowHeight > 0) {
+        val rowHeight = context.dp(height).toInt()
+        this.rowHeight = if (rowHeight > 0) {
             rowHeight
         } else {
-            val rowMinHeight = minHeight(context)
+            val rowMinHeight = context.dp(minHeight).toInt()
             max(maxHeight, rowMinHeight)
         }
 
@@ -121,10 +153,9 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     }
 
     open fun draw(context: Context, canvas: Canvas, stickyWidthWithMargins: Int) {
-        val backgroundColor = backgroundColor(context)
         if (null != backgroundColor) {
             val paint = rowShareElements.backgroundPaint
-            if (paint.color != backgroundColor) paint.color = backgroundColor
+            if (paint.color != backgroundColor) paint.color = backgroundColor!!
             canvas.drawRect(0F, 0F, canvas.width.toFloat(), canvas.height.toFloat(), paint)
         }
     }
@@ -195,9 +226,9 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
 
     internal fun getRowHeight(context: Context): Int {
         return when {
-            height > 0 -> height
-            height(context) > 0 -> height(context)
-            else -> minHeight(context)
+            rowHeight > 0 -> rowHeight
+            height > 0 -> context.dp(height).toInt()
+            else -> context.dp(minHeight).toInt()
         }
     }
 
@@ -213,16 +244,16 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         }
 
         if (column.widthWithMargins <= 0) {
-            val minWidth = column.minWidth(context)
-            val width = column.width(context)
-            val columnWidth = max(minWidth, width)
+            val minWidthPx = context.dp(minWidth).toInt()
+            val widthPx = context.dp(width).toInt()
+            val columnWidth = max(minWidthPx, widthPx)
             column.widthWithMargins = columnWidth + column.leftMargin + column.rightMargin
         }
 
         if (column.heightWithMargins <= 0) {
-            val minHeight = column.minHeight(context)
-            val height = column.height(context)
-            val columnHeight = max(minHeight, height)
+            val minHeightPx = context.dp(minHeight).toInt()
+            val heightPx = context.dp(height).toInt()
+            val columnHeight = max(minHeightPx, heightPx)
             column.heightWithMargins = columnHeight + column.topMargin + column.bottomMargin
         }
     }
@@ -250,16 +281,34 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
             bottom = rowHeight - top
         }
 
-        if(column.widthWithMargins >= specs.visibleColumnsWidth[index] && column.heightWithMargins >= rowHeight) {
+        if (column.widthWithMargins >= specs.visibleColumnsWidth[index] && column.heightWithMargins >= rowHeight) {
             val right = column.columnRight
             val left = right - column.widthWithMargins
             column.layout(context, left, top, right, bottom, rowShareElements)
         } else {
             val spaceRect = rowShareElements.rect1
-            spaceRect.set(column.columnLeft, column.columnTop, column.columnRight, column.columnBottom)
+            spaceRect.set(
+                column.columnLeft,
+                column.columnTop,
+                column.columnRight,
+                column.columnBottom
+            )
             val columnRect = rowShareElements.rect2
-            Gravity.apply(column.gravity, column.widthWithMargins, column.heightWithMargins, spaceRect, columnRect)
-            column.layout(context, columnRect.left, columnRect.top, columnRect.right, columnRect.bottom, rowShareElements)
+            Gravity.apply(
+                column.gravity,
+                column.widthWithMargins,
+                column.heightWithMargins,
+                spaceRect,
+                columnRect
+            )
+            column.layout(
+                context,
+                columnRect.left,
+                columnRect.top,
+                columnRect.right,
+                columnRect.bottom,
+                rowShareElements
+            )
         }
         if (column is DrawableColumn) {
             column.prepareToDraw(context, rowShareElements)

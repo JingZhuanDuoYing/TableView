@@ -1,14 +1,18 @@
 package cn.jingzhuan.tableview.element
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.support.annotation.ColorInt
 import android.text.*
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.sp
 import java.io.ObjectInputStream
 import kotlin.math.max
@@ -55,6 +59,18 @@ abstract class TextColumn : DrawableColumn() {
     var measuredTextHeight = 0
         private set
 
+    var typeface: Typeface = Typeface.DEFAULT
+    var textSize: Float = 18F
+    var textSizeUnit: Int = TypedValue.COMPLEX_UNIT_SP
+
+    @ColorInt
+    var textColor: Int = Color.BLACK
+
+    var backgroundColor: Int? = null
+
+    @Deprecated("achieve bold style by typeface")
+    var isBold: Boolean = false
+
     private fun readObject(inputStream: ObjectInputStream) {
         inputStream.defaultReadObject()
         drawRegionLeft = 0
@@ -63,35 +79,44 @@ abstract class TextColumn : DrawableColumn() {
         drawRegionBottom = 0
     }
 
+    @Deprecated("20200806 use variable field instead", ReplaceWith("typeface"))
     open fun typeface(context: Context): Typeface {
-        return Typeface.DEFAULT
+        return typeface
     }
 
+    @Deprecated("20200806 use variable field instead", ReplaceWith("textSize"))
     open fun textSizeSp(context: Context): Float {
-        return 18F
+        return textSize
     }
 
+    @Deprecated("20200806 use variable field instead", ReplaceWith("textColor"))
     @ColorInt
     open fun color(context: Context): Int {
-        return Color.BLACK
+        return textColor
     }
 
+    @Deprecated("20200806 use variable field instead", ReplaceWith("backgroundColor"))
     @ColorInt
     open fun backgroundColor(context: Context): Int? {
-        return null
+        return backgroundColor
     }
 
+    @Deprecated("20200806 use variable field instead", ReplaceWith("false"))
     open fun isBold(context: Context) = false
+
+    fun textSizePx(context: Context): Float {
+        return when (textSizeUnit) {
+            TypedValue.COMPLEX_UNIT_SP -> context.sp(textSize)
+            TypedValue.COMPLEX_UNIT_DIP -> context.dp(textSize)
+            else -> textSize
+        }
+    }
 
     abstract fun getText(context: Context): CharSequence?
 
     override fun measure(context: Context, rowShareElements: RowShareElements) {
         super.measure(context, rowShareElements)
-        val textSize = context.sp(textSizeSp(context))
-        val color = color(context)
-        val typeface = typeface(context)
-
-        val paint = rowShareElements.getPaint(textSize, color, typeface)
+        val paint = rowShareElements.getPaint(textSizePx(context), textColor, typeface)
 
         val text = getText(context)
         // if nothing changed, ignore measure process
@@ -116,26 +141,30 @@ abstract class TextColumn : DrawableColumn() {
             }
         }
 
-        val isWrapWidth = width(context) == ViewGroup.LayoutParams.WRAP_CONTENT
+        val widthPx = context.dp(width).toInt()
+        val minWidthPx = context.dp(minWidth).toInt()
+        val isWrapWidth = width == ViewGroup.LayoutParams.WRAP_CONTENT
         if (isWrapWidth) {
-            val minWidth = max(width(context), minWidth(context))
+            val minWidth = max(widthPx, minWidthPx)
             val minWidthWithMargins = leftMargin + minWidth + rightMargin
             widthWithMargins =
                 leftMargin + paddingLeft + measuredTextWidth + paddingRight + rightMargin
             widthWithMargins = max(minWidthWithMargins, widthWithMargins)
         } else {
-            widthWithMargins = leftMargin + width(context) + rightMargin
+            widthWithMargins = leftMargin + widthPx + rightMargin
         }
 
-        val isWrapHeight = height(context) == ViewGroup.LayoutParams.WRAP_CONTENT
+        val heightPx = context.dp(height).toInt()
+        val minHeightPx = context.dp(minHeight).toInt()
+        val isWrapHeight = height == ViewGroup.LayoutParams.WRAP_CONTENT
         if (isWrapHeight) {
-            val minHeight = max(height(context), minHeight(context))
+            val minHeight = max(heightPx, minHeightPx)
             val minHeightWithMargins = topMargin + minHeight + bottomMargin
             heightWithMargins =
                 topMargin + paddingTop + measuredTextHeight + paddingBottom + bottomMargin
             heightWithMargins = max(minHeightWithMargins, heightWithMargins)
         } else {
-            heightWithMargins = topMargin + height(context) + bottomMargin
+            heightWithMargins = topMargin + heightPx + bottomMargin
         }
 
         lastMeasuredValue = text
@@ -169,11 +198,7 @@ abstract class TextColumn : DrawableColumn() {
     override fun prepareToDraw(context: Context, rowShareElements: RowShareElements) {
         super.prepareToDraw(context, rowShareElements)
 
-        val textSize = context.sp(textSizeSp(context))
-        val color = color(context)
-        val typeface = typeface(context)
-
-        val paint = rowShareElements.getPaint(textSize, color, typeface)
+        val paint = rowShareElements.getPaint(textSizePx(context), textColor, typeface)
 
         val text = getText(context)
         if (TextUtils.isEmpty(text)) {
@@ -268,10 +293,9 @@ abstract class TextColumn : DrawableColumn() {
         rowShareElements: RowShareElements
     ) {
         super.draw(context, canvas, rowShareElements)
-        val backgroundColor = backgroundColor(context)
         if (null != backgroundColor) {
             val backgroundPaint = rowShareElements.backgroundPaint
-            if (backgroundColor != backgroundPaint.color) backgroundPaint.color = backgroundColor
+            if (backgroundColor != backgroundPaint.color) backgroundPaint.color = backgroundColor!!
             canvas.drawRect(
                 columnLeft.toFloat(),
                 columnTop.toFloat(),
@@ -281,10 +305,7 @@ abstract class TextColumn : DrawableColumn() {
             )
         }
 
-        val textSize = context.sp(textSizeSp(context))
-        val color = color(context)
-        val typeface = typeface(context)
-        val paint = rowShareElements.getPaint(textSize, color, typeface)
+        val paint = rowShareElements.getPaint(textSizePx(context), textColor, typeface)
         val text = getText(context) ?: ""
 
         val drawLeft = drawRegionLeft.toFloat()

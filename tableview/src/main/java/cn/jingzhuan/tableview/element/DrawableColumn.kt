@@ -42,7 +42,7 @@ abstract class DrawableColumn : Column() {
         canvas: Canvas,
         rowShareElements: RowShareElements
     ) {
-        if (debugUI()) {
+        if (debugUI) {
             debugPaint.color = Color.RED
             canvas.drawRect(columnLeft, columnTop, columnRight, columnBottom, debugPaint)
 

@@ -3,6 +3,8 @@ package cn.jingzhuan.tableview.element
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.Typeface
+import android.support.annotation.Dimension
+import android.support.annotation.Px
 import android.text.TextPaint
 
 class RowShareElements {
@@ -18,7 +20,7 @@ class RowShareElements {
         style = Paint.Style.FILL
     }
 
-    fun getPaint(textSize: Float, color: Int, typeface: Typeface): TextPaint {
+    fun getPaint(@Px textSize: Float, color: Int, typeface: Typeface): TextPaint {
         val key = getKey(textSize, color, typeface)
         if (paintPool.contains(key)) return paintPool.getValue(key)
         val paint = TextPaint()

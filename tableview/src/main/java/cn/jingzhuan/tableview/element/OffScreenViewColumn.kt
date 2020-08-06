@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.view.View
 import android.view.View.MeasureSpec
 import android.view.ViewGroup.MarginLayoutParams
+import cn.jingzhuan.tableview.dp
 
 abstract class OffScreenViewColumn : DrawableColumn() {
 
@@ -20,13 +21,13 @@ abstract class OffScreenViewColumn : DrawableColumn() {
 
   override fun measure(context: Context, rowShareElements: RowShareElements) {
     val view = view ?: return
-    val width = width(context)
-    val height = height(context)
+    val widthPx = context.dp(width).toInt()
+    val heightPx = context.dp(height).toInt()
     val widthMeasureSpec = MeasureSpec.makeMeasureSpec(
-        width, if (width < 0) MeasureSpec.UNSPECIFIED else MeasureSpec.EXACTLY
+        widthPx, if (widthPx < 0) MeasureSpec.UNSPECIFIED else MeasureSpec.EXACTLY
     )
     val heightMeasureSpec = MeasureSpec.makeMeasureSpec(
-        height, if (height < 0) MeasureSpec.UNSPECIFIED else MeasureSpec.EXACTLY
+        heightPx, if (heightPx < 0) MeasureSpec.UNSPECIFIED else MeasureSpec.EXACTLY
     )
     view.measure(widthMeasureSpec, heightMeasureSpec)
     view.layout(0, 0, view.measuredWidth, view.measuredHeight)

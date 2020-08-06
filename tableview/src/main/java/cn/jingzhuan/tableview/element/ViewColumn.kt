@@ -70,7 +70,7 @@ abstract class ViewColumn : Column() {
     }
 
     /**
-     * @return true to ignore next layout
+     * @return true to ignore the upcoming layout
      */
     open fun checkLayout(view: View): Boolean {
         val mlp = view.layoutParams as? MarginLayoutParams

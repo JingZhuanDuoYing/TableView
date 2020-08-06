@@ -13,6 +13,10 @@ internal fun Context.dp(value: Float): Float {
     return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, resources.displayMetrics)
 }
 
+internal fun Context.dp(value: Int): Float {
+    return dp(value.toFloat())
+}
+
 internal fun Context.sp(value: Float): Float {
     return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, resources.displayMetrics)
 }
