@@ -1,0 +1,69 @@
+apply plugin: 'maven-publish'
+
+def publishVersion = '1.0.1'
+
+task buildSdk {
+    dependsOn ':tableview:assembleRelease'
+    doLast {
+        exec {
+            workingDir "${rootProject.projectDir}"
+            commandLine './jetifier-standalone/bin/jetifier-standalone', '-i',
+                    'tableview/build/outputs/aar/tableview-release.aar', '-o',
+                    'tableview/build/outputs/aar/tableview-release-jetified.aar'
+        }
+    }
+}
+
+def sourceJar(String name, String path) {
+    return tasks.create("source${name.capitalize()}Jar", Jar) {
+        group = "publishing"
+        description = "package ${name} source to jar"
+        from "$path/src/main/java"
+        from "$path/src/main/kotlin"
+        destinationDirectory = file("$path/build/libs/")
+        classifier = 'sources'
+    }
+}
+
+def setGeneratePomFileAndDepends(publicationName) {
+    model {
+        tasks."generatePomFileFor${publicationName.capitalize()}Publication" {
+            destination = file("$buildDir/pom/$publicationName-pom.xml")
+            dependsOn(buildSdk)
+        }
+    }
+}
+
+publishing {
+    repositories {
+        mavenLocal()
+        maven {
+            name 'JZMaven'
+            url 'http://192.168.0.251:8081/repository/maven-releases'
+            allowInsecureProtocol = true
+            credentials {
+                username 'admin'
+                password 'admin123'
+            }
+        }
+    }
+    publications {
+        tableview(MavenPublication) {
+            groupId 'cn.jingzhuan.lib'
+            artifactId 'taleview'
+            version publishVersion
+            artifact ("./tableview/build/outputs/aar/tableview-release.aar")
+            artifact sourceJar("tableview", "./tableview")
+        }
+        tableview_jetified(MavenPublication) {
+            groupId 'cn.jingzhuan.lib'
+            artifactId 'taleview-jetified'
+            version publishVersion
+            artifact ("./tableview/build/outputs/aar/tableview-release-jetified.aar")
+            artifact sourceJar("tableview_jetified", "./tableview")
+        }
+    }
+}
+
+setGeneratePomFileAndDepends('tableview')
+setGeneratePomFileAndDepends('tableview_jetified')
