@@ -92,7 +92,6 @@ class ColumnsLayoutManager : Serializable {
             }
         }
         var pendingLayout = false
-
         // 普通View的Measure/Layout流程
         var viewIndex = 0
         val maxSize = min(row.columns.size, specs.columnsCount)
@@ -154,7 +153,6 @@ class ColumnsLayoutManager : Serializable {
                 // 实际Measure
                 column.measureView(view)
             }
-            column.forceLayout = false
 
             if (column.heightWithMargins > row.height) {
                 row.height = column.heightWithMargins
@@ -178,8 +176,6 @@ class ColumnsLayoutManager : Serializable {
         // 列宽发生变化或者第一次初始化，都需要Layout
         if (pendingLayout || !initialized || row.forceLayout) {
             row.layout(context, specs)
-            row.forceLayout = false
-            specs.onColumnsWidthChanged()
 
             viewIndex = 0
             row.columns.forEachIndexed { _, column ->
@@ -187,8 +183,12 @@ class ColumnsLayoutManager : Serializable {
                 val currentViewIndex = viewIndex
                 viewIndex++
                 val view = rowLayout.getChildAt(currentViewIndex) ?: return@forEachIndexed
-                column.layoutView(view)
+                column.layoutView(view, column.forceLayout)
+                column.forceLayout = false
             }
+
+            row.forceLayout = false
+            specs.onColumnsWidthChanged()
         }
 
         // scrollableContainer检查是否需要Measure/Layout

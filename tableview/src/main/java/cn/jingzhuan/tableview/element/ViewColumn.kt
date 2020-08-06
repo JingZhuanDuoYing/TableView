@@ -52,7 +52,7 @@ abstract class ViewColumn : Column() {
         heightWithMargins = view.measuredHeight + topMargin + bottomMargin
     }
 
-    open fun layoutView(view: View) {
+    open fun layoutView(view: View, forceLayout: Boolean = false) {
         val mlp = view.layoutParams as? MarginLayoutParams
         val leftMargin = mlp?.leftMargin ?: 0
         val topMargin = mlp?.topMargin ?: 0
@@ -64,7 +64,7 @@ abstract class ViewColumn : Column() {
         val viewRight = right - rightMargin
         val viewBottom = bottom - bottomMargin
 
-        if (view.left != viewLeft || view.top != viewTop || view.right != viewRight || view.bottom != viewBottom) {
+        if (forceLayout || view.left != viewLeft || view.top != viewTop || view.right != viewRight || view.bottom != viewBottom) {
             view.layout(viewLeft, viewTop, viewRight, viewBottom)
         }
     }
