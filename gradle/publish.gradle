@@ -1,6 +1,6 @@
 apply plugin: 'maven-publish'
 
-def publishVersion = '1.0.1'
+def publishVersion = '1.0.3'
 
 task buildSdk {
     dependsOn ':tableview:assembleRelease'
@@ -50,14 +50,14 @@ publishing {
     publications {
         tableview(MavenPublication) {
             groupId 'cn.jingzhuan.lib'
-            artifactId 'taleview'
+            artifactId 'tableview'
             version publishVersion
             artifact ("./tableview/build/outputs/aar/tableview-release.aar")
             artifact sourceJar("tableview", "./tableview")
         }
         tableview_jetified(MavenPublication) {
             groupId 'cn.jingzhuan.lib'
-            artifactId 'taleview-jetified'
+            artifactId 'tableview-jetified'
             version publishVersion
             artifact ("./tableview/build/outputs/aar/tableview-release-jetified.aar")
             artifact sourceJar("tableview_jetified", "./tableview")

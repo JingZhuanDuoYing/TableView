@@ -16,20 +16,21 @@ abstract class Column : IElement {
     override var debugUI: Boolean = false
 
     @Dimension(unit = Dimension.DP)
-    override var minWidth: Int = 0
+    var minWidth: Int = 0
 
     @Dimension(unit = Dimension.DP)
-    override var minHeight: Int = 0
+    var minHeight: Int = 0
 
     @Dimension(unit = Dimension.DP)
-    override var width: Int = ViewGroup.LayoutParams.WRAP_CONTENT
+    var width: Int = ViewGroup.LayoutParams.WRAP_CONTENT
 
     @Dimension(unit = Dimension.DP)
-    override var height: Int = ViewGroup.LayoutParams.MATCH_PARENT
+    var height: Int = ViewGroup.LayoutParams.MATCH_PARENT
 
     @Px
     var widthWithMargins = 0
         internal set
+
     @Px
     var heightWithMargins = 0
         internal set
@@ -37,31 +38,40 @@ abstract class Column : IElement {
     @Px
     var columnLeft = 0
         internal set
+
     @Px
     var columnTop = 0
         internal set
+
     @Px
     var columnRight = 0
         internal set
+
     @Px
     var columnBottom = 0
         internal set
 
     @Px
     var leftMargin = 0
+
     @Px
     var topMargin = 0
+
     @Px
     var rightMargin = 0
+
     @Px
     var bottomMargin = 0
 
     @Px
     var paddingLeft = 0
+
     @Px
     var paddingTop = 0
+
     @Px
     var paddingRight = 0
+
     @Px
     var paddingBottom = 0
 
@@ -93,6 +103,14 @@ abstract class Column : IElement {
     override fun width(context: Context): Int {
         return if (width <= 0) width else context.dp(width).toInt()
     }
+
+    override fun width() = width
+
+    override fun minWidth() = minWidth
+
+    override fun height() = height
+
+    override fun minHeight() = minHeight
 
     internal open fun layout(
         context: Context,

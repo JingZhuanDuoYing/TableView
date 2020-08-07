@@ -9,26 +9,6 @@ import java.io.Serializable
  */
 interface IElement : Serializable {
 
-  /**
-   * dp
-   */
-  var width: Int
-
-  /**
-   * dp
-   */
-  var height: Int
-
-  /**
-   * dp
-   */
-  var minWidth: Int
-
-  /**
-   * dp
-   */
-  var minHeight: Int
-
   var debugUI: Boolean
 
   @Deprecated("20200806 use variable field instead")
@@ -39,5 +19,13 @@ interface IElement : Serializable {
 
   @Deprecated("20200806 use variable field instead", ReplaceWith(""))
   fun debugUI() = debugUI
+
+  fun width(): Int
+
+  fun height(): Int
+
+  fun minWidth(): Int
+
+  fun minHeight(): Int
 
 }

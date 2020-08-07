@@ -25,6 +25,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
 
     @Px
     var rowHeight = 0
+
     @ColorInt
     var backgroundColor: Int? = null
 
@@ -40,16 +41,16 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     override var debugUI: Boolean = false
 
     @Dimension(unit = Dimension.DP)
-    override var minWidth: Int = 0
+    var minWidth: Int = 0
 
     @Dimension(unit = Dimension.DP)
-    override var minHeight: Int = 50
+    var minHeight: Int = 50
 
     @Dimension(unit = Dimension.DP)
-    override var width: Int = ViewGroup.LayoutParams.MATCH_PARENT
+    var width: Int = ViewGroup.LayoutParams.MATCH_PARENT
 
     @Dimension(unit = Dimension.DP)
-    override var height: Int = ViewGroup.LayoutParams.WRAP_CONTENT
+    var height: Int = ViewGroup.LayoutParams.WRAP_CONTENT
 
     /**
      * as an ID for this row
@@ -81,6 +82,14 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     override fun width(context: Context): Int {
         return ViewGroup.LayoutParams.MATCH_PARENT
     }
+
+    override fun width() = width
+
+    override fun minWidth() = minWidth
+
+    override fun height() = height
+
+    override fun minHeight() = minHeight
 
     open fun createView(context: Context): ViewGroup {
         val rowLayout = RowLayout(context)
