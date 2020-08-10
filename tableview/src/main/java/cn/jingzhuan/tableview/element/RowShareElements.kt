@@ -28,6 +28,7 @@ class RowShareElements {
         paint.isDither = true
         paint.color = color
         paint.textSize = textSize
+        paint.typeface = typeface
         paintPool[key] = paint
         return paint
     }

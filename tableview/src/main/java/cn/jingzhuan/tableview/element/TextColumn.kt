@@ -59,17 +59,14 @@ abstract class TextColumn : DrawableColumn() {
     var measuredTextHeight = 0
         private set
 
-    var typeface: Typeface = Typeface.DEFAULT
+    open var typeface: Typeface = Typeface.DEFAULT
     var textSize: Float = 18F
-    var textSizeUnit: Int = TypedValue.COMPLEX_UNIT_SP
+    open var textSizeUnit: Int = TypedValue.COMPLEX_UNIT_SP
 
     @ColorInt
     var textColor: Int = Color.BLACK
 
     var backgroundColor: Int? = null
-
-    @Deprecated("achieve bold style by typeface")
-    var isBold: Boolean = false
 
     private fun readObject(inputStream: ObjectInputStream) {
         inputStream.defaultReadObject()

@@ -1,6 +1,6 @@
 apply plugin: 'maven-publish'
 
-def publishVersion = '1.0.3'
+def publishVersion = '1.0.4'
 
 task buildSdk {
     dependsOn ':tableview:assembleRelease'
@@ -43,7 +43,7 @@ publishing {
             allowInsecureProtocol = true
             credentials {
                 username 'admin'
-                password 'admin123'
+                password 'admin'
             }
         }
     }
