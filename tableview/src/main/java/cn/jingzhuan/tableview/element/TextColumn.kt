@@ -64,7 +64,7 @@ abstract class TextColumn : DrawableColumn() {
     open var textSizeUnit: Int = TypedValue.COMPLEX_UNIT_SP
 
     @ColorInt
-    var textColor: Int = Color.BLACK
+    open var color: Int = Color.BLACK
 
     var backgroundColor: Int? = null
 
@@ -89,7 +89,7 @@ abstract class TextColumn : DrawableColumn() {
     @Deprecated("20200806 use variable field instead", ReplaceWith("textColor"))
     @ColorInt
     open fun color(context: Context): Int {
-        return textColor
+        return color
     }
 
     @Deprecated("20200806 use variable field instead", ReplaceWith("backgroundColor"))
@@ -113,7 +113,7 @@ abstract class TextColumn : DrawableColumn() {
 
     override fun measure(context: Context, rowShareElements: RowShareElements) {
         super.measure(context, rowShareElements)
-        val paint = rowShareElements.getPaint(textSizePx(context), textColor, typeface)
+        val paint = rowShareElements.getPaint(textSizePx(context), color, typeface)
 
         val text = getText(context)
         // if nothing changed, ignore measure process
@@ -195,7 +195,7 @@ abstract class TextColumn : DrawableColumn() {
     override fun prepareToDraw(context: Context, rowShareElements: RowShareElements) {
         super.prepareToDraw(context, rowShareElements)
 
-        val paint = rowShareElements.getPaint(textSizePx(context), textColor, typeface)
+        val paint = rowShareElements.getPaint(textSizePx(context), color, typeface)
 
         val text = getText(context)
         if (TextUtils.isEmpty(text)) {
@@ -302,7 +302,7 @@ abstract class TextColumn : DrawableColumn() {
             )
         }
 
-        val paint = rowShareElements.getPaint(textSizePx(context), textColor, typeface)
+        val paint = rowShareElements.getPaint(textSizePx(context), color, typeface)
         val text = getText(context) ?: ""
 
         val drawLeft = drawRegionLeft.toFloat()
