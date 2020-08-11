@@ -2,6 +2,8 @@ package cn.jingzhuan.tableview
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
+import android.support.annotation.ColorInt
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
@@ -118,10 +120,12 @@ open class TableView @JvmOverloads constructor(
 
     fun setRowsDividerEnabled(
         enable: Boolean,
-        color: Int? = null,
+        @ColorInt color: Int? = null,
+        @ColorInt backgroundColor: Int? = null,
         height: Int? = null,
         leftMargin: Int? = null,
-        rightMargin: Int? = null
+        rightMargin: Int? = null,
+        skipEndCount: Int? = null
     ) {
         val specs = columnsLayoutManager.specs
         specs.enableRowsDivider = enable
@@ -130,14 +134,17 @@ open class TableView @JvmOverloads constructor(
         val headerRowsDivider = if (enable) TableDecoration(
             height ?: specs.dividerStrokeWidth,
             color = specs.dividerColor,
+            backgroundColor = backgroundColor ?: Color.TRANSPARENT,
             decorationLeftMargin = leftMargin ?: 0,
             decorationRightMargin = rightMargin ?: 0
         ) else null
         val mainRowsDivider = if (enable) TableDecoration(
             height ?: specs.dividerStrokeWidth,
             color = specs.dividerColor,
+            backgroundColor = backgroundColor ?: Color.TRANSPARENT,
             decorationLeftMargin = leftMargin ?: 0,
-            decorationRightMargin = rightMargin ?: 0
+            decorationRightMargin = rightMargin ?: 0,
+            skipEndCount = skipEndCount ?: 0
         ) else null
         setRowsDividerEnabled(enable, headerRowsDivider, mainRowsDivider)
     }
@@ -151,10 +158,12 @@ open class TableView @JvmOverloads constructor(
         specs.enableRowsDivider = enable
         if (enable) {
             if (null != headerDivider) {
+                if (null != specs.headerRowsDivider) header.removeItemDecoration(specs.headerRowsDivider!!)
                 specs.headerRowsDivider = headerDivider
                 header.addItemDecoration(headerDivider)
             }
             if (null != mainDivider) {
+                if (null != specs.mainRowsDivider) main.removeItemDecoration(specs.mainRowsDivider!!)
                 specs.mainRowsDivider = mainDivider
                 main.addItemDecoration(mainDivider)
             }
