@@ -5,7 +5,7 @@ import android.view.View
 import android.view.View.MeasureSpec
 import android.view.ViewGroup.MarginLayoutParams
 
-abstract class ViewColumn : Column() {
+abstract class ViewColumn : Column {
 
     internal var forceLayout = true
 
@@ -13,6 +13,39 @@ abstract class ViewColumn : Column() {
     internal var top = 0
     internal var right = 0
     internal var bottom = 0
+
+    constructor() : super()
+    constructor(
+        minWidth: Int? = null,
+        minHeight: Int? = null,
+        width: Int? = null,
+        height: Int? = null,
+        leftMargin: Int? = null,
+        topMargin: Int? = null,
+        rightMargin: Int? = null,
+        bottomMargin: Int? = null,
+        paddingLeft: Int? = null,
+        paddingTop: Int? = null,
+        paddingRight: Int? = null,
+        paddingBottom: Int? = null,
+        gravity: Int? = null,
+        visible: Boolean? = null
+    ) : super(
+        minWidth,
+        minHeight,
+        width,
+        height,
+        leftMargin,
+        topMargin,
+        rightMargin,
+        bottomMargin,
+        paddingLeft,
+        paddingTop,
+        paddingRight,
+        paddingBottom,
+        gravity,
+        visible
+    )
 
     abstract fun createView(context: Context): View
 

@@ -7,11 +7,44 @@ import android.view.View.MeasureSpec
 import android.view.ViewGroup.MarginLayoutParams
 import cn.jingzhuan.tableview.dp
 
-abstract class OffScreenViewColumn : DrawableColumn() {
+abstract class OffScreenViewColumn : DrawableColumn {
 
   protected var view: View? = null
   private var measuredViewWidth = 0
   private var measuredViewHeight = 0
+
+  constructor() : super()
+  constructor(
+    minWidth: Int?,
+    minHeight: Int?,
+    width: Int?,
+    height: Int?,
+    leftMargin: Int?,
+    topMargin: Int?,
+    rightMargin: Int?,
+    bottomMargin: Int?,
+    paddingLeft: Int?,
+    paddingTop: Int?,
+    paddingRight: Int?,
+    paddingBottom: Int?,
+    gravity: Int?,
+    visible: Boolean?
+  ) : super(
+    minWidth,
+    minHeight,
+    width,
+    height,
+    leftMargin,
+    topMargin,
+    rightMargin,
+    bottomMargin,
+    paddingLeft,
+    paddingTop,
+    paddingRight,
+    paddingBottom,
+    gravity,
+    visible
+  )
 
   abstract fun createView(context: Context): View
 

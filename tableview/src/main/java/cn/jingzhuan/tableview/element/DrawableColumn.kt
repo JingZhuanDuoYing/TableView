@@ -10,7 +10,7 @@ import android.view.View
 import cn.jingzhuan.tableview.drawRect
 import cn.jingzhuan.tableview.lazyNone
 
-abstract class DrawableColumn : Column() {
+abstract class DrawableColumn : Column {
 
     @delegate:Transient
     private val debugPaint by lazyNone {
@@ -22,6 +22,39 @@ abstract class DrawableColumn : Column() {
         paint.style = STROKE
         paint
     }
+
+    constructor() : super()
+    constructor(
+        minWidth: Int? = null,
+        minHeight: Int? = null,
+        width: Int? = null,
+        height: Int? = null,
+        leftMargin: Int? = null,
+        topMargin: Int? = null,
+        rightMargin: Int? = null,
+        bottomMargin: Int? = null,
+        paddingLeft: Int? = null,
+        paddingTop: Int? = null,
+        paddingRight: Int? = null,
+        paddingBottom: Int? = null,
+        gravity: Int? = null,
+        visible: Boolean? = null
+    ) : super(
+        minWidth,
+        minHeight,
+        width,
+        height,
+        leftMargin,
+        topMargin,
+        rightMargin,
+        bottomMargin,
+        paddingLeft,
+        paddingTop,
+        paddingRight,
+        paddingBottom,
+        gravity,
+        visible
+    )
 
     open fun prepareToMeasure(context: Context, rowShareElements: RowShareElements) {}
 

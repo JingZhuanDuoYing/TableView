@@ -17,14 +17,9 @@ import cn.jingzhuan.tableview.sp
 import java.io.ObjectInputStream
 import kotlin.math.max
 
-abstract class TextColumn : DrawableColumn() {
+abstract class TextColumn : DrawableColumn {
 
     private val drawSimpleTextDirectly = true
-
-    init {
-        paddingLeft = 30
-        paddingRight = 30
-    }
 
     @Transient
     var drawRegionLeft = 0
@@ -59,14 +54,70 @@ abstract class TextColumn : DrawableColumn() {
     var measuredTextHeight = 0
         private set
 
-    open var typeface: Typeface = Typeface.DEFAULT
+    @Transient
+    var typeface: Typeface = Typeface.DEFAULT
+        set(value) {
+            field = value
+            typefaceRestoreFunction = { value }
+        }
+    internal var typefaceRestoreFunction: () -> Typeface = { Typeface.DEFAULT }
     var textSize: Float = 18F
-    open var textSizeUnit: Int = TypedValue.COMPLEX_UNIT_SP
+    var textSizeUnit: Int = TypedValue.COMPLEX_UNIT_SP
 
     @ColorInt
-    open var color: Int = Color.BLACK
+    var color: Int = Color.BLACK
 
+    @ColorInt
     var backgroundColor: Int? = null
+
+    init {
+        paddingLeft = 30
+        paddingRight = 30
+    }
+
+    constructor() : super()
+    constructor(
+        minWidth: Int? = null,
+        minHeight: Int? = null,
+        width: Int? = null,
+        height: Int? = null,
+        leftMargin: Int? = null,
+        topMargin: Int? = null,
+        rightMargin: Int? = null,
+        bottomMargin: Int? = null,
+        paddingLeft: Int? = null,
+        paddingTop: Int? = null,
+        paddingRight: Int? = null,
+        paddingBottom: Int? = null,
+        gravity: Int? = null,
+        visible: Boolean? = null,
+        typeface: Typeface? = null,
+        textSize: Float? = null,
+        textSizeUnit: Int? = null,
+        @ColorInt color: Int? = null,
+        @ColorInt backgroundColor: Int? = null
+    ) : super(
+        minWidth,
+        minHeight,
+        width,
+        height,
+        leftMargin,
+        topMargin,
+        rightMargin,
+        bottomMargin,
+        paddingLeft,
+        paddingTop,
+        paddingRight,
+        paddingBottom,
+        gravity,
+        visible
+    ) {
+        this.typeface = typeface ?: this.typeface
+        this.textSize = textSize ?: this.textSize
+        this.textSizeUnit = textSizeUnit ?: this.textSizeUnit
+        this.color = color ?: this.color
+        this.backgroundColor = backgroundColor ?: this.backgroundColor
+    }
 
     private fun readObject(inputStream: ObjectInputStream) {
         inputStream.defaultReadObject()
@@ -74,6 +125,7 @@ abstract class TextColumn : DrawableColumn() {
         drawRegionTop = 0
         drawRegionRight = 0
         drawRegionBottom = 0
+        typeface = typefaceRestoreFunction()
     }
 
     @Deprecated("20200806 use variable field instead", ReplaceWith("typeface"))
@@ -99,7 +151,7 @@ abstract class TextColumn : DrawableColumn() {
     }
 
     @Deprecated("20200806 use variable field instead", ReplaceWith("false"))
-    open fun isBold(context: Context) = false
+    open fun isBold(context: Context) = typeface.isBold
 
     fun textSizePx(context: Context): Float {
         return when (textSizeUnit) {
@@ -165,6 +217,7 @@ abstract class TextColumn : DrawableColumn() {
         }
 
         lastMeasuredValue = text
+        paint.release()
     }
 
     override fun layout(
@@ -282,6 +335,8 @@ abstract class TextColumn : DrawableColumn() {
                 )
             }
         }
+
+        paint.release()
     }
 
     override fun draw(
@@ -351,6 +406,8 @@ abstract class TextColumn : DrawableColumn() {
             )
         }
         canvas.restore()
+
+        paint.release()
     }
 
     override fun shouldIgnoreDraw(container: View): Boolean {

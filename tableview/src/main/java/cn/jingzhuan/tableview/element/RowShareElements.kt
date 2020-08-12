@@ -3,34 +3,49 @@ package cn.jingzhuan.tableview.element
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.Typeface
+import android.support.annotation.ColorInt
 import android.support.annotation.Dimension
 import android.support.annotation.Px
 import android.text.TextPaint
+import cn.jingzhuan.tableview.lazyNone
 
 class RowShareElements {
 
-    internal val rect1 = Rect()
-    internal val rect2 = Rect()
-    @Transient
-    private val paintPool = mutableMapOf<Int, TextPaint>()
-    @Transient
-    internal val backgroundPaint = Paint().apply {
-        isDither = true
-        isAntiAlias = true
-        style = Paint.Style.FILL
+    internal var paintLimitCount = 3
+    internal val rect1 by lazyNone { Rect() }
+    internal val rect2 by lazyNone { Rect() }
+
+    @delegate:Transient
+    private val paintPool by lazyNone { mutableMapOf<Int, RowShareTextPaint>() }
+
+    @delegate:Transient
+    internal val backgroundPaint by lazyNone {
+        Paint().apply {
+            isDither = true
+            isAntiAlias = true
+            style = Paint.Style.FILL
+        }
     }
 
-    fun getPaint(@Px textSize: Float, color: Int, typeface: Typeface): TextPaint {
+    fun getPaint(@Px textSize: Float, @ColorInt color: Int, typeface: Typeface): RowShareTextPaint {
         val key = getKey(textSize, color, typeface)
-        if (paintPool.contains(key)) return paintPool.getValue(key)
-        val paint = TextPaint()
+        if (paintPool.contains(key)) return paintPool.getValue(key).acquire()
+        var paint: RowShareTextPaint? = null
+        if (paintPool.size > paintLimitCount) {
+            val found = paintPool.entries.find { !it.value.acquired }
+            if (null != found) {
+                paint = found.value
+                paintPool.remove(found.key)
+            }
+        }
+        if (null == paint) paint = RowShareTextPaint()
         paint.isAntiAlias = true
         paint.isDither = true
         paint.color = color
         paint.textSize = textSize
         paint.typeface = typeface
         paintPool[key] = paint
-        return paint
+        return paint.acquire()
     }
 
     private fun getKey(textSize: Float, color: Int, typeface: Typeface): Int {
