@@ -54,13 +54,9 @@ abstract class TextColumn : DrawableColumn {
     var measuredTextHeight = 0
         private set
 
+    // TODO: Typeface 序列化问题处理
     @Transient
     var typeface: Typeface = Typeface.DEFAULT
-        set(value) {
-            field = value
-            typefaceRestoreFunction = { value }
-        }
-    internal var typefaceRestoreFunction: () -> Typeface = { Typeface.DEFAULT }
     var textSize: Float = 18F
     var textSizeUnit: Int = TypedValue.COMPLEX_UNIT_SP
 
@@ -125,7 +121,7 @@ abstract class TextColumn : DrawableColumn {
         drawRegionTop = 0
         drawRegionRight = 0
         drawRegionBottom = 0
-        typeface = typefaceRestoreFunction()
+        typeface = Typeface.DEFAULT
     }
 
     @Deprecated("20200806 use variable field instead", ReplaceWith("typeface"))
