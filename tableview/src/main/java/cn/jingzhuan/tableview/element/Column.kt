@@ -3,15 +3,18 @@ package cn.jingzhuan.tableview.element
 import android.content.Context
 import android.support.annotation.Px
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import cn.jingzhuan.tableview.annotations.DP
 import cn.jingzhuan.tableview.dp
+import cn.jingzhuan.tableview.listeners.OnColumnClickListener
+import cn.jingzhuan.tableview.listeners.OnColumnLongClickListener
 
 /**
  * Chenyikang
  * 2018 December 21
  */
-abstract class Column : IElement {
+abstract class Column : IElement, OnColumnClickListener, OnColumnLongClickListener {
 
     override var debugUI: Boolean = false
 
@@ -163,6 +166,26 @@ abstract class Column : IElement {
         rowShareElements: RowShareElements
     ) {
         laidOut = true
+    }
+
+    override fun onClick(
+        context: Context,
+        rowLayout: View,
+        columnView: View?,
+        row: Row<Column>,
+        column: Column
+    ) {
+
+    }
+
+    override fun onLongClick(
+        context: Context,
+        rowLayout: View,
+        columnView: View?,
+        row: Row<Column>,
+        column: Column
+    ) {
+
     }
 
 }

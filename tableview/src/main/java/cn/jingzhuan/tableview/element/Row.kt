@@ -12,6 +12,8 @@ import cn.jingzhuan.tableview.annotations.DP
 import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
 import cn.jingzhuan.tableview.layoutmanager.TableSpecs
+import cn.jingzhuan.tableview.listeners.OnRowClickListener
+import cn.jingzhuan.tableview.listeners.OnRowLongClickListener
 import java.io.ObjectInputStream
 import kotlin.math.max
 import kotlin.math.min
@@ -21,7 +23,7 @@ import kotlin.math.min
  * 2018 December 21
  */
 abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
-    IElement {
+    IElement, OnRowClickListener, OnRowLongClickListener {
 
     @Px
     var rowHeight = 0
@@ -211,26 +213,30 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         }
     }
 
-    open fun onClick(
+    override fun onClick(
         context: Context,
         rowLayout: View,
-        columnView: View? = null,
+        columnView: View?,
         column: Column,
         sticky: Boolean,
         x: Int,
         y: Int
     ) {
+        @Suppress("UNCHECKED_CAST")
+        column.onClick(context, rowLayout, columnView, this as Row<Column>, column)
     }
 
-    open fun onLongClick(
+    override fun onLongClick(
         context: Context,
         rowLayout: View,
-        columnView: View? = null,
+        columnView: View?,
         column: Column,
         sticky: Boolean,
         x: Int,
         y: Int
     ) {
+        @Suppress("UNCHECKED_CAST")
+        column.onLongClick(context, rowLayout, columnView, this as Row<Column>, column)
     }
 
     internal fun getRowHeight(context: Context): Int {
