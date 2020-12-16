@@ -66,11 +66,6 @@ abstract class TextColumn : DrawableColumn {
     @ColorInt
     var backgroundColor: Int? = null
 
-    init {
-        paddingLeft = 30
-        paddingRight = 30
-    }
-
     constructor() : super()
     constructor(
         minWidth: Int? = null,
@@ -81,9 +76,9 @@ abstract class TextColumn : DrawableColumn {
         topMargin: Int? = null,
         rightMargin: Int? = null,
         bottomMargin: Int? = null,
-        paddingLeft: Int? = null,
+        paddingLeft: Int? = 30,
         paddingTop: Int? = null,
-        paddingRight: Int? = null,
+        paddingRight: Int? = 30,
         paddingBottom: Int? = null,
         gravity: Int? = null,
         visible: Boolean? = null,

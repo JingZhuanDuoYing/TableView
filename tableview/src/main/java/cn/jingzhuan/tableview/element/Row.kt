@@ -3,12 +3,12 @@ package cn.jingzhuan.tableview.element
 import android.content.Context
 import android.graphics.Canvas
 import android.support.annotation.ColorInt
-import android.support.annotation.Dimension
 import android.support.annotation.Px
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import cn.jingzhuan.tableview.RowLayout
+import cn.jingzhuan.tableview.annotations.DP
 import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
 import cn.jingzhuan.tableview.layoutmanager.TableSpecs
@@ -40,16 +40,16 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
 
     override var debugUI: Boolean = false
 
-    @Dimension(unit = Dimension.DP)
+    @DP
     var minWidth: Int = 0
 
-    @Dimension(unit = Dimension.DP)
+    @DP
     var minHeight: Int = 50
 
-    @Dimension(unit = Dimension.DP)
+    @DP
     var width: Int = ViewGroup.LayoutParams.MATCH_PARENT
 
-    @Dimension(unit = Dimension.DP)
+    @DP
     var height: Int = ViewGroup.LayoutParams.WRAP_CONTENT
 
     /**

@@ -124,6 +124,8 @@ class ColumnsLayoutManager : Serializable {
                 else column.createView(context)
             viewIndex++
 
+            val visibilityChanged = (visible && view.visibility != View.VISIBLE)
+                    || (!visible && view.visibility != View.GONE)
             view.visibility = if (visible) View.VISIBLE else View.GONE
             if (!visible) {
                 column.widthWithMargins = 0
@@ -145,13 +147,17 @@ class ColumnsLayoutManager : Serializable {
             // 绑定column和view
             column.bindView(view)
 
-            if (column.forceLayout) {
+            if (view.measuredWidth <= 0 || view.measuredHeight <= 0 || column.forceLayout || visibilityChanged) {
+                // 实际Measure
+                column.measureView(view)
+            }
+
+            if(visibilityChanged) {
                 pendingLayout = true
             }
 
-            if (view.measuredWidth <= 0 || view.measuredHeight <= 0 || column.forceLayout) {
-                // 实际Measure
-                column.measureView(view)
+            if (column.forceLayout) {
+                pendingLayout = true
             }
 
             if (column.heightWithMargins > row.rowHeight) {

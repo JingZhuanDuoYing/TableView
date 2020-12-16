@@ -4,7 +4,7 @@ import android.content.Context
 import android.support.annotation.Px
 import android.view.Gravity
 import android.view.ViewGroup
-import cn.jingzhuan.tableview.DP
+import cn.jingzhuan.tableview.annotations.DP
 import cn.jingzhuan.tableview.dp
 
 /**
