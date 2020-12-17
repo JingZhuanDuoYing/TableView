@@ -7,7 +7,7 @@ import cn.jingzhuan.tableview.element.Row
 
 interface OnColumnClickListener {
 
-    fun onClick(
+    fun onColumnClick(
         context: Context,
         rowLayout: View,
         columnView: View? = null,

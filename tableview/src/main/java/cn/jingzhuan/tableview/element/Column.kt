@@ -168,7 +168,7 @@ abstract class Column : IElement, OnColumnClickListener, OnColumnLongClickListen
         laidOut = true
     }
 
-    override fun onClick(
+    override fun onColumnClick(
         context: Context,
         rowLayout: View,
         columnView: View?,
@@ -178,7 +178,7 @@ abstract class Column : IElement, OnColumnClickListener, OnColumnLongClickListen
 
     }
 
-    override fun onLongClick(
+    override fun onColumnLongClick(
         context: Context,
         rowLayout: View,
         columnView: View?,

@@ -178,7 +178,7 @@ class RowLayout @JvmOverloads constructor(
             x - scrollableContainer.left + scrollableContainer.scrollX - column.columnLeft
         }
         val relativeY = y - column.columnTop
-        row.onClick(
+        row.onRowClick(
             context,
             this@RowLayout,
             columnView,
@@ -204,7 +204,7 @@ class RowLayout @JvmOverloads constructor(
             x - scrollableContainer.left + scrollableContainer.scrollX - column.columnLeft
         }
         val relativeY = y - column.columnTop
-        row.onLongClick(
+        row.onRowLongClick(
             context,
             this@RowLayout,
             columnView,

@@ -7,7 +7,7 @@ import cn.jingzhuan.tableview.element.Row
 
 interface OnColumnLongClickListener {
 
-    fun onLongClick(
+    fun onColumnLongClick(
         context: Context,
         rowLayout: View,
         columnView: View? = null,

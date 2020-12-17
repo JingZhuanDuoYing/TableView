@@ -213,7 +213,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         }
     }
 
-    override fun onClick(
+    override fun onRowClick(
         context: Context,
         rowLayout: View,
         columnView: View?,
@@ -223,10 +223,10 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         y: Int
     ) {
         @Suppress("UNCHECKED_CAST")
-        column.onClick(context, rowLayout, columnView, this as Row<Column>, column)
+        column.onColumnClick(context, rowLayout, columnView, this as Row<Column>, column)
     }
 
-    override fun onLongClick(
+    override fun onRowLongClick(
         context: Context,
         rowLayout: View,
         columnView: View?,
@@ -236,7 +236,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         y: Int
     ) {
         @Suppress("UNCHECKED_CAST")
-        column.onLongClick(context, rowLayout, columnView, this as Row<Column>, column)
+        column.onColumnLongClick(context, rowLayout, columnView, this as Row<Column>, column)
     }
 
     internal fun getRowHeight(context: Context): Int {
