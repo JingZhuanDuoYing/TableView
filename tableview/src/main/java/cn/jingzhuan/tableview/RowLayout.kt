@@ -276,9 +276,9 @@ class RowLayout @JvmOverloads constructor(
             return true
         }
 
-        override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+        override fun onSingleTapUp(e: MotionEvent): Boolean {
             onClick(e.x, e.y)
-            return super.onSingleTapConfirmed(e)
+            return super.onSingleTapUp(e)
         }
 
         override fun onLongPress(e: MotionEvent) {

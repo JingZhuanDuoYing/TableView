@@ -13,7 +13,7 @@ class TitleRow(columns: List<Column>) : HeaderRow<Column>(columns) {
         return Color.parseColor("#B1B3B3")
     }
 
-    override fun onClick(
+    override fun onRowClick(
         context: Context,
         rowLayout: View,
         columnView: View?,
@@ -22,11 +22,11 @@ class TitleRow(columns: List<Column>) : HeaderRow<Column>(columns) {
         x: Int,
         y: Int
     ) {
-        super.onClick(context, rowLayout, columnView, column, sticky, x, y)
+        super.onRowClick(context, rowLayout, columnView, column, sticky, x, y)
         Timber.d("onClick() index: ${columns.indexOf(column)}")
     }
 
-    override fun onLongClick(
+    override fun onRowLongClick(
         context: Context,
         rowLayout: View,
         columnView: View?,
@@ -35,7 +35,7 @@ class TitleRow(columns: List<Column>) : HeaderRow<Column>(columns) {
         x: Int,
         y: Int
     ) {
-        super.onLongClick(context, rowLayout, columnView, column, sticky, x, y)
+        super.onRowLongClick(context, rowLayout, columnView, column, sticky, x, y)
         Timber.d("onLongClick() index: ${columns.indexOf(column)}")
     }
 
