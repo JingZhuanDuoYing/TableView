@@ -122,10 +122,25 @@ class ColumnsLayoutManager : Serializable {
                 if (initialized)
                     rowLayout.getChildAt(viewIndex) ?: column.createView(context)
                 else column.createView(context)
+
+            // 未初始化过，需要将新创建的View添加到ViewGroup
+            if (!initialized) {
+
+                if (sticky) {
+                    rowLayout.addView(view)
+                } else {
+                    scrollableContainer.addView(view)
+                }
+            }
+
             viewIndex++
 
             val visibilityChanged = (visible && view.visibility != View.VISIBLE)
                     || (!visible && view.visibility != View.GONE)
+            if(visibilityChanged) {
+                pendingLayout = true
+            }
+
             view.visibility = if (visible) View.VISIBLE else View.GONE
             if (!visible) {
                 column.widthWithMargins = 0
@@ -135,25 +150,12 @@ class ColumnsLayoutManager : Serializable {
                 continue
             }
 
-            // 未初始化过，需要将新创建的View添加到ViewGroup
-            if (!initialized) {
-                if (sticky) {
-                    rowLayout.addView(view)
-                } else {
-                    scrollableContainer.addView(view)
-                }
-            }
-
             // 绑定column和view
             column.bindView(view)
 
             if (view.measuredWidth <= 0 || view.measuredHeight <= 0 || column.forceLayout || visibilityChanged) {
                 // 实际Measure
                 column.measureView(view)
-            }
-
-            if(visibilityChanged) {
-                pendingLayout = true
             }
 
             if (column.forceLayout) {
