@@ -259,15 +259,15 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         }
 
         if (column.widthWithMargins <= 0) {
-            val minWidthPx = context.dp(minWidth).toInt()
-            val widthPx = context.dp(width).toInt()
+            val minWidthPx = context.dp(column.minWidth).toInt()
+            val widthPx = context.dp(column.width).toInt()
             val columnWidth = max(minWidthPx, widthPx)
             column.widthWithMargins = columnWidth + column.leftMargin + column.rightMargin
         }
 
         if (column.heightWithMargins <= 0) {
-            val minHeightPx = context.dp(minHeight).toInt()
-            val heightPx = context.dp(height).toInt()
+            val minHeightPx = context.dp(column.minHeight).toInt()
+            val heightPx = context.dp(column.height).toInt()
             val columnHeight = max(minHeightPx, heightPx)
             column.heightWithMargins = columnHeight + column.topMargin + column.bottomMargin
         }
