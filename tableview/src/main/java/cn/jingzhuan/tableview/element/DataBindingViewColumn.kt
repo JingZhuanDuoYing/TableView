@@ -47,11 +47,20 @@ abstract class DataBindingViewColumn<BINDING : ViewDataBinding> : ViewColumn {
     @LayoutRes
     abstract fun layoutId(): Int
 
+    @Deprecated("replace with onBind(binding: BINDING, row: Row<*>)")
     abstract fun onBind(binding: BINDING)
+
+    abstract fun onBind(binding: BINDING, row: Row<*>)
 
     override fun createView(context: Context): View {
         binding = DataBindingUtil.inflate(LayoutInflater.from(context), layoutId(), null, false)
         return binding!!.root
+    }
+
+    override fun bindView(view: View, row: Row<*>) {
+        val binding = binding ?: return
+        if (view != binding.root) return
+        onBind(binding, row)
     }
 
     override fun bindView(view: View) {

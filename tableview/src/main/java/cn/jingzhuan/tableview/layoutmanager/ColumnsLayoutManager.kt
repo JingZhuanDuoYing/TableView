@@ -151,7 +151,7 @@ class ColumnsLayoutManager : Serializable {
             }
 
             // 绑定column和view
-            column.bindView(view)
+            column.bindView(view, row)
 
             if (view.measuredWidth <= 0 || view.measuredHeight <= 0 || column.forceLayout || visibilityChanged) {
                 // 实际Measure

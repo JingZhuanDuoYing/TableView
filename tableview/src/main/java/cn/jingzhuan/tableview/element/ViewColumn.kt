@@ -49,7 +49,14 @@ abstract class ViewColumn : Column {
 
     abstract fun createView(context: Context): View
 
-    abstract fun bindView(view: View)
+    open fun bindView(view: View, row: Row<*>) {
+        bindView(view)
+    }
+
+    @Deprecated("replace with bindView(view: View, row: Row<*>)")
+    open fun bindView(view: View) {
+
+    }
 
     override fun layout(
         context: Context,
