@@ -48,7 +48,7 @@ abstract class DataBindingViewColumn<BINDING : ViewDataBinding> : ViewColumn {
     abstract fun layoutId(): Int
 
     @Deprecated("replace with onBind(binding: BINDING, row: Row<*>)")
-    abstract fun onBind(binding: BINDING)
+    open fun onBind(binding: BINDING) {}
 
     abstract fun onBind(binding: BINDING, row: Row<*>)
 
