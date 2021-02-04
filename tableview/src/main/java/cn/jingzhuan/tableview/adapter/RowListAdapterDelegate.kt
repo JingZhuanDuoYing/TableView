@@ -9,14 +9,20 @@ import cn.jingzhuan.tableview.element.HeaderRow
 import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.fallback.EmptyRow
 import cn.jingzhuan.tableview.fallback.RowListEmptyViewHolder
+import java.util.*
 
 open class RowListAdapterDelegate : IRowListAdapterDelegate {
 
     override var headerRow: HeaderRow<*>? = null
 
+    private val adapterDataObserver = AdapterDataObserver { onAdapterDataChanged() }
     private val adapters = mutableListOf<RowListAdapter>()
+
+    private val expandedRowsSnapshot = Collections.synchronizedList(mutableListOf<Row<*>>())
+
     private val headerTypeRowMap = SparseArray<Row<*>>()
     private val typeRowMap = SparseArray<Row<*>>()
+    private val childrenTypeRowMap = SparseArray<Row<*>>()
 
     override fun createViewHolder(
         parent: ViewGroup,
@@ -110,8 +116,13 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
     override fun connect(adapter: RowListAdapter) {
         if (!adapters.contains(adapter)) {
             adapters.add(adapter)
+//            adapter.registerAdapterDataObserver(adapterDataObserver)
         }
         adapter.delegate = this
+    }
+
+    private fun onAdapterDataChanged() {
+//        headerRow?.rows?.filter {  }
     }
 
     private fun getRow(

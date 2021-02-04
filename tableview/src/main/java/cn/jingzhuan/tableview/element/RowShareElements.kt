@@ -4,9 +4,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.Typeface
 import android.support.annotation.ColorInt
-import android.support.annotation.Dimension
 import android.support.annotation.Px
-import android.text.TextPaint
 import cn.jingzhuan.tableview.lazyNone
 
 class RowShareElements {

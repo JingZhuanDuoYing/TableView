@@ -5,6 +5,7 @@ import cn.jingzhuan.tableview.adapter.IRowListAdapterDelegate
 import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
 import cn.jingzhuan.tableview.layoutmanager.TableSpecs
 import java.io.ObjectInputStream
+import java.util.*
 
 open class HeaderRow<COLUMN : Column>(columns: List<COLUMN>) : Row<COLUMN>(columns) {
 
@@ -18,14 +19,14 @@ open class HeaderRow<COLUMN : Column>(columns: List<COLUMN>) : Row<COLUMN>(colum
     var layoutManager: ColumnsLayoutManager? = null
 
     init {
-        stickyRows = mutableListOf()
-        rows = mutableListOf()
+        stickyRows = Collections.synchronizedList(mutableListOf())
+        rows = Collections.synchronizedList(mutableListOf())
     }
 
     private fun readObject(inputStream: ObjectInputStream) {
         inputStream.defaultReadObject()
-        stickyRows = mutableListOf()
-        rows = mutableListOf()
+        stickyRows = Collections.synchronizedList(mutableListOf())
+        rows = Collections.synchronizedList(mutableListOf())
     }
 
     /**
