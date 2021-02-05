@@ -6,8 +6,8 @@ import cn.jingzhuan.tableview.element.TextColumn
 
 class FixedWidthColumn(private val value: String, private val fixedWidthDp: Float) : TextColumn() {
 
-    override fun width(context: Context): Int {
-        return context.dp(fixedWidthDp).toInt()
+    init {
+        width = fixedWidthDp.toInt()
     }
 
     override fun getText(context: Context): CharSequence? {

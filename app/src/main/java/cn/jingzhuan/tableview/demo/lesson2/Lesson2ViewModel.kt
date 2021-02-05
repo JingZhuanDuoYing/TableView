@@ -16,25 +16,26 @@ class Lesson2ViewModel : ViewModel() {
     private var disposable: Disposable? = null
 
     fun fetch(rowsCount: Int, columnsCount: Int) {
-        disposable = Flowable.fromCallable {
-            val titleColumns = mutableListOf<Column>()
-            titleColumns.add(TitleHeaderColumn())
-            for (i in 0 until columnsCount) {
-                titleColumns.add(TitleColumn(i))
-            }
-            val titleRow = TitleRow(titleColumns)
-
-            for (rowIndex in 0 until rowsCount) {
-                val columns = mutableListOf<Column>()
-                columns.add(SimpleHeaderColumn("Row${rowIndex + 1}"))
-                for (columnIndex in 0 until columnsCount) {
-                    val column = generateColumn(rowIndex, columnIndex)
-                    columns.add(column)
+        disposable = Flowable
+            .fromCallable {
+                val titleColumns = mutableListOf<Column>()
+                titleColumns.add(TitleHeaderColumn())
+                for (i in 0 until columnsCount) {
+                    titleColumns.add(TitleColumn(i))
                 }
-                titleRow.rows.add(SimpleRow(columns))
+                val titleRow = TitleRow(titleColumns)
+
+                for (rowIndex in 0 until rowsCount) {
+                    val columns = mutableListOf<Column>()
+                    columns.add(SimpleHeaderColumn("Row${rowIndex + 1}"))
+                    for (columnIndex in 0 until columnsCount) {
+                        val column = generateColumn(rowIndex, columnIndex)
+                        columns.add(column)
+                    }
+                    titleRow.rows.add(SimpleRow(columns))
+                }
+                titleRow
             }
-            titleRow
-        }
             .subscribeOn(Schedulers.computation())
             .subscribe({
                 liveData.postValue(it)

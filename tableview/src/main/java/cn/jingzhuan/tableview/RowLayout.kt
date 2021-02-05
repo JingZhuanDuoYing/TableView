@@ -162,6 +162,11 @@ class RowLayout @JvmOverloads constructor(
         postInvalidate()
     }
 
+    fun layout() {
+        val row = row ?: return
+        layoutManager?.measureAndLayout(context, row, this, scrollableContainer, true)
+    }
+
     // -----------------------------    private    -----------------------------
     private fun onClick(x: Float, y: Float) {
         val row = row ?: return

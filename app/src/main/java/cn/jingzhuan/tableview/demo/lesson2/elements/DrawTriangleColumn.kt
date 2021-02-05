@@ -14,12 +14,9 @@ class DrawTriangleColumn : DrawableColumn() {
     private var lined = false
     private val paint = Paint()
 
-    override fun height(context: Context): Int {
-        return 70
-    }
-
-    override fun width(context: Context): Int {
-        return 100
+    init {
+        height = 70
+        width = 100
     }
 
     override fun prepareToDraw(context: Context, rowShareElements: RowShareElements) {

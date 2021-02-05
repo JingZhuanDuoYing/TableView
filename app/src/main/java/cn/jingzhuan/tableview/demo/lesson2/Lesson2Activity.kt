@@ -21,10 +21,10 @@ class Lesson2Activity : AppCompatActivity() {
 
         binding.tableView.setRowsDividerEnabled(true)
         binding.tableView.setColumnsDividerEnabled(true)
-        binding.tableView.updateTableSize(100, 1)
+        binding.tableView.updateTableSize(12, 1)
 
         subscribe()
-        viewModel.fetch(100, 100)
+        viewModel.fetch(100, 12)
     }
 
     private fun subscribe() {

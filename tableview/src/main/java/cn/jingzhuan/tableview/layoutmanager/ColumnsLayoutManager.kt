@@ -20,6 +20,14 @@ class ColumnsLayoutManager : Serializable {
     @Transient
     private var attachedRows = mutableSetOf<RowLayout>()
 
+    init {
+        specs.onColumnsWidthWithMarginsChanged = {
+            attachedRows.forEach { row ->
+                row.layout()
+            }
+        }
+    }
+
     private fun readObject(inputStream: ObjectInputStream) {
         inputStream.defaultReadObject()
         attachedRows = mutableSetOf()
@@ -79,100 +87,102 @@ class ColumnsLayoutManager : Serializable {
         context: Context,
         row: Row<*>,
         rowLayout: RowLayout,
-        scrollableContainer: ViewGroup
+        scrollableContainer: ViewGroup,
+        layoutOnly: Boolean = false
     ) {
         // 如果rowLayout持有scrollableContainer，说明rowLayout之前已经初始化过了，不需要重新创建View对象
         val initialized = rowLayout.indexOfChild(scrollableContainer) >= 0
 
-        if (row.rowHeight <= 0) {
+        var pendingLayout = false
+
+        if (row.rowHeight <= 0 && !layoutOnly) {
             // measure drawable columns first of all
-            row.measure(context, specs)
+            if (row.measure(context, specs)) pendingLayout = true
             if (row.rowHeight <= 0) {
                 row.rowHeight = rowLayout.height
             }
         }
-        var pendingLayout = false
+
         // 普通View的Measure/Layout流程
         var viewIndex = 0
         val maxSize = min(row.columns.size, specs.columnsCount)
-        for (index in 0 until maxSize) {
-            val column = row.columns[index]
+        if (!layoutOnly) {
+            for (index in 0 until maxSize) {
+                val column = row.columns[index]
 
-            val sticky = index < specs.stickyColumnsCount
-            val visible = specs.isColumnVisible(index)
+                val sticky = index < specs.stickyColumnsCount
+                val visible = specs.isColumnVisible(index)
 
-            if (column is DrawableColumn) {
-                if (!visible) continue
-                // this may happens when columns changed
-                if (column.widthWithMargins == 0 || column.heightWithMargins == 0 || specs.visibleColumnsWidth[index] == 0) {
-                    // measure drawable column in necessary
-                    row.measure(context, specs)
+                if (column is DrawableColumn) {
+                    if (!visible) continue
+                    // this may happens when columns changed
+                    if (column.widthWithMargins == 0 || column.heightWithMargins == 0 || specs.visibleColumnsWidth[index] == 0) {
+                        // measure drawable column in necessary
+                        if (row.measure(context, specs)) pendingLayout = true
+                    }
+                    continue
+                }
+
+                // 对于非ViewColumn，如DrawableColumn等，不需要走如下流程
+                if (column !is ViewColumn) continue
+
+                // 未初始化过的，需要新建View对象
+                val view =
+                    if (initialized)
+                        rowLayout.getChildAt(viewIndex) ?: column.createView(context)
+                    else column.createView(context)
+
+                // 未初始化过，需要将新创建的View添加到ViewGroup
+                if (!initialized) {
+
+                    if (sticky) {
+                        rowLayout.addView(view)
+                    } else {
+                        scrollableContainer.addView(view)
+                    }
+                }
+
+                viewIndex++
+
+                val visibilityChanged = (visible && view.visibility != View.VISIBLE)
+                        || (!visible && view.visibility != View.GONE)
+                if (visibilityChanged) {
+                    pendingLayout = true
+                }
+
+                view.visibility = if (visible) View.VISIBLE else View.GONE
+                if (!visible) {
+                    column.widthWithMargins = 0
                     if (specs.compareAndSetColumnsWidth(index, column)) {
                         pendingLayout = true
                     }
+                    continue
                 }
-                continue
-            }
 
-            // 对于非ViewColumn，如DrawableColumn等，不需要走如下流程
-            if (column !is ViewColumn) continue
+                // 绑定column和view
+                column.bindView(view, row)
 
-            // 未初始化过的，需要新建View对象
-            val view =
-                if (initialized)
-                    rowLayout.getChildAt(viewIndex) ?: column.createView(context)
-                else column.createView(context)
-
-            // 未初始化过，需要将新创建的View添加到ViewGroup
-            if (!initialized) {
-
-                if (sticky) {
-                    rowLayout.addView(view)
-                } else {
-                    scrollableContainer.addView(view)
+                if (view.measuredWidth <= 0 || view.measuredHeight <= 0 || column.forceLayout || visibilityChanged) {
+                    // 实际Measure
+                    column.measureView(view)
                 }
-            }
 
-            viewIndex++
+                if (column.forceLayout) {
+                    pendingLayout = true
+                }
 
-            val visibilityChanged = (visible && view.visibility != View.VISIBLE)
-                    || (!visible && view.visibility != View.GONE)
-            if(visibilityChanged) {
-                pendingLayout = true
-            }
+                if (column.heightWithMargins > row.rowHeight) {
+                    row.rowHeight = column.heightWithMargins
+                    pendingLayout = true
+                }
 
-            view.visibility = if (visible) View.VISIBLE else View.GONE
-            if (!visible) {
-                column.widthWithMargins = 0
                 if (specs.compareAndSetColumnsWidth(index, column)) {
                     pendingLayout = true
                 }
-                continue
-            }
 
-            // 绑定column和view
-            column.bindView(view, row)
-
-            if (view.measuredWidth <= 0 || view.measuredHeight <= 0 || column.forceLayout || visibilityChanged) {
-                // 实际Measure
-                column.measureView(view)
-            }
-
-            if (column.forceLayout) {
-                pendingLayout = true
-            }
-
-            if (column.heightWithMargins > row.rowHeight) {
-                row.rowHeight = column.heightWithMargins
-                pendingLayout = true
-            }
-
-            if (specs.compareAndSetColumnsWidth(index, column)) {
-                pendingLayout = true
-            }
-
-            if (!column.checkLayout(view)) {
-                pendingLayout = true
+                if (!column.checkLayout(view)) {
+                    pendingLayout = true
+                }
             }
         }
 
@@ -182,7 +192,7 @@ class ColumnsLayoutManager : Serializable {
         }
 
         // 列宽发生变化或者第一次初始化，都需要Layout
-        if (pendingLayout || !initialized || row.forceLayout) {
+        if (layoutOnly || pendingLayout || !initialized || row.forceLayout) {
             row.layout(context, specs)
 
             viewIndex = 0
@@ -196,11 +206,18 @@ class ColumnsLayoutManager : Serializable {
             }
 
             row.forceLayout = false
-            specs.onColumnsWidthChanged()
+            // layoutOnly 模式不调用，因为并没有执行任何实际的 measure，不能确定列宽是否变化
+            if (pendingLayout) specs.onColumnsWidthChanged()
         }
 
         // scrollableContainer检查是否需要Measure/Layout
-        measureAndLayoutScrollableContainer(context, row, rowLayout, scrollableContainer)
+        measureAndLayoutScrollableContainer(
+            context,
+            row,
+            rowLayout,
+            scrollableContainer,
+            layoutOnly
+        )
 
         // 校准scrollX
         val scrollRange = specs.computeScrollRange()
@@ -219,23 +236,29 @@ class ColumnsLayoutManager : Serializable {
         context: Context,
         row: Row<*>,
         rowLayout: RowLayout,
-        scrollableContainer: ViewGroup
+        scrollableContainer: ViewGroup,
+        layoutOnly: Boolean = false
     ): Int {
         val scrollableContainerWidth = specs.tableWidth - specs.stickyWidth
         val rowHeight = row.getRowHeight(context)
 
         // 实际宽度发生变化重新执行Measure
-        if (scrollableContainer.width != scrollableContainerWidth || scrollableContainer.height != rowHeight) {
-            val widthMeasureSpec =
-                MeasureSpec.makeMeasureSpec(max(0, scrollableContainerWidth), MeasureSpec.EXACTLY)
-            val heightMeasureSpec = MeasureSpec.makeMeasureSpec(rowHeight, MeasureSpec.EXACTLY)
-            scrollableContainer.measure(widthMeasureSpec, heightMeasureSpec)
+        if (!layoutOnly) {
+            if (scrollableContainer.width != scrollableContainerWidth || scrollableContainer.height != rowHeight) {
+                val widthMeasureSpec =
+                    MeasureSpec.makeMeasureSpec(
+                        max(0, scrollableContainerWidth),
+                        MeasureSpec.EXACTLY
+                    )
+                val heightMeasureSpec = MeasureSpec.makeMeasureSpec(rowHeight, MeasureSpec.EXACTLY)
+                scrollableContainer.measure(widthMeasureSpec, heightMeasureSpec)
+            }
         }
 
         // 检查是否需要Layout，并执行
         val left = rowLayout.paddingLeft + specs.stickyWidth
         val right = left + scrollableContainer.measuredWidth
-        if (scrollableContainer.left != left || scrollableContainer.top != 0 || scrollableContainer.right != right || scrollableContainer.bottom != rowHeight) {
+        if (layoutOnly || scrollableContainer.left != left || scrollableContainer.top != 0 || scrollableContainer.right != right || scrollableContainer.bottom != rowHeight) {
             scrollableContainer.layout(left, 0, right, rowHeight)
         }
         return scrollableContainer.measuredWidth

@@ -7,8 +7,8 @@ import cn.jingzhuan.tableview.element.TextColumn
 class FixedHeightColumn(private val value: String, private val fixedHeightDp: Float) :
     TextColumn() {
 
-    override fun height(context: Context): Int {
-        return context.dp(fixedHeightDp).toInt()
+    init {
+        height = fixedHeightDp.toInt()
     }
 
     override fun getText(context: Context): CharSequence? {
