@@ -11,6 +11,11 @@ import android.view.View
 import android.widget.FrameLayout
 import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import kotlin.math.max
 
 class RowLayout @JvmOverloads constructor(
@@ -35,6 +40,7 @@ class RowLayout @JvmOverloads constructor(
     var row: Row<*>? = null
         private set
     private var layoutManager: ColumnsLayoutManager? = null
+    var job: Job? = null
 
     private val gestureDetector by lazyNone {
         GestureDetectorCompat(
@@ -157,9 +163,21 @@ class RowLayout @JvmOverloads constructor(
         this.row = row
         this.layoutManager = layoutManager
         this.layoutManager?.attachRowLayout(this)
-        this.layoutManager?.measureAndLayout(context, row, this, scrollableContainer)
-        row.onBindView(this, layoutManager)
-        postInvalidate()
+        if (null != job) Timber.d("cancel a job")
+        job?.cancel()
+        job = GlobalScope.launch {
+            this@RowLayout.layoutManager?.measureAndLayout(
+                context,
+                row,
+                this@RowLayout,
+                scrollableContainer
+            )
+            post {
+                job = null
+                row.onBindView(this@RowLayout, layoutManager)
+                postInvalidate()
+            }
+        }
     }
 
     fun layout() {

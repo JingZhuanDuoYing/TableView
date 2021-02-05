@@ -140,11 +140,12 @@ class ColumnsLayoutManager : Serializable {
 
                 // 未初始化过，需要将新创建的View添加到ViewGroup
                 if (!initialized) {
-
-                    if (sticky) {
-                        rowLayout.addView(view)
-                    } else {
-                        scrollableContainer.addView(view)
+                    rowLayout.post {
+                        if (sticky) {
+                            rowLayout.addView(view)
+                        } else {
+                            scrollableContainer.addView(view)
+                        }
                     }
                 }
 
@@ -194,7 +195,9 @@ class ColumnsLayoutManager : Serializable {
 
         if (!initialized) {
             // 未初始化过，需要将scrollableContainer添加进rowLayout
-            rowLayout.addView(scrollableContainer)
+            rowLayout.post {
+                if (scrollableContainer.parent == null) rowLayout.addView(scrollableContainer)
+            }
         }
 
         // 列宽发生变化或者第一次初始化，都需要Layout
