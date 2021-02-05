@@ -6,12 +6,11 @@ import cn.jingzhuan.tableview.element.TextColumn
 
 class BlueTextColumn(private val value: String) : TextColumn() {
 
+    init {
+        color = Color.BLUE
+    }
+
     override fun getText(context: Context): CharSequence? {
         return value
     }
-
-    override fun color(context: Context): Int {
-        return Color.BLUE
-    }
-
 }

@@ -8,6 +8,7 @@ import cn.jingzhuan.tableview.RowLayout
 import cn.jingzhuan.tableview.element.DrawableColumn
 import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.element.ViewColumn
+import cn.jingzhuan.tableview.lazyNone
 import java.io.ObjectInputStream
 import java.io.Serializable
 import kotlin.math.max
@@ -15,16 +16,21 @@ import kotlin.math.min
 
 class ColumnsLayoutManager : Serializable {
 
-    internal val specs = TableSpecs(this)
+    internal val specs by lazyNone { TableSpecs(this) }
 
     @Transient
     private var attachedRows = mutableSetOf<RowLayout>()
 
+    private val runnable = Runnable {
+        attachedRows.forEach { it.layout() }
+    }
+
     init {
-        specs.onColumnsWidthWithMarginsChanged = {
-            attachedRows.forEach { row ->
-                row.layout()
-            }
+        specs.onColumnsWidthWithMarginsChanged = OnColumnsWidthWithMarginsChanged@{
+            val parent = attachedRows.firstOrNull()?.parent as? View
+                ?: return@OnColumnsWidthWithMarginsChanged
+            parent.removeCallbacks(runnable)
+            parent.post(runnable)
         }
     }
 
