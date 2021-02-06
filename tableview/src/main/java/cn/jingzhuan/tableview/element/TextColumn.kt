@@ -155,7 +155,6 @@ abstract class TextColumn : DrawableColumn {
     abstract fun getText(context: Context): CharSequence?
 
     override fun measure(context: Context, rowShareElements: RowShareElements) {
-        super.measure(context, rowShareElements)
         val paint = rowShareElements.getPaint(textSizePx(context), color, typeface)
 
         val text = getText(context)
@@ -185,8 +184,7 @@ abstract class TextColumn : DrawableColumn {
         val minWidthPx = context.dp(minWidth).toInt()
         val isWrapWidth = width == ViewGroup.LayoutParams.WRAP_CONTENT
         if (isWrapWidth) {
-            val minWidth = max(widthPx, minWidthPx)
-            val minWidthWithMargins = leftMargin + minWidth + rightMargin
+            val minWidthWithMargins = leftMargin + minWidthPx + rightMargin
             widthWithMargins =
                 leftMargin + paddingLeft + measuredTextWidth + paddingRight + rightMargin
             widthWithMargins = max(minWidthWithMargins, widthWithMargins)
@@ -198,8 +196,7 @@ abstract class TextColumn : DrawableColumn {
         val minHeightPx = context.dp(minHeight).toInt()
         val isWrapHeight = height == ViewGroup.LayoutParams.WRAP_CONTENT
         if (isWrapHeight) {
-            val minHeight = max(heightPx, minHeightPx)
-            val minHeightWithMargins = topMargin + minHeight + bottomMargin
+            val minHeightWithMargins = topMargin + minHeightPx + bottomMargin
             heightWithMargins =
                 topMargin + paddingTop + measuredTextHeight + paddingBottom + bottomMargin
             heightWithMargins = max(minHeightWithMargins, heightWithMargins)

@@ -7,6 +7,8 @@ import android.graphics.Paint
 import android.graphics.Paint.Style.STROKE
 import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.drawRect
 import cn.jingzhuan.tableview.lazyNone
 
@@ -58,7 +60,25 @@ abstract class DrawableColumn : Column {
 
     open fun prepareToMeasure(context: Context, rowShareElements: RowShareElements) {}
 
-    open fun measure(context: Context, rowShareElements: RowShareElements) {}
+    open fun measure(context: Context, rowShareElements: RowShareElements) {
+        val widthPx = context.dp(width).toInt()
+        val minWidthPx = context.dp(minWidth).toInt()
+        val isWrapWidth = width == ViewGroup.LayoutParams.WRAP_CONTENT
+        widthWithMargins = if (isWrapWidth) {
+            leftMargin + paddingLeft + minWidthPx + paddingRight + rightMargin
+        } else {
+            leftMargin + widthPx + rightMargin
+        }
+
+        val heightPx = context.dp(height).toInt()
+        val minHeightPx = context.dp(minHeight).toInt()
+        val isWrapHeight = height == ViewGroup.LayoutParams.WRAP_CONTENT
+        heightWithMargins = if (isWrapHeight) {
+            topMargin + paddingTop + minHeightPx + paddingBottom + bottomMargin
+        } else {
+            topMargin + heightPx + bottomMargin
+        }
+    }
 
     open fun shouldIgnoreDraw(container: View): Boolean {
         val left = container.scrollX

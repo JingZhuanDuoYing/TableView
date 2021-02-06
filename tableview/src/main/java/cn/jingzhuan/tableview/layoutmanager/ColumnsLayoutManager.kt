@@ -9,6 +9,7 @@ import cn.jingzhuan.tableview.element.DrawableColumn
 import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.element.ViewColumn
 import cn.jingzhuan.tableview.lazyNone
+import cn.jingzhuan.tableview.runOnMainThread
 import java.io.ObjectInputStream
 import java.io.Serializable
 import kotlin.math.max
@@ -122,7 +123,8 @@ class ColumnsLayoutManager : Serializable {
                 if (column is DrawableColumn) {
                     if (!visible) continue
                     // this may happens when columns changed
-                    if (column.widthWithMargins == 0 || column.heightWithMargins == 0 || specs.visibleColumnsWidth[index] == 0) {
+                    val heightNotDetermined = column.heightWithMargins == 0 && column.height != ViewGroup.LayoutParams.MATCH_PARENT
+                    if (column.widthWithMargins == 0 || heightNotDetermined || specs.visibleColumnsWidth[index] == 0) {
                         // measure drawable column in necessary
                         if (row.measure(context, specs)) pendingLayout = true
                     }
@@ -140,7 +142,7 @@ class ColumnsLayoutManager : Serializable {
 
                 // 未初始化过，需要将新创建的View添加到ViewGroup
                 if (!initialized) {
-                    rowLayout.post {
+                    rowLayout.runOnMainThread {
                         if (sticky) {
                             rowLayout.addView(view)
                         } else {
@@ -195,13 +197,14 @@ class ColumnsLayoutManager : Serializable {
 
         if (!initialized) {
             // 未初始化过，需要将scrollableContainer添加进rowLayout
-            rowLayout.post {
+            rowLayout.runOnMainThread {
                 if (scrollableContainer.parent == null) rowLayout.addView(scrollableContainer)
             }
         }
 
         // 列宽发生变化或者第一次初始化，都需要Layout
         if (layoutOnly || pendingLayout || !initialized || row.forceLayout) {
+            if(specs.stretchMode) specs.compareAndSetStretchColumnsWidth()
             row.layout(context, specs)
 
             viewIndex = 0

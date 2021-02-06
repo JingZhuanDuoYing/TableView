@@ -190,6 +190,10 @@ open class TableView @JvmOverloads constructor(
         (main as DirectionLockRecyclerView).directionLockEnabled = enable
     }
 
+    fun setCoroutineEnabled(enable: Boolean) {
+        columnsLayoutManager.specs.enableCoroutine = enable
+    }
+
     fun firstVisiblePosition(): Int {
         return (main.layoutManager as? LinearLayoutManager)?.findFirstVisibleItemPosition() ?: -1
     }

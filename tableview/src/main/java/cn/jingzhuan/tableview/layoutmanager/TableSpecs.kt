@@ -10,6 +10,8 @@ import kotlin.math.max
 
 class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
 
+    var enableCoroutine = false
+
     var headerRow: HeaderRow<*>? = null
 
     val visibleColumnsWidth = SparseIntArray()
@@ -102,8 +104,18 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         if (stickyColumnsCount > columnsCount) throw IllegalArgumentException("stickyColumnsCount must not be greater than columnsCount")
         this.columnsCount = columnsCount
         this.stickyColumnsCount = stickyColumnsCount
+        // 列数变化，重置 stretchMode 列宽
+        this.averageStretchColumnWidth = 0
         onColumnsWidthChanged()
         resetScrollableFirstVisibleColumn()
+    }
+
+    fun compareAndSetStretchColumnsWidth() {
+        val stretchWidth = tableWidth - stickyWidth
+        for (i in stickyColumnsCount until columnsCount) {
+            val weight = realColumnsWidth[i] / realScrollableVirtualWidth.toFloat()
+            visibleColumnsWidth.put(i, (weight * stretchWidth).toInt())
+        }
     }
 
     /**
@@ -115,28 +127,15 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         if (realColumnsWidth[index] < column.widthWithMargins) {
             val expand = column.widthWithMargins - realColumnsWidth[index]
             val newRealScrollableVirtualWidth = realScrollableVirtualWidth + expand
-            if(stretchMode && realColumnsWidth[index] > 0) {
-                for(i in stickyColumnsCount until columnsCount) {
-                    val weight = realColumnsWidth[i] / realScrollableVirtualWidth.toFloat()
-                    val newWidth = (newRealScrollableVirtualWidth * weight).toInt()
-                    visibleColumnsWidth.put(i, newWidth)
-                }
-            }
             realColumnsWidth.put(index, column.widthWithMargins)
             realScrollableVirtualWidth = newRealScrollableVirtualWidth
             changed = true
         }
 
         if (stretchMode && index >= stickyColumnsCount) {
-            val scrollableLimitedWidth = tableWidth - stickyWidth
-            if (visibleScrollableVirtualWidth == 0 || scrollableLimitedWidth == 0) {
+            if (visibleScrollableVirtualWidth == 0 || visibleColumnsWidth[index] <= 0) {
                 changed = visibleColumnsWidth[index] == averageStretchColumnWidth
                 visibleColumnsWidth.put(index, averageStretchColumnWidth)
-            } else {
-                val weight = realColumnsWidth[index] / realScrollableVirtualWidth.toFloat()
-                val proportionWidth = (scrollableLimitedWidth * weight).toInt()
-                changed = visibleColumnsWidth[index] == proportionWidth
-                visibleColumnsWidth.put(index, proportionWidth)
             }
             return changed
         }
@@ -152,10 +151,11 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
             changed = true
         }
 
-        val shouldCalculateStretchColumnWidth = stretchMode && averageStretchColumnWidth <= 0
-        val calculateStretchColumnWidth =
-            (changed or shouldCalculateStretchColumnWidth) && index < stickyColumnsCount
-        if (calculateStretchColumnWidth) {
+        val shouldCalculateStretchColumnWidth =
+            index < stickyColumnsCount && stretchMode && averageStretchColumnWidth <= 0
+        if (shouldCalculateStretchColumnWidth && index == stickyColumnsCount - 1) changed = true
+
+        if (changed or shouldCalculateStretchColumnWidth) {
             var stickyWidth = 0
             for (i in 0 until stickyColumnsCount) {
                 stickyWidth += visibleColumnsWidth[i]

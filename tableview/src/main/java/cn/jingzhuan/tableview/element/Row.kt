@@ -259,21 +259,20 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
             column.measure(context, rowShareElements)
         }
 
-        // 已经有尺寸的，不管是预先Measure得到的还是实际展示时Measure得到的，都不需要重复执行下面代码了
-        if (column.widthWithMargins > 0 && column.heightWithMargins > 0) {
-            return
-        }
-
         if (column.widthWithMargins <= 0) {
-            val minWidthPx = context.dp(column.minWidth).toInt()
-            val widthPx = context.dp(column.width).toInt()
+            val minWidthPx = context.dp(column.minWidth)
+                .toInt().coerceAtLeast(0)
+            val widthPx = context.dp(column.width)
+                .toInt().coerceAtLeast(0)
             val columnWidth = max(minWidthPx, widthPx)
             column.widthWithMargins = columnWidth + column.leftMargin + column.rightMargin
         }
 
         if (column.heightWithMargins <= 0) {
-            val minHeightPx = context.dp(column.minHeight).toInt()
-            val heightPx = context.dp(column.height).toInt()
+            val minHeightPx = context.dp(column.minHeight)
+                .toInt().coerceAtLeast(0)
+            val heightPx = context.dp(column.height)
+                .toInt().coerceAtLeast(0)
             val columnHeight = max(minHeightPx, heightPx)
             column.heightWithMargins = columnHeight + column.topMargin + column.bottomMargin
         }

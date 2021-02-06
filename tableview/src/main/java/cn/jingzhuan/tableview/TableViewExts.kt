@@ -4,7 +4,9 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Point
+import android.os.Looper
 import android.util.TypedValue
+import android.view.View
 import android.view.WindowManager
 
 internal fun <T> lazyNone(initializer: () -> T) = lazy(LazyThreadSafetyMode.NONE, initializer)
@@ -44,3 +46,11 @@ internal fun Canvas.drawLine(
     bottom: Int,
     paint: Paint
 ) = drawLine(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat(), paint)
+
+internal fun View.runOnMainThread(action: () -> Unit) {
+    if(Looper.getMainLooper() == Looper.myLooper()) {
+        action()
+    } else {
+        post(action)
+    }
+}
