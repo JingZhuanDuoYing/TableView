@@ -13,6 +13,7 @@ import cn.jingzhuan.tableview.demo.lesson4.Lesson4Activity
 import cn.jingzhuan.tableview.demo.lesson5.Lesson5Activity
 import cn.jingzhuan.tableview.demo.lesson6.Lesson6Activity
 import cn.jingzhuan.tableview.demo.lesson7.Lesson7Activity
+import cn.jingzhuan.tableview.demo.lesson8.Lesson8Activity
 
 class MainActivity : AppCompatActivity() {
 
@@ -30,6 +31,7 @@ class MainActivity : AppCompatActivity() {
         adapter.data.add("Lesson 5 - column visibility")
         adapter.data.add("Lesson 6 - sticky rows")
         adapter.data.add("Lesson 7 - direction lock")
+        adapter.data.add("Lesson 8 - dynamic value")
         adapter.onItemClick = {
             when (it) {
                 0 -> startActivity(Intent(this, Lesson1Activity::class.java))
@@ -39,6 +41,7 @@ class MainActivity : AppCompatActivity() {
                 4 -> startActivity(Intent(this, Lesson5Activity::class.java))
                 5 -> startActivity(Intent(this, Lesson6Activity::class.java))
                 6 -> startActivity(Intent(this, Lesson7Activity::class.java))
+                7 -> startActivity(Intent(this, Lesson8Activity::class.java))
             }
         }
         adapter.notifyDataSetChanged()

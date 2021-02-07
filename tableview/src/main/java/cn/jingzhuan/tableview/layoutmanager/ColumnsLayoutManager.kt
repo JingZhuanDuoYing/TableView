@@ -123,8 +123,9 @@ class ColumnsLayoutManager : Serializable {
                 if (column is DrawableColumn) {
                     if (!visible) continue
                     // this may happens when columns changed
-                    val heightNotDetermined = column.heightWithMargins == 0 && column.height != ViewGroup.LayoutParams.MATCH_PARENT
-                    if (column.widthWithMargins == 0 || heightNotDetermined || specs.visibleColumnsWidth[index] == 0) {
+                    val heightNotDetermined =
+                        column.heightWithMargins == 0 && column.height != ViewGroup.LayoutParams.MATCH_PARENT
+                    if (row.forceLayout || column.widthWithMargins == 0 || heightNotDetermined || specs.visibleColumnsWidth[index] == 0) {
                         // measure drawable column in necessary
                         if (row.measure(context, specs)) pendingLayout = true
                     }
@@ -171,7 +172,7 @@ class ColumnsLayoutManager : Serializable {
                 // 绑定column和view
                 column.bindView(view, row)
 
-                if (view.measuredWidth <= 0 || view.measuredHeight <= 0 || column.forceLayout || visibilityChanged) {
+                if (view.measuredWidth <= 0 || view.measuredHeight <= 0 || row.forceLayout || column.forceLayout || visibilityChanged) {
                     // 实际Measure
                     column.measureView(view)
                 }
@@ -204,7 +205,7 @@ class ColumnsLayoutManager : Serializable {
 
         // 列宽发生变化或者第一次初始化，都需要Layout
         if (layoutOnly || pendingLayout || !initialized || row.forceLayout) {
-            if(specs.stretchMode) specs.compareAndSetStretchColumnsWidth()
+            if (specs.stretchMode) specs.compareAndSetStretchColumnsWidth()
             row.layout(context, specs)
 
             viewIndex = 0

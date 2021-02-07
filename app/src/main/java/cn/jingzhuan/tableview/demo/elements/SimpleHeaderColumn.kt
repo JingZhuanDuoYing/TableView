@@ -14,14 +14,11 @@ class SimpleHeaderColumn(private val value: String) : TextColumn() {
     init {
         gravity = Gravity.CENTER
         paddingRight = 20
+        backgroundColor = Color.parseColor("#D4D4D4")
     }
 
     override fun getText(context: Context): CharSequence? {
         return value
-    }
-
-    override fun backgroundColor(context: Context): Int? {
-        return Color.parseColor("#D4D4D4")
     }
 
 }

@@ -9,8 +9,8 @@ import timber.log.Timber
 
 class TitleRow(columns: List<Column>) : HeaderRow<Column>(columns) {
 
-    override fun backgroundColor(context: Context): Int? {
-        return Color.parseColor("#B1B3B3")
+    init {
+        backgroundColor = Color.parseColor("#B1B3B3")
     }
 
     override fun onRowClick(

@@ -49,6 +49,15 @@ abstract class TextColumn : DrawableColumn {
     @Transient
     private var lastMeasuredValue: CharSequence? = null
 
+    @Transient
+    private var lastMeasureTextSize: Float? = null
+
+    @Transient
+    private var lastMeasureTextSizeUnit: Int? = null
+
+    @Transient
+    private var lastMeasureTypeface: Typeface? = null
+
     var measuredTextWidth = 0
         private set
     var measuredTextHeight = 0
@@ -155,14 +164,18 @@ abstract class TextColumn : DrawableColumn {
     abstract fun getText(context: Context): CharSequence?
 
     override fun measure(context: Context, rowShareElements: RowShareElements) {
-        val paint = rowShareElements.getPaint(textSizePx(context), color, typeface)
 
         val text = getText(context)
         // if nothing changed, ignore measure process
-        if (TextUtils.equals(
-                text, lastMeasuredValue
-            ) && widthWithMargins > 0 && heightWithMargins > 0
+        if (text == lastMeasuredValue
+            && lastMeasureTypeface == typeface
+            && lastMeasureTextSize == textSize
+            && lastMeasureTextSizeUnit == textSizeUnit
+            && widthWithMargins > 0
+            && heightWithMargins > 0
         ) return
+
+        val paint = rowShareElements.getPaint(textSizePx(context), color, typeface)
 
         when {
             TextUtils.isEmpty(text) -> {
@@ -205,6 +218,9 @@ abstract class TextColumn : DrawableColumn {
         }
 
         lastMeasuredValue = text
+        lastMeasureTypeface = typeface
+        lastMeasureTextSize = textSize
+        lastMeasureTextSizeUnit = textSizeUnit
         paint.release()
     }
 

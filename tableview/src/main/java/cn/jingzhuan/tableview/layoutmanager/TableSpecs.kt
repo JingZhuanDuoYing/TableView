@@ -7,6 +7,7 @@ import android.util.SparseIntArray
 import cn.jingzhuan.tableview.element.Column
 import cn.jingzhuan.tableview.element.HeaderRow
 import kotlin.math.max
+import kotlin.math.min
 
 class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
 
