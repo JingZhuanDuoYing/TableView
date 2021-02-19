@@ -9,10 +9,10 @@ import cn.jingzhuan.tableview.lazyNone
 
 class RowShareElements {
 
-    internal var paintLimitCount = 3
     internal val rect1 by lazyNone { Rect() }
     internal val rect2 by lazyNone { Rect() }
 
+    private var paintLimitCount = 5
     @delegate:Transient
     private val paintPool by lazyNone { mutableMapOf<Int, RowShareTextPaint>() }
 

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+./gradlew clean
+./gradlew :tableview:createFullJarRelease
+./jetifier-standalone/bin/jetifier-standalone -i "tableview/build/intermediates/full_jar/release/full.jar" -o "jz-tableview-release.jar"
