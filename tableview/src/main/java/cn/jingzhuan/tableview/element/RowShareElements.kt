@@ -12,7 +12,7 @@ class RowShareElements {
     internal val rect1 by lazyNone { Rect() }
     internal val rect2 by lazyNone { Rect() }
 
-    private var paintLimitCount = 5
+    private var paintLimitCount = 3
     @delegate:Transient
     private val paintPool by lazyNone { mutableMapOf<Int, RowShareTextPaint>() }
 

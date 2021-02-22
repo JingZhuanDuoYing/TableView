@@ -3,6 +3,7 @@ package cn.jingzhuan.tableview.layoutmanager
 import android.graphics.Paint
 import android.support.annotation.ColorInt
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.util.SparseIntArray
 import cn.jingzhuan.tableview.element.Column
 import cn.jingzhuan.tableview.element.HeaderRow
@@ -134,9 +135,16 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         }
 
         if (stretchMode && index >= stickyColumnsCount) {
-            if (visibleScrollableVirtualWidth == 0 || visibleColumnsWidth[index] <= 0) {
-                changed = visibleColumnsWidth[index] == averageStretchColumnWidth
-                visibleColumnsWidth.put(index, averageStretchColumnWidth)
+            if (isColumnVisible(index)) {
+                if (visibleScrollableVirtualWidth == 0 || visibleColumnsWidth[index] <= 0) {
+                    changed = visibleColumnsWidth[index] == averageStretchColumnWidth
+                    visibleColumnsWidth.put(index, averageStretchColumnWidth)
+                }
+            } else {
+                if (visibleScrollableVirtualWidth == 0 || visibleColumnsWidth[index] != 0) {
+                    changed = true
+                    visibleColumnsWidth.put(index, 0)
+                }
             }
             return changed
         }
@@ -147,7 +155,7 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         }
 
         // force set 0 when column was invisible
-        if (!column.visible) {
+        if (!isColumnVisible(index)) {
             visibleColumnsWidth.put(index, 0)
             changed = true
         }

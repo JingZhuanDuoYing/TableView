@@ -193,7 +193,6 @@ abstract class TextColumn : DrawableColumn {
             }
         }
 
-        val widthPx = context.dp(width).toInt()
         val minWidthPx = context.dp(minWidth).toInt()
         val isWrapWidth = width == ViewGroup.LayoutParams.WRAP_CONTENT
         if (isWrapWidth) {
@@ -202,6 +201,7 @@ abstract class TextColumn : DrawableColumn {
                 leftMargin + paddingLeft + measuredTextWidth + paddingRight + rightMargin
             widthWithMargins = max(minWidthWithMargins, widthWithMargins)
         } else {
+            val widthPx = context.dp(width).toInt()
             widthWithMargins = leftMargin + widthPx + rightMargin
         }
 

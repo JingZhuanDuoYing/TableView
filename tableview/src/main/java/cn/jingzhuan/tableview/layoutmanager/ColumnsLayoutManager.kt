@@ -48,6 +48,10 @@ class ColumnsLayoutManager : Serializable {
         attachedRows.forEach { it.row?.forceLayout = true }
     }
 
+    fun setCoroutineEnabled(enable: Boolean) {
+        specs.enableCoroutine = enable
+    }
+
     fun randomRowLayout(): RowLayout? {
         return attachedRows.firstOrNull()
     }
@@ -170,7 +174,9 @@ class ColumnsLayoutManager : Serializable {
                 }
 
                 // 绑定column和view
-                column.bindView(view, row)
+                rowLayout.runOnMainThread {
+                    column.bindView(view, row)
+                }
 
                 if (view.measuredWidth <= 0 || view.measuredHeight <= 0 || row.forceLayout || column.forceLayout || visibilityChanged) {
                     // 实际Measure
@@ -218,7 +224,7 @@ class ColumnsLayoutManager : Serializable {
                 column.forceLayout = false
             }
 
-            row.forceLayout = false
+            if(!row.forceLayoutLock) row.forceLayout = false
             // layoutOnly 模式不调用，因为并没有执行任何实际的 measure，不能确定列宽是否变化
             if (pendingLayout) specs.onColumnsWidthChanged()
         }

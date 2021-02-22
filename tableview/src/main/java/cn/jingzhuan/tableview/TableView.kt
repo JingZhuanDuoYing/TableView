@@ -191,7 +191,7 @@ open class TableView @JvmOverloads constructor(
     }
 
     fun setCoroutineEnabled(enable: Boolean) {
-        columnsLayoutManager.specs.enableCoroutine = enable
+        columnsLayoutManager.setCoroutineEnabled(enable)
     }
 
     fun firstVisiblePosition(): Int {

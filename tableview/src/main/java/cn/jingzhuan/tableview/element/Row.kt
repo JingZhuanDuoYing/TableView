@@ -37,6 +37,11 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
     var forceLayout = true
 
     /**
+     * forceLayout would not be set to false after measure and layout process if lock was enabled
+     */
+    var forceLayoutLock = false
+
+    /**
      * expandable
      */
     var childRows: MutableList<Row<*>>? = null

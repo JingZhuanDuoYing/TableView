@@ -1,6 +1,6 @@
 apply plugin: 'maven-publish'
 
-def publishVersion = '1.0.8'
+def publishVersion = '1.0.9'
 
 task buildSdk {
     dependsOn ':tableview:assembleRelease'
