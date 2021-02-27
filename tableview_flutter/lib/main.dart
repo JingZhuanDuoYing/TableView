@@ -1,8 +1,8 @@
-import 'dart:collection';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:tableview_flutter/tableview.dart';
 
 void main() {
   runApp(MyApp());
@@ -10,14 +10,14 @@ void main() {
 
 class Holder {
   final List<ScrollController> controllers = List.filled(15, null);
-  final List<double> columnsWidth = List.filled(15, 110);
+  final List<double> columnsWidth = List.filled(15, 150);
   final List<VoidCallback> columnsWidthListeners = List.filled(15, null);
   ScrollController scrollingController;
   var offset = 0.0;
 
   void _onScrolled() {
     var controller = scrollingController;
-    if(controller?.hasClients != true) return;
+    if (controller?.hasClients != true) return;
     offset = controller.offset;
     controllers.forEach((element) {
       if (element == controller) return;
@@ -35,17 +35,17 @@ class Holder {
   TextPainter _calculateText(BuildContext context, String value,
       double fontSize, FontWeight fontWeight, double maxWidth, int maxLines) {
     TextPainter painter = TextPainter(
-        maxLines: maxLines,
-        textDirection: TextDirection.ltr,
-        text: TextSpan(
-            text: value,
-            style: TextStyle(
-              fontWeight: fontWeight,
-              fontSize: fontSize,
-            )));
+      maxLines: maxLines,
+      textDirection: TextDirection.ltr,
+      text: TextSpan(
+        text: value,
+        style: TextStyle(
+          fontWeight: fontWeight,
+          fontSize: fontSize,
+        ),
+      ),
+    );
     painter.layout(maxWidth: maxWidth);
-
-    ///文字的宽度:painter.width
     return painter;
   }
 }
@@ -63,15 +63,16 @@ class MyApp extends StatelessWidget {
         appBar: AppBar(
           title: Text(title),
         ),
-        body: Container(
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: 15,
-            itemBuilder: (context, index) {
-              return ColumnList(holder, index);
-            },
-          ),
-        ),
+        // body: Container(
+        //   child: ListView.builder(
+        //     scrollDirection: Axis.horizontal,
+        //     itemCount: 15,
+        //     itemBuilder: (context, index) {
+        //       return ColumnList(holder, index);
+        //     },
+        //   ),
+        // ),
+        body: Container(child: TableView()),
       ),
     );
   }
@@ -98,10 +99,17 @@ class _ColumnListState extends State<ColumnList> {
 
   @override
   Widget build(BuildContext context) {
-    widget.holder.controllers[widget.columnIndex]?.dispose();
-    var controller =
-        ScrollController(initialScrollOffset: widget.holder.offset);
-    widget.holder.controllers[widget.columnIndex] = controller;
+    ScrollController controller;
+    if (widget.holder.controllers[widget.columnIndex] != null) {
+      controller = widget.holder.controllers[widget.columnIndex];
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        if (controller.hasClients) controller.jumpTo(widget.holder.offset);
+      });
+    } else {
+      controller = ScrollController(initialScrollOffset: widget.holder.offset);
+      widget.holder.controllers[widget.columnIndex] = controller;
+    }
+
     return Container(
       width: widget.holder.columnsWidth[widget.columnIndex],
       child: NotificationListener<ScrollNotification>(
@@ -127,8 +135,10 @@ class _ColumnListState extends State<ColumnList> {
           }
           return true;
         },
-        child: ListView.builder(
-          shrinkWrap: true,
+        child: ListView.separated(
+          separatorBuilder: (context, index) {
+            return Divider(color: Colors.black);
+          },
           controller: controller,
           itemCount: 100,
           itemBuilder: (context, rowIndex) {
