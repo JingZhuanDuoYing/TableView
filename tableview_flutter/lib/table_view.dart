@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tableview_flutter/header_row.dart';
 import 'package:tableview_flutter/table_column_layout.dart';
@@ -77,6 +78,8 @@ class _TableViewState extends State<TableView> {
     });
 
     widget.specs.init(headerRow, 2);
+    widget.specs.enableRowsDivider = true;
+    widget.specs.enableColumnsDivider = true;
 
     headerRow.columns.forEach((column) {
       widget.specs.measureTextColumn(headerRow, column);
@@ -116,27 +119,62 @@ class _TableViewState extends State<TableView> {
       stickyListViewWidth += element;
     });
     return Row(
-      children: [
-        Container(
-          width: stickyListViewWidth,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: widget.specs.stickyColumnsCount,
-            itemBuilder: (context, index) {
-              return TableColumnLayout(widget.specs, headerRow, index, true);
-            },
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: 20 - widget.specs.stickyColumnsCount,
-              itemBuilder: (context, index) {
-                return TableColumnLayout(widget.specs, headerRow,
-                    index + widget.specs.stickyColumnsCount, false);
-              }),
-        )
-      ],
+      children: widget.specs.enableColumnsDivider
+          ? _buildWithDivider(stickyListViewWidth, widget.specs, headerRow)
+          : _buildWithoutDivider(stickyListViewWidth, widget.specs, headerRow),
     );
+  }
+
+  List<Widget> _buildWithDivider(
+      double stickyListViewWidth, TableSpecs specs, HeaderRow headerRow) {
+    return [
+      Container(
+        width: stickyListViewWidth,
+        child: ListView.separated(
+          separatorBuilder: (context, index) => specs.getVerticalDivider(),
+          scrollDirection: Axis.horizontal,
+          itemCount: specs.stickyColumnsCount,
+          itemBuilder: (context, index) {
+            return TableColumnLayout(specs, headerRow, index, true);
+          },
+        ),
+      ),
+      specs.getVerticalDivider(),
+      Expanded(
+        child: ListView.separated(
+            separatorBuilder: (context, index) => specs.getVerticalDivider(),
+            scrollDirection: Axis.horizontal,
+            itemCount: 20 - specs.stickyColumnsCount,
+            itemBuilder: (context, index) {
+              return TableColumnLayout(
+                  specs, headerRow, index + specs.stickyColumnsCount, false);
+            }),
+      )
+    ];
+  }
+
+  List<Widget> _buildWithoutDivider(
+      double stickyListViewWidth, TableSpecs specs, HeaderRow headerRow) {
+    return [
+      Container(
+        width: stickyListViewWidth,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: specs.stickyColumnsCount,
+          itemBuilder: (context, index) {
+            return TableColumnLayout(specs, headerRow, index, true);
+          },
+        ),
+      ),
+      Expanded(
+        child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: 20 - specs.stickyColumnsCount,
+            itemBuilder: (context, index) {
+              return TableColumnLayout(
+                  specs, headerRow, index + specs.stickyColumnsCount, false);
+            }),
+      )
+    ];
   }
 }

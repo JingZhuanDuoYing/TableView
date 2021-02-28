@@ -2,6 +2,7 @@ import 'dart:core';
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:tableview_flutter/table_column.dart';
@@ -117,5 +118,23 @@ class TableSpecs {
       if (element.offset == offset) return;
       element.jumpTo(offset);
     });
+  }
+
+  Divider getRowsDivider() {
+    if (!enableRowsDivider) return null;
+    return Divider(
+      height: dividerThickness,
+      thickness: dividerThickness,
+      color: dividerColor,
+    );
+  }
+
+  VerticalDivider getVerticalDivider() {
+    if (!enableColumnsDivider) return null;
+    return VerticalDivider(
+      width: dividerThickness,
+      thickness: dividerThickness,
+      color: dividerColor,
+    );
   }
 }

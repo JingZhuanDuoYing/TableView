@@ -1,6 +1,8 @@
 import 'dart:ui';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:tableview_flutter/column_scroll_listener.dart';
 import 'package:tableview_flutter/header_row.dart';
 import 'package:tableview_flutter/table_row.dart' as table_row;
 import 'package:tableview_flutter/table_specs.dart';
@@ -42,15 +44,20 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
 
   @override
   Widget build(BuildContext context) {
+    double columnWidth = widget.specs.getViewColumnWidth(widget.columnIndex);
+
     List<Widget> widgets = [];
     Widget headerColumn = widget.headerRow.columns[widget.columnIndex]
         .build(context, widget.specs, widget.headerRow, widget.columnIndex);
     widgets.add(headerColumn);
-    List<Widget> stickyColumns = widget.headerRow.stickyRows
-        .map((row) => row.columns[widget.columnIndex]
-            .build(context, widget.specs, row, widget.columnIndex))
-        .toList(growable: false);
-    widgets.addAll(stickyColumns);
+    widgets.add(widget.specs.getRowsDivider());
+
+    widget.headerRow.stickyRows.forEach((row) {
+      Widget columnWidget = row.columns[widget.columnIndex]
+          .build(context, widget.specs, row, widget.columnIndex);
+      widgets.add(columnWidget);
+      widgets.add(widget.specs.getRowsDivider());
+    });
 
     ScrollController controller =
         widget.specs.getScrollController(widget.columnIndex);
@@ -58,47 +65,41 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
       if (controller.hasClients) controller.jumpTo(widget.specs.offset);
     });
 
-    widgets.add(NotificationListener<ScrollNotification>(
-      onNotification: (ScrollNotification notification) {
-        if (notification is ScrollStartNotification) {
-          if (null == widget.specs.scrollingController) {
-            widget.specs.scrollingController = controller;
-          } else if (notification?.dragDetails?.kind ==
-              PointerDeviceKind.touch) {
-            if (widget.specs.scrollingController?.hasClients == true) {
-              widget.specs.scrollingController?.jumpTo(widget.specs.offset);
-            }
-            widget.specs.scrollingController = controller;
-          }
-        } else if (notification is ScrollEndNotification) {
-          if (controller == widget.specs.scrollingController) {
-            widget.specs.scrollingController = null;
-          }
-        } else if (notification is ScrollUpdateNotification) {
-          if (null != widget.specs.scrollingController) {
-            widget.specs.onScrolled();
-          }
-        }
-        return true;
-      },
-      child: Expanded(
-        child: Container(
-          width: widget.specs.getViewColumnWidth(widget.columnIndex),
-          child: ListView.builder(
-            controller: controller,
-            itemCount: widget.headerRow.rows.length,
-            itemBuilder: (context, index) {
-              table_row.TableRow row = widget.headerRow.rows[index];
-              return row.columns[widget.columnIndex]
-                  .build(context, widget.specs, row, widget.columnIndex);
-            },
+    widgets.add(ColumnScrollListener(
+        widget.specs,
+        controller,
+        Expanded(
+          child: Container(
+            width: columnWidth,
+            child: _buildListView(controller),
           ),
-        ),
-      ),
-    ));
+        )));
 
     return Container(
+      width: widget.specs.viewColumnsWidth[widget.columnIndex],
       child: Column(children: widgets),
     );
+  }
+
+  Widget _buildListView(ScrollController controller) {
+    var itemBuilder = (context, index) {
+      table_row.TableRow row = widget.headerRow.rows[index];
+      return row.columns[widget.columnIndex]
+          .build(context, widget.specs, row, widget.columnIndex);
+    };
+    if (widget.specs.enableRowsDivider) {
+      return ListView.separated(
+        controller: controller,
+        separatorBuilder: (context, index) => widget.specs.getRowsDivider(),
+        itemCount: widget.headerRow.rows.length,
+        itemBuilder: itemBuilder,
+      );
+    } else {
+      return ListView.builder(
+        controller: controller,
+        itemCount: widget.headerRow.rows.length,
+        itemBuilder: itemBuilder,
+      );
+    }
   }
 }

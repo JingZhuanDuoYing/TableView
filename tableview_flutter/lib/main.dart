@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:tableview_flutter/tableview.dart';
+import 'package:tableview_flutter/table_view.dart';
 
 void main() {
   runApp(MyApp());
