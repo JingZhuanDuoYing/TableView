@@ -110,7 +110,7 @@ class _TableViewState extends State<TableView> {
       Expanded(
         child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: 20 - specs.stickyColumnsCount,
+            itemCount: headerRow.columns.length - specs.stickyColumnsCount,
             itemBuilder: (context, index) {
               return TableColumnLayout(
                   specs, headerRow, index + specs.stickyColumnsCount, false);
