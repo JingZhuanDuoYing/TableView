@@ -11,7 +11,9 @@ class TableView extends StatefulWidget {
   final specs = TableSpecs();
   final HeaderRow headerRow;
 
-  TableView(this.headerRow);
+  TableView(this.headerRow, [int stickyColumnsCount = 1]) {
+    specs.init(headerRow, stickyColumnsCount);
+  }
 
   @override
   State<StatefulWidget> createState() => _TableViewState();
