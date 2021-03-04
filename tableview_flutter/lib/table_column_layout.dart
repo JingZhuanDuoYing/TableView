@@ -46,13 +46,15 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
     Widget headerColumn = widget.headerRow.columns[widget.columnIndex]
         .build(context, widget.specs, widget.headerRow, widget.columnIndex);
     widgets.add(headerColumn);
-    widgets.add(widget.specs.getRowsDivider());
+    Divider headerDivider = widget.specs.getRowsDivider();
+    if (null != headerDivider) widgets.add(headerDivider);
 
     widget.headerRow.stickyRows.forEach((row) {
       Widget columnWidget = row.columns[widget.columnIndex]
           .build(context, widget.specs, row, widget.columnIndex);
       widgets.add(columnWidget);
-      widgets.add(widget.specs.getRowsDivider());
+      Divider stickyDivider = widget.specs.getRowsDivider();
+      if(null != stickyDivider) widgets.add(stickyDivider);
     });
 
     ScrollController controller =
