@@ -8,10 +8,10 @@ import 'table_column_layout.dart';
 import 'table_specs.dart';
 
 class TableView extends StatefulWidget {
-  final specs = TableSpecs();
   final HeaderRow headerRow;
+  final TableSpecs specs;
 
-  TableView(this.headerRow, [int stickyColumnsCount = 1]) {
+  TableView(this.headerRow, this.specs, [int stickyColumnsCount = 1]) {
     specs.init(headerRow, stickyColumnsCount);
   }
 
