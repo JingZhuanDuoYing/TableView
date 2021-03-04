@@ -25,7 +25,7 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
     super.initState();
     if (!widget.sticky) {
       widget.specs.viewColumnsWidthListener[widget.columnIndex] = () {
-        _onColumnsWidthChanged();
+        setState(() {});
       };
     }
   }
@@ -36,10 +36,6 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
     if (!widget.sticky) {
       widget.specs.viewColumnsWidthListener[widget.columnIndex] = null;
     }
-  }
-
-  void _onColumnsWidthChanged() {
-    setState(() {});
   }
 
   @override

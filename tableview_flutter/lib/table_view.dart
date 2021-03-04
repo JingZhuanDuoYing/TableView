@@ -2,19 +2,22 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:tableview_flutter/header_row.dart';
-import 'package:tableview_flutter/table_column_layout.dart';
-import 'package:tableview_flutter/table_specs.dart';
+
+import 'header_row.dart';
+import 'table_column_layout.dart';
+import 'table_specs.dart';
 
 class TableView extends StatefulWidget {
   final specs = TableSpecs();
+  final HeaderRow headerRow;
+
+  TableView(this.headerRow);
 
   @override
   State<StatefulWidget> createState() => _TableViewState();
 }
 
 class _TableViewState extends State<TableView> {
-  HeaderRow headerRow = HeaderRow([]);
 
   @override
   void initState() {
@@ -43,9 +46,9 @@ class _TableViewState extends State<TableView> {
     if (widget.specs.stickyColumnsCount <= 0) {
       return ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: headerRow.columns.length,
+        itemCount: widget.headerRow.columns.length,
         itemBuilder: (context, index) {
-          return TableColumnLayout(widget.specs, headerRow, index, false);
+          return TableColumnLayout(widget.specs, widget.headerRow, index, false);
         },
       );
     }
@@ -58,8 +61,8 @@ class _TableViewState extends State<TableView> {
     });
     return Row(
       children: widget.specs.enableColumnsDivider
-          ? _buildWithDivider(stickyListViewWidth, widget.specs, headerRow)
-          : _buildWithoutDivider(stickyListViewWidth, widget.specs, headerRow),
+          ? _buildWithDivider(stickyListViewWidth, widget.specs, widget.headerRow)
+          : _buildWithoutDivider(stickyListViewWidth, widget.specs, widget.headerRow),
     );
   }
 
