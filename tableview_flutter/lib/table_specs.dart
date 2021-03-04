@@ -93,7 +93,7 @@ class TableSpecs {
   }
 
   bool isColumnVisible(int index) {
-    return headerRow?.columns[index]?.visible == true;
+    return headerRow?.columns?.elementAt(index)?.visible == true;
   }
 
   ScrollController getScrollController(int columnIndex) {
