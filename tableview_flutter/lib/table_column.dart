@@ -7,8 +7,8 @@ import 'package:tableview_flutter/table_specs.dart';
 abstract class TableColumn {
   double width;
   double height;
-  double minWidth = 90;
-  double minHeight = 30;
+  double minWidth = 0;
+  double minHeight = 0;
   double maxWidth = double.infinity;
   double maxHeight = double.infinity;
 

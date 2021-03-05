@@ -77,10 +77,10 @@ class TableSpecs {
         column.setTextSize(painter.width, painter.height);
       }
     } else {
-      double columnWidth = column.addEssentialSpace(column.width, true);
+      double columnWidth = column.addEssentialSpace(column.width ?? 0, true);
       double columnMinWidth = column.minWidth + column.leftMargin + column.rightMargin;
       column.columnWidth = [columnWidth, columnMinWidth, viewColumnsWidth[index]].reduce(max);
-      double columnHeight = column.addEssentialSpace(column.height, false);
+      double columnHeight = column.addEssentialSpace(column.height ?? 0, false);
       double columnMinHeight = column.minHeight + column.topMargin + column.bottomMargin;
       column.columnHeight = [columnHeight, columnMinHeight, row.rowHeight].reduce(max);
     }
