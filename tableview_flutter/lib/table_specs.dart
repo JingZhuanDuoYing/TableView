@@ -56,7 +56,7 @@ class TableSpecs {
     viewColumnsWidthListener = List.filled(headerRow.columns.length, null);
   }
 
-  void measureTextColumn(table_row.TableRow row, TextColumn column) {
+  void measureColumn(table_row.TableRow row, TableColumn column) {
     int index = row.columns.indexOf(column);
     bool visible = isColumnVisible(index);
     if (!visible) {
@@ -67,13 +67,22 @@ class TableSpecs {
     } else if (null != column.width && null != column.height) {
       column.columnWidth = column.width;
       column.columnHeight = column.height;
-    } else if (column.text?.isNotEmpty != true) {
-      column.setMinSize();
+    } else if(column is TextColumn) {
+      if (column.text?.isNotEmpty != true) {
+        column.setMinSize();
+      } else {
+        painter.text =
+            TextSpan(text: column.text, style: column.textStyle ?? TextStyle());
+        painter.layout();
+        column.setTextSize(painter.width, painter.height);
+      }
     } else {
-      painter.text =
-          TextSpan(text: column.text, style: column.textStyle ?? TextStyle());
-      painter.layout();
-      column.setTextSize(painter.width, painter.height);
+      double columnWidth = column.addEssentialSpace(column.width, true);
+      double columnMinWidth = column.minWidth + column.leftMargin + column.rightMargin;
+      column.columnWidth = [columnWidth, columnMinWidth, viewColumnsWidth[index]].reduce(max);
+      double columnHeight = column.addEssentialSpace(column.height, false);
+      double columnMinHeight = column.minHeight + column.topMargin + column.bottomMargin;
+      column.columnHeight = [columnHeight, columnMinHeight, row.rowHeight].reduce(max);
     }
 
     if (null == row.height) {

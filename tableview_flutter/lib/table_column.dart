@@ -80,21 +80,6 @@ abstract class TableColumn {
     columnHeight = emptyHeight.clamp(minHeight, maxHeight);
   }
 
-  void setTextSize(double textWidth, double textHeight) {
-    if (null != width) {
-      columnWidth = width;
-    } else {
-      double expectWidth = addEssentialSpace(textWidth, true);
-      columnWidth = expectWidth.clamp(minWidth, maxWidth);
-    }
-    if (null != height) {
-      columnHeight = height;
-    } else {
-      double expectHeight = addEssentialSpace(textHeight, false);
-      columnHeight = expectHeight.clamp(minHeight, maxHeight);
-    }
-  }
-
   double addEssentialSpace(double size, bool horizontal) {
     if (horizontal) {
       return size + leftMargin + paddingLeft + paddingRight + rightMargin;

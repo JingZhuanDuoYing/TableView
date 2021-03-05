@@ -48,6 +48,21 @@ class TextColumn extends TableColumn {
             backgroundColor: backgroundColor,
             visible: visible);
 
+  void setTextSize(double textWidth, double textHeight) {
+    if (null != width) {
+      columnWidth = width;
+    } else {
+      double expectWidth = addEssentialSpace(textWidth, true);
+      columnWidth = expectWidth.clamp(minWidth, maxWidth);
+    }
+    if (null != height) {
+      columnHeight = height;
+    } else {
+      double expectHeight = addEssentialSpace(textHeight, false);
+      columnHeight = expectHeight.clamp(minHeight, maxHeight);
+    }
+  }
+
   @override
   Widget build(BuildContext context, TableSpecs specs, table_row.TableRow row,
       int index) {
