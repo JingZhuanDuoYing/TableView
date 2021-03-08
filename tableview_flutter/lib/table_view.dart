@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:tableview_flutter/no_glow_behavior.dart';
 
 import 'header_row.dart';
 import 'table_column_layout.dart';
@@ -18,7 +19,6 @@ class TableView extends StatefulWidget {
 }
 
 class _TableViewState extends State<TableView> {
-
   @override
   void initState() {
     super.initState();
@@ -44,12 +44,16 @@ class _TableViewState extends State<TableView> {
   @override
   Widget build(BuildContext context) {
     if (widget.specs.stickyColumnsCount <= 0) {
-      return ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: widget.headerRow.columns.length,
-        itemBuilder: (context, index) {
-          return TableColumnLayout(widget.specs, widget.headerRow, index, false);
-        },
+      return ScrollConfiguration(
+        behavior: NoGlowBehavior(),
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: widget.headerRow.columns.length,
+          itemBuilder: (context, index) {
+            return TableColumnLayout(
+                widget.specs, widget.headerRow, index, false);
+          },
+        ),
       );
     }
 
@@ -61,8 +65,10 @@ class _TableViewState extends State<TableView> {
     });
     return Row(
       children: widget.specs.enableColumnsDivider
-          ? _buildWithDivider(stickyListViewWidth, widget.specs, widget.headerRow)
-          : _buildWithoutDivider(stickyListViewWidth, widget.specs, widget.headerRow),
+          ? _buildWithDivider(
+              stickyListViewWidth, widget.specs, widget.headerRow)
+          : _buildWithoutDivider(
+              stickyListViewWidth, widget.specs, widget.headerRow),
     );
   }
 
@@ -71,25 +77,33 @@ class _TableViewState extends State<TableView> {
     return [
       Container(
         width: stickyListViewWidth,
-        child: ListView.separated(
-          separatorBuilder: (context, index) => specs.getVerticalDivider(),
-          scrollDirection: Axis.horizontal,
-          itemCount: specs.stickyColumnsCount,
-          itemBuilder: (context, index) {
-            return TableColumnLayout(specs, headerRow, index, true);
-          },
+        child: ScrollConfiguration(
+          behavior: NoGlowBehavior(),
+          child: ListView.separated(
+            separatorBuilder: (context, index) => specs.getVerticalDivider(),
+            scrollDirection: Axis.horizontal,
+            itemCount: specs.stickyColumnsCount,
+            itemBuilder: (context, index) {
+              return TableColumnLayout(specs, headerRow, index, true);
+            },
+          ),
         ),
       ),
       specs.getVerticalDivider(),
       Expanded(
-        child: ListView.separated(
+        child: ScrollConfiguration(
+          behavior: NoGlowBehavior(),
+          child: ListView.separated(
             separatorBuilder: (context, index) => specs.getVerticalDivider(),
             scrollDirection: Axis.horizontal,
-            itemCount: max(headerRow.columns.length - specs.stickyColumnsCount, 0),
+            itemCount:
+                max(headerRow.columns.length - specs.stickyColumnsCount, 0),
             itemBuilder: (context, index) {
               return TableColumnLayout(
                   specs, headerRow, index + specs.stickyColumnsCount, false);
-            }),
+            },
+          ),
+        ),
       )
     ];
   }
@@ -99,22 +113,28 @@ class _TableViewState extends State<TableView> {
     return [
       Container(
         width: stickyListViewWidth,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: specs.stickyColumnsCount,
-          itemBuilder: (context, index) {
-            return TableColumnLayout(specs, headerRow, index, true);
-          },
+        child: ScrollConfiguration(
+          behavior: NoGlowBehavior(),
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: specs.stickyColumnsCount,
+            itemBuilder: (context, index) {
+              return TableColumnLayout(specs, headerRow, index, true);
+            },
+          ),
         ),
       ),
       Expanded(
-        child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: headerRow.columns.length - specs.stickyColumnsCount,
-            itemBuilder: (context, index) {
-              return TableColumnLayout(
-                  specs, headerRow, index + specs.stickyColumnsCount, false);
-            }),
+        child: ScrollConfiguration(
+          behavior: NoGlowBehavior(),
+          child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: headerRow.columns.length - specs.stickyColumnsCount,
+              itemBuilder: (context, index) {
+                return TableColumnLayout(
+                    specs, headerRow, index + specs.stickyColumnsCount, false);
+              }),
+        ),
       )
     ];
   }

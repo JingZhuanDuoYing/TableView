@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tableview_flutter/column_scroll_listener.dart';
 import 'package:tableview_flutter/header_row.dart';
+import 'package:tableview_flutter/no_glow_behavior.dart';
 import 'package:tableview_flutter/table_row.dart' as table_row;
 import 'package:tableview_flutter/table_specs.dart';
 
@@ -54,7 +55,7 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
           .build(context, widget.specs, row, widget.columnIndex);
       widgets.add(columnWidget);
       Divider stickyDivider = widget.specs.getRowsDivider();
-      if(null != stickyDivider) widgets.add(stickyDivider);
+      if (null != stickyDivider) widgets.add(stickyDivider);
     });
 
     ScrollController controller =
@@ -86,17 +87,23 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
           .build(context, widget.specs, row, widget.columnIndex);
     };
     if (widget.specs.enableRowsDivider) {
-      return ListView.separated(
-        controller: controller,
-        separatorBuilder: (context, index) => widget.specs.getRowsDivider(),
-        itemCount: widget.headerRow.rows.length,
-        itemBuilder: itemBuilder,
+      return ScrollConfiguration(
+        behavior: NoGlowBehavior(),
+        child: ListView.separated(
+          controller: controller,
+          separatorBuilder: (context, index) => widget.specs.getRowsDivider(),
+          itemCount: widget.headerRow.rows.length,
+          itemBuilder: itemBuilder,
+        ),
       );
     } else {
-      return ListView.builder(
-        controller: controller,
-        itemCount: widget.headerRow.rows.length,
-        itemBuilder: itemBuilder,
+      return ScrollConfiguration(
+        behavior: NoGlowBehavior(),
+        child: ListView.builder(
+          controller: controller,
+          itemCount: widget.headerRow.rows.length,
+          itemBuilder: itemBuilder,
+        ),
       );
     }
   }
