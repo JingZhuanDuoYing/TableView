@@ -40,9 +40,6 @@ open class TableView @JvmOverloads constructor(
 
     private var adapter: IRowListAdapterDelegate = RowListAdapterDelegate()
 
-    var scrolledVerticalCallback: (() -> Unit)? = null
-    var scrolledHorizontalCallback: (() -> Unit)? = null
-
     protected val header: RecyclerView =
         DirectionLockRecyclerView(
             context
@@ -54,11 +51,31 @@ open class TableView @JvmOverloads constructor(
 
     private val columnsLayoutManager = ColumnsLayoutManager()
 
-    private val scrollListener =
-        RecyclerViewScrollListener(
-            verticalScrollCallback = { scrolledVerticalCallback?.invoke() },
-            horizontalScrollCallback = { scrolledHorizontalCallback?.invoke() }
-        )
+    private val scrollListener = RecyclerViewScrollListener()
+    var scrolledVerticalCallback: (() -> Unit)?
+        set(value) {
+            scrollListener.verticalScrollCallback = value
+        }
+        get() = scrollListener.verticalScrollCallback
+
+    var scrolledHorizontalCallback: (() -> Unit)?
+        set(value) {
+            scrollListener.horizontalScrollCallback = value
+        }
+        get() = scrollListener.horizontalScrollCallback
+
+    var scrollingVerticalCallback: ((dy: Int) -> Unit)?
+        set(value) {
+            scrollListener.verticalScrollingCallback = value
+        }
+        get() = scrollListener.verticalScrollingCallback
+
+    var scrollingHorizontalCallback: ((dx: Int) -> Unit)?
+        set(value) {
+            scrollListener.horizontalScrollingCallback = value
+        }
+        get() = scrollListener.horizontalScrollingCallback
+
     private val restorePositionController = RestorePositionController()
 
     private val glowHelper by lazyNone { GlowHelper(this) }
