@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tableview_flutter/no_glow_behavior.dart';
+import 'package:tableview_flutter/table_view_def.dart';
 
 import 'header_row.dart';
 import 'table_column_layout.dart';
@@ -11,8 +12,9 @@ import 'table_specs.dart';
 class TableView extends StatefulWidget {
   final HeaderRow headerRow;
   final TableSpecs specs;
+  final ColumnGestureDetectorCreator columnGestureDetectorCreator;
 
-  TableView(this.headerRow, this.specs);
+  TableView(this.headerRow, this.specs, {this.columnGestureDetectorCreator});
 
   @override
   State<StatefulWidget> createState() => _TableViewState();
@@ -50,8 +52,8 @@ class _TableViewState extends State<TableView> {
           scrollDirection: Axis.horizontal,
           itemCount: widget.headerRow.columns.length,
           itemBuilder: (context, index) {
-            return TableColumnLayout(
-                widget.specs, widget.headerRow, index, false);
+            return TableColumnLayout(widget.specs, widget.headerRow, index,
+                false, widget.columnGestureDetectorCreator);
           },
         ),
       );
@@ -84,7 +86,8 @@ class _TableViewState extends State<TableView> {
             scrollDirection: Axis.horizontal,
             itemCount: specs.stickyColumnsCount,
             itemBuilder: (context, index) {
-              return TableColumnLayout(specs, headerRow, index, true);
+              return TableColumnLayout(specs, headerRow, index, true,
+                  widget.columnGestureDetectorCreator);
             },
           ),
         ),
@@ -100,7 +103,11 @@ class _TableViewState extends State<TableView> {
                 max(headerRow.columns.length - specs.stickyColumnsCount, 0),
             itemBuilder: (context, index) {
               return TableColumnLayout(
-                  specs, headerRow, index + specs.stickyColumnsCount, false);
+                  specs,
+                  headerRow,
+                  index + specs.stickyColumnsCount,
+                  false,
+                  widget.columnGestureDetectorCreator);
             },
           ),
         ),
@@ -119,7 +126,8 @@ class _TableViewState extends State<TableView> {
             scrollDirection: Axis.horizontal,
             itemCount: specs.stickyColumnsCount,
             itemBuilder: (context, index) {
-              return TableColumnLayout(specs, headerRow, index, true);
+              return TableColumnLayout(specs, headerRow, index, true,
+                  widget.columnGestureDetectorCreator);
             },
           ),
         ),
@@ -132,7 +140,11 @@ class _TableViewState extends State<TableView> {
               itemCount: headerRow.columns.length - specs.stickyColumnsCount,
               itemBuilder: (context, index) {
                 return TableColumnLayout(
-                    specs, headerRow, index + specs.stickyColumnsCount, false);
+                    specs,
+                    headerRow,
+                    index + specs.stickyColumnsCount,
+                    false,
+                    widget.columnGestureDetectorCreator);
               }),
         ),
       )

@@ -13,4 +13,8 @@ class TableRow {
   TableRow(this.columns) {
     this.rowHeight = height ?? 0;
   }
+
+  TableColumn getColumnAt(int index) {
+    return columns[index];
+  }
 }

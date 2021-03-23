@@ -5,16 +5,20 @@ import 'package:flutter/widgets.dart';
 import 'package:tableview_flutter/column_scroll_listener.dart';
 import 'package:tableview_flutter/header_row.dart';
 import 'package:tableview_flutter/no_glow_behavior.dart';
+import 'package:tableview_flutter/table_column.dart';
 import 'package:tableview_flutter/table_row.dart' as table_row;
 import 'package:tableview_flutter/table_specs.dart';
+import 'package:tableview_flutter/table_view_def.dart';
 
 class TableColumnLayout extends StatefulWidget {
   final TableSpecs specs;
   final HeaderRow headerRow;
   final int columnIndex;
   final bool sticky;
+  final ColumnGestureDetectorCreator columnGestureDetectorCreator;
 
-  TableColumnLayout(this.specs, this.headerRow, this.columnIndex, this.sticky);
+  TableColumnLayout(this.specs, this.headerRow, this.columnIndex, this.sticky,
+      this.columnGestureDetectorCreator);
 
   @override
   State<StatefulWidget> createState() => _TableColumnLayoutState();
@@ -44,16 +48,24 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
     double columnWidth = widget.specs.getViewColumnWidth(widget.columnIndex);
 
     List<Widget> widgets = [];
-    Widget headerColumn = widget.headerRow.columns[widget.columnIndex]
-        .build(context, widget.specs, widget.headerRow, widget.columnIndex);
-    widgets.add(headerColumn);
+    var headerColumn = widget.headerRow.getColumnAt(widget.columnIndex);
+    var headerColumnWidget = headerColumn.build(
+        context, widget.specs, widget.headerRow, widget.columnIndex);
+    var headerColumnWidgetWrapper = widget.columnGestureDetectorCreator
+            ?.call(widget.headerRow, headerColumn, headerColumnWidget) ??
+        headerColumnWidget;
+    widgets.add(headerColumnWidgetWrapper);
     Divider headerDivider = widget.specs.getRowsDivider();
     if (null != headerDivider) widgets.add(headerDivider);
 
     widget.headerRow.stickyRows.forEach((row) {
-      Widget columnWidget = row.columns[widget.columnIndex]
-          .build(context, widget.specs, row, widget.columnIndex);
-      widgets.add(columnWidget);
+      var column = row.getColumnAt(widget.columnIndex);
+      var columnWidget =
+          column.build(context, widget.specs, row, widget.columnIndex);
+      var columnWidgetWrapper = widget.columnGestureDetectorCreator
+              ?.call(row, column, columnWidget) ??
+          columnWidget;
+      widgets.add(columnWidgetWrapper);
       Divider stickyDivider = widget.specs.getRowsDivider();
       if (null != stickyDivider) widgets.add(stickyDivider);
     });
@@ -83,8 +95,12 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
   Widget _buildListView(ScrollController controller) {
     var itemBuilder = (context, index) {
       table_row.TableRow row = widget.headerRow.rows[index];
-      return row.columns[widget.columnIndex]
-          .build(context, widget.specs, row, widget.columnIndex);
+      var column = row.getColumnAt(widget.columnIndex);
+      var columnWidget =
+          column.build(context, widget.specs, row, widget.columnIndex);
+      return widget.columnGestureDetectorCreator
+              ?.call(row, column, columnWidget) ??
+          columnWidget;
     };
     if (widget.specs.enableRowsDivider) {
       return ScrollConfiguration(
