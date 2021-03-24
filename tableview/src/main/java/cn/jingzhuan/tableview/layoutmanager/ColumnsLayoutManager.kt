@@ -115,9 +115,10 @@ class ColumnsLayoutManager : Serializable {
         }
 
         // 普通View的Measure/Layout流程
-        var viewIndex = 0
         val maxSize = min(row.columns.size, specs.columnsCount)
         if (!layoutOnly) {
+            var scrollableViewIndex = -1
+            var stickyViewIndex = -1
             for (index in 0 until maxSize) {
                 val column = row.columns[index]
 
@@ -139,11 +140,17 @@ class ColumnsLayoutManager : Serializable {
                 // 对于非ViewColumn，如DrawableColumn等，不需要走如下流程
                 if (column !is ViewColumn) continue
 
+                if (sticky) ++stickyViewIndex else ++scrollableViewIndex
+
                 // 未初始化过的，需要新建View对象
                 val view =
-                    if (initialized)
-                        rowLayout.getChildAt(viewIndex) ?: column.createView(context)
-                    else column.createView(context)
+                    if (initialized) {
+                        (if (sticky) rowLayout.getChildAt(stickyViewIndex)
+                        else scrollableContainer.getChildAt(scrollableViewIndex))
+                            ?: column.createView(context)
+                    } else {
+                        column.createView(context)
+                    }
 
                 // 未初始化过，需要将新创建的View添加到ViewGroup
                 if (!initialized) {
@@ -155,8 +162,6 @@ class ColumnsLayoutManager : Serializable {
                         }
                     }
                 }
-
-                viewIndex++
 
                 val visibilityChanged = (visible && view.visibility != View.VISIBLE)
                         || (!visible && view.visibility != View.GONE)
@@ -200,6 +205,25 @@ class ColumnsLayoutManager : Serializable {
                     pendingLayout = true
                 }
             }
+
+            if (initialized) {
+                val prePendingRemoveStickyCount = rowLayout.realChildCount() - 2 - stickyViewIndex
+                val prePendingRemoveScrollableCount =
+                    scrollableContainer.childCount - 1 - scrollableViewIndex
+                if (prePendingRemoveStickyCount > 0 || prePendingRemoveScrollableCount > 0) {
+                    val pendingRemoveStickyCount = rowLayout.realChildCount() - 2 - stickyViewIndex
+                    val pendingRemoveScrollableCount =
+                        scrollableContainer.childCount - 1 - scrollableViewIndex
+                    rowLayout.runOnMainThread {
+                        for (i in 0 until pendingRemoveStickyCount) {
+                            rowLayout.removeViewAt(rowLayout.realChildCount() - 2)
+                        }
+                        for (i in 0 until pendingRemoveScrollableCount) {
+                            scrollableContainer.removeViewAt(scrollableContainer.childCount - 1)
+                        }
+                    }
+                }
+            }
         }
 
         if (!initialized) {
@@ -214,7 +238,7 @@ class ColumnsLayoutManager : Serializable {
             if (specs.stretchMode) specs.compareAndSetStretchColumnsWidth()
             row.layout(context, specs)
 
-            viewIndex = 0
+            var viewIndex = 0
             row.columns.forEachIndexed { _, column ->
                 if (column !is ViewColumn) return@forEachIndexed
                 val currentViewIndex = viewIndex
@@ -224,7 +248,7 @@ class ColumnsLayoutManager : Serializable {
                 column.forceLayout = false
             }
 
-            if(!row.forceLayoutLock) row.forceLayout = false
+            if (!row.forceLayoutLock) row.forceLayout = false
             // layoutOnly 模式不调用，因为并没有执行任何实际的 measure，不能确定列宽是否变化
             if (pendingLayout) specs.onColumnsWidthChanged()
         }

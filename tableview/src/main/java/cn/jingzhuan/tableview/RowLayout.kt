@@ -134,6 +134,8 @@ class RowLayout @JvmOverloads constructor(
     override fun getChildCount() =
         max(0, super.getChildCount() - 1 + scrollableContainer.childCount)
 
+    fun realChildCount(): Int = super.getChildCount()
+
     override fun setScrollX(value: Int) {
         scrollableContainer.scrollX = value
     }
