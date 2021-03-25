@@ -13,8 +13,15 @@ class TableView extends StatefulWidget {
   final HeaderRow headerRow;
   final TableSpecs specs;
   final ColumnGestureDetectorCreator? columnGestureDetectorCreator;
+  final VoidCallback? onScrollToEndListener;
+  final VoidCallback? onVerticalScrolledListener;
+  final VoidCallback? onHorizontalScrolledListener;
 
-  TableView(this.headerRow, this.specs, {this.columnGestureDetectorCreator});
+  TableView(this.headerRow, this.specs,
+      {this.columnGestureDetectorCreator,
+      this.onScrollToEndListener,
+      this.onVerticalScrolledListener,
+      this.onHorizontalScrolledListener});
 
   @override
   State<StatefulWidget> createState() => _TableViewState();
@@ -135,7 +142,9 @@ class _TableViewState extends State<TableView> {
       Expanded(
         child: ScrollConfiguration(
           behavior: NoGlowBehavior(),
-          child: ListView.builder(
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (notification) => _onScrollNotified(notification),
+            child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: headerRow.columns.length - specs.stickyColumnsCount,
               itemBuilder: (context, index) {
@@ -145,9 +154,18 @@ class _TableViewState extends State<TableView> {
                     index + specs.stickyColumnsCount,
                     false,
                     widget.columnGestureDetectorCreator);
-              }),
+              },
+            ),
+          ),
         ),
       )
     ];
+  }
+
+  bool _onScrollNotified(ScrollNotification notification) {
+    if (notification is ScrollEndNotification) {
+      widget.onHorizontalScrolledListener?.call();
+    }
+    return true;
   }
 }

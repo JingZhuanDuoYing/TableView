@@ -1,11 +1,12 @@
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:tableview_flutter/column_scroll_listener.dart';
 import 'package:tableview_flutter/header_row.dart';
 import 'package:tableview_flutter/no_glow_behavior.dart';
 import 'package:tableview_flutter/table_row.dart' as table_row;
 import 'package:tableview_flutter/table_specs.dart';
+import 'package:tableview_flutter/table_view.dart';
 import 'package:tableview_flutter/table_view_def.dart';
 
 class TableColumnLayout extends StatefulWidget {
@@ -74,20 +75,70 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
       if (controller.hasClients) controller.jumpTo(widget.specs.offset);
     });
 
-    widgets.add(ColumnScrollListener(
-        widget.specs,
-        controller,
-        Expanded(
-          child: Container(
-            width: columnWidth,
-            child: _buildListView(controller),
-          ),
-        )));
+    widgets.add(NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification is ScrollStartNotification) {
+          _onScrollStart(context, notification, widget.specs, controller);
+        } else if (notification is ScrollEndNotification) {
+          _onScrollEnd(context, notification, widget.specs, controller);
+        } else if (notification is ScrollUpdateNotification) {
+          _onScrolling(context, notification, widget.specs, controller);
+        }
+        return true;
+      },
+      child: Expanded(
+        child: Container(
+          width: columnWidth,
+          child: _buildListView(controller),
+        ),
+      ),
+    ));
 
     return Container(
       width: widget.specs.viewColumnsWidth[widget.columnIndex],
       child: Column(children: widgets),
     );
+  }
+
+  void _onScrollStart(
+      BuildContext context,
+      ScrollStartNotification notification,
+      TableSpecs specs,
+      ScrollController controller) {
+    if (null == specs.scrollingController) {
+      specs.scrollingController = controller;
+    } else if (notification.dragDetails?.kind == PointerDeviceKind.touch) {
+      if (specs.scrollingController?.hasClients == true) {
+        specs.scrollingController?.jumpTo(specs.offset);
+      }
+      specs.scrollingController = controller;
+    }
+  }
+
+  void _onScrolling(BuildContext context, ScrollUpdateNotification notification,
+      TableSpecs specs, ScrollController controller) {
+    if (null != specs.scrollingController) {
+      specs.onScrolled();
+      if (specs.scrollingController!.hasClients &&
+          specs.scrollingController!.position.atEdge &&
+          specs.scrollingController!.position.pixels > 0) {
+        context
+            .findAncestorWidgetOfExactType<TableView>()
+            ?.onScrollToEndListener
+            ?.call();
+      }
+    }
+  }
+
+  void _onScrollEnd(BuildContext context, ScrollEndNotification notification,
+      TableSpecs specs, ScrollController controller) {
+    if (controller == specs.scrollingController) {
+      specs.scrollingController = null;
+      context
+          .findAncestorWidgetOfExactType<TableView>()
+          ?.onVerticalScrolledListener
+          ?.call();
+    }
   }
 
   Widget _buildListView(ScrollController controller) {

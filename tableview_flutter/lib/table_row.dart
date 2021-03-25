@@ -17,4 +17,7 @@ class TableRow {
   TableColumn getColumnAt(int index) {
     return columns[index];
   }
+
+  double getRowHeight() => rowHeight;
+
 }
