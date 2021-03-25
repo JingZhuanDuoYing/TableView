@@ -12,20 +12,20 @@ import 'package:tableview_flutter/text_column.dart';
 import 'header_row.dart';
 
 class TableSpecs {
-  HeaderRow headerRow;
+  late HeaderRow headerRow;
 
   @internal
-  List<double> columnsWidth;
+  late List<double> columnsWidth;
   @internal
-  List<double> viewColumnsWidth;
+  late List<double> viewColumnsWidth;
   @internal
-  List<ScrollController> controllers;
+  late List<ScrollController?> controllers;
   @internal
-  ScrollController scrollingController;
+  ScrollController? scrollingController;
   @internal
-  List<VoidCallback> viewColumnsWidthListener;
+  late List<VoidCallback?> viewColumnsWidthListener;
   @internal
-  VoidCallback viewRowHeightListener;
+  VoidCallback? viewRowHeightListener;
 
   int stickyColumnsCount = 0;
   double defaultViewColumnsWidth = 90;
@@ -33,7 +33,7 @@ class TableSpecs {
   bool stretchMode = false;
   double _averageStretchColumnWidth = 0;
 
-  Color dividerColor;
+  Color? dividerColor;
   double dividerThickness = 1;
 
   bool enableRowsDivider = false;
@@ -65,14 +65,13 @@ class TableSpecs {
       columnsWidth[index] = 0;
       viewColumnsWidth[index] = 0;
     } else if (null != column.width && null != column.height) {
-      column.columnWidth = column.width;
-      column.columnHeight = column.height;
+      column.columnWidth = column.width!;
+      column.columnHeight = column.height!;
     } else if (column is TextColumn) {
-      if (column.text?.isNotEmpty != true) {
+      if (null == column.text || column.text!.isEmpty) {
         column.setMinSize();
       } else {
-        painter.text =
-            TextSpan(text: column.text, style: column.textStyle ?? TextStyle());
+        painter.text = TextSpan(text: column.text, style: column.textStyle);
         painter.layout();
         column.setTextSize(painter.width, painter.height);
       }
@@ -102,11 +101,11 @@ class TableSpecs {
   }
 
   bool isColumnVisible(int index) {
-    return headerRow?.columns?.elementAt(index)?.visible == true;
+    return headerRow.columns.elementAt(index).visible == true;
   }
 
   ScrollController getScrollController(int columnIndex) {
-    ScrollController controller = controllers[columnIndex];
+    ScrollController? controller = controllers[columnIndex];
     if (null != controller) return controller;
     controller = ScrollController();
     controllers[columnIndex] = controller;
@@ -119,17 +118,17 @@ class TableSpecs {
 
   void onScrolled() {
     var controller = scrollingController;
-    if (controller?.hasClients != true) return;
+    if (null == controller || controller.hasClients != true) return;
     offset = controller.offset;
     controllers.forEach((element) {
       if (element == controller) return;
-      if (element?.hasClients != true) return;
+      if (null == element || element.hasClients != true) return;
       if (element.offset == offset) return;
       element.jumpTo(offset);
     });
   }
 
-  Divider getRowsDivider() {
+  Divider? getRowsDivider() {
     if (!enableRowsDivider) return null;
     return Divider(
       height: dividerThickness,
@@ -138,7 +137,7 @@ class TableSpecs {
     );
   }
 
-  VerticalDivider getVerticalDivider() {
+  VerticalDivider? getVerticalDivider() {
     if (!enableColumnsDivider) return null;
     return VerticalDivider(
       width: dividerThickness,

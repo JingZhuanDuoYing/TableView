@@ -5,8 +5,8 @@ import 'package:tableview_flutter/table_row.dart' as table_row;
 import 'package:tableview_flutter/table_specs.dart';
 
 abstract class TableColumn {
-  double width;
-  double height;
+  double? width;
+  double? height;
   double minWidth = 0;
   double minHeight = 0;
   double maxWidth = double.infinity;
@@ -22,9 +22,9 @@ abstract class TableColumn {
   double paddingRight = 0;
   double paddingBottom = 0;
 
-  AlignmentGeometry alignment;
+  AlignmentGeometry? alignment;
 
-  Color backgroundColor;
+  Color? backgroundColor;
 
   bool visible = true;
 
@@ -34,23 +34,23 @@ abstract class TableColumn {
   double columnHeight = 0;
 
   TableColumn(
-      {double width,
-      double height,
-      double minWidth,
-      double minHeight,
-      double maxWidth,
-      double maxHeight,
-      double leftMargin,
-      double topMargin,
-      double rightMargin,
-      double bottomMargin,
-      double paddingLeft,
-      double paddingTop,
-      double paddingRight,
-      double paddingBottom,
-      AlignmentGeometry alignment,
-      Color backgroundColor,
-      bool visible}) {
+      {double? width,
+      double? height,
+      double? minWidth,
+      double? minHeight,
+      double? maxWidth,
+      double? maxHeight,
+      double? leftMargin,
+      double? topMargin,
+      double? rightMargin,
+      double? bottomMargin,
+      double? paddingLeft,
+      double? paddingTop,
+      double? paddingRight,
+      double? paddingBottom,
+      AlignmentGeometry? alignment,
+      Color? backgroundColor,
+      bool? visible}) {
     this.width = width ?? this.width;
     this.height = height ?? this.height;
     this.minWidth = minWidth ?? this.minWidth;

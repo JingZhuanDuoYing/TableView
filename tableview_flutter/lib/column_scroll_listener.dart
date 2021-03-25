@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:tableview_flutter/table_specs.dart';
 
 class ColumnScrollListener extends NotificationListener<ScrollNotification> {
-  final ScrollController controller;
+  final ScrollController? controller;
   final TableSpecs specs;
 
   ColumnScrollListener(this.specs, this.controller, Widget child)
@@ -12,7 +12,7 @@ class ColumnScrollListener extends NotificationListener<ScrollNotification> {
               if (notification is ScrollStartNotification) {
                 if (null == specs.scrollingController) {
                   specs.scrollingController = controller;
-                } else if (notification?.dragDetails?.kind ==
+                } else if (notification.dragDetails?.kind ==
                     PointerDeviceKind.touch) {
                   if (specs.scrollingController?.hasClients == true) {
                     specs.scrollingController?.jumpTo(specs.offset);

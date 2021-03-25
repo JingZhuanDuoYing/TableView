@@ -1,11 +1,9 @@
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tableview_flutter/column_scroll_listener.dart';
 import 'package:tableview_flutter/header_row.dart';
 import 'package:tableview_flutter/no_glow_behavior.dart';
-import 'package:tableview_flutter/table_column.dart';
 import 'package:tableview_flutter/table_row.dart' as table_row;
 import 'package:tableview_flutter/table_specs.dart';
 import 'package:tableview_flutter/table_view_def.dart';
@@ -15,7 +13,7 @@ class TableColumnLayout extends StatefulWidget {
   final HeaderRow headerRow;
   final int columnIndex;
   final bool sticky;
-  final ColumnGestureDetectorCreator columnGestureDetectorCreator;
+  final ColumnGestureDetectorCreator? columnGestureDetectorCreator;
 
   TableColumnLayout(this.specs, this.headerRow, this.columnIndex, this.sticky,
       this.columnGestureDetectorCreator);
@@ -55,7 +53,7 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
             ?.call(widget.headerRow, headerColumn, headerColumnWidget) ??
         headerColumnWidget;
     widgets.add(headerColumnWidgetWrapper);
-    Divider headerDivider = widget.specs.getRowsDivider();
+    Divider? headerDivider = widget.specs.getRowsDivider();
     if (null != headerDivider) widgets.add(headerDivider);
 
     widget.headerRow.stickyRows.forEach((row) {
@@ -66,13 +64,13 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
               ?.call(row, column, columnWidget) ??
           columnWidget;
       widgets.add(columnWidgetWrapper);
-      Divider stickyDivider = widget.specs.getRowsDivider();
+      Divider? stickyDivider = widget.specs.getRowsDivider();
       if (null != stickyDivider) widgets.add(stickyDivider);
     });
 
     ScrollController controller =
         widget.specs.getScrollController(widget.columnIndex);
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
       if (controller.hasClients) controller.jumpTo(widget.specs.offset);
     });
 
@@ -107,7 +105,7 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
         behavior: NoGlowBehavior(),
         child: ListView.separated(
           controller: controller,
-          separatorBuilder: (context, index) => widget.specs.getRowsDivider(),
+          separatorBuilder: (context, index) => widget.specs.getRowsDivider()!,
           itemCount: widget.headerRow.rows.length,
           itemBuilder: itemBuilder,
         ),

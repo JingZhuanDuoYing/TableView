@@ -8,27 +8,27 @@ import 'package:tableview_flutter/table_specs.dart';
 
 class TextColumn extends TableColumn {
   TextStyle textStyle = TextStyle();
-  String text;
+  String? text;
 
-  TextColumn(this.text,
-      {this.textStyle,
-      double width,
-      double height,
-      double minWidth,
-      double minHeight,
-      double maxWidth,
-      double maxHeight,
-      double leftMargin,
-      double topMargin,
-      double rightMargin,
-      double bottomMargin,
-      double paddingLeft,
-      double paddingTop,
-      double paddingRight,
-      double paddingBottom,
-      AlignmentGeometry alignment,
-      Color backgroundColor,
-      bool visible})
+  TextColumn(String? text,
+      {TextStyle? textStyle,
+      double? width,
+      double? height,
+      double? minWidth,
+      double? minHeight,
+      double? maxWidth,
+      double? maxHeight,
+      double? leftMargin,
+      double? topMargin,
+      double? rightMargin,
+      double? bottomMargin,
+      double? paddingLeft,
+      double? paddingTop,
+      double? paddingRight,
+      double? paddingBottom,
+      AlignmentGeometry? alignment,
+      Color? backgroundColor,
+      bool? visible})
       : super(
             width: width,
             height: height,
@@ -46,17 +46,20 @@ class TextColumn extends TableColumn {
             paddingBottom: paddingBottom,
             alignment: alignment,
             backgroundColor: backgroundColor,
-            visible: visible);
+            visible: visible) {
+    this.textStyle = textStyle ?? this.textStyle;
+    this.text = text;
+  }
 
   void setTextSize(double textWidth, double textHeight) {
     if (null != width) {
-      columnWidth = width;
+      columnWidth = width!;
     } else {
       double expectWidth = addEssentialSpace(textWidth, true);
       columnWidth = expectWidth.clamp(minWidth, maxWidth);
     }
     if (null != height) {
-      columnHeight = height;
+      columnHeight = height!;
     } else {
       double expectHeight = addEssentialSpace(textHeight, false);
       columnHeight = expectHeight.clamp(minHeight, maxHeight);
@@ -80,7 +83,7 @@ class TextColumn extends TableColumn {
       width: containerWidth,
       height: containerHeight,
       child: Text(
-        text,
+        text ?? '',
         style: textStyle,
       ),
     );

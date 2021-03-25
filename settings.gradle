@@ -1,10 +1,10 @@
 rootProject.name='TableView'
 include ':app'
 include ':tableview'
-//setBinding(new Binding([gradle: this]))
-//evaluate(new File(
-//  settingsDir,
-//  'tableview_flutter/.android/include_flutter.groovy'
-//))
-//
-//include ':tableview_flutter'
+setBinding(new Binding([gradle: this]))
+evaluate(new File(
+  settingsDir,
+  'tableview_flutter/.android/include_flutter.groovy'
+))
+
+include ':tableview_flutter'

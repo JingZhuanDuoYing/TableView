@@ -12,7 +12,7 @@ import 'table_specs.dart';
 class TableView extends StatefulWidget {
   final HeaderRow headerRow;
   final TableSpecs specs;
-  final ColumnGestureDetectorCreator columnGestureDetectorCreator;
+  final ColumnGestureDetectorCreator? columnGestureDetectorCreator;
 
   TableView(this.headerRow, this.specs, {this.columnGestureDetectorCreator});
 
@@ -82,7 +82,7 @@ class _TableViewState extends State<TableView> {
         child: ScrollConfiguration(
           behavior: NoGlowBehavior(),
           child: ListView.separated(
-            separatorBuilder: (context, index) => specs.getVerticalDivider(),
+            separatorBuilder: (context, index) => specs.getVerticalDivider()!,
             scrollDirection: Axis.horizontal,
             itemCount: specs.stickyColumnsCount,
             itemBuilder: (context, index) {
@@ -92,12 +92,12 @@ class _TableViewState extends State<TableView> {
           ),
         ),
       ),
-      specs.getVerticalDivider(),
+      specs.getVerticalDivider()!,
       Expanded(
         child: ScrollConfiguration(
           behavior: NoGlowBehavior(),
           child: ListView.separated(
-            separatorBuilder: (context, index) => specs.getVerticalDivider(),
+            separatorBuilder: (context, index) => specs.getVerticalDivider()!,
             scrollDirection: Axis.horizontal,
             itemCount:
                 max(headerRow.columns.length - specs.stickyColumnsCount, 0),
