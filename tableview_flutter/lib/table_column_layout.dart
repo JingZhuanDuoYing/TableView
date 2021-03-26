@@ -15,9 +15,10 @@ class TableColumnLayout extends StatefulWidget {
   final int columnIndex;
   final bool sticky;
   final ColumnGestureDetectorCreator? columnGestureDetectorCreator;
+  final OnScrollNotificationListener scrollNotificationListener;
 
   TableColumnLayout(this.specs, this.headerRow, this.columnIndex, this.sticky,
-      this.columnGestureDetectorCreator);
+      this.columnGestureDetectorCreator, this.scrollNotificationListener);
 
   @override
   State<StatefulWidget> createState() => _TableColumnLayoutState();
@@ -107,11 +108,13 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
       ScrollController controller) {
     if (null == specs.scrollingController) {
       specs.scrollingController = controller;
+      widget.scrollNotificationListener.call(notification);
     } else if (notification.dragDetails?.kind == PointerDeviceKind.touch) {
       if (specs.scrollingController?.hasClients == true) {
         specs.scrollingController?.jumpTo(specs.offset);
       }
       specs.scrollingController = controller;
+      widget.scrollNotificationListener.call(notification);
     }
   }
 
@@ -119,14 +122,15 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
       TableSpecs specs, ScrollController controller) {
     if (null != specs.scrollingController) {
       specs.onScrolled();
-      if (specs.scrollingController!.hasClients &&
-          specs.scrollingController!.position.atEdge &&
-          specs.scrollingController!.position.pixels > 0) {
-        context
-            .findAncestorWidgetOfExactType<TableView>()
-            ?.onScrollToEndListener
-            ?.call();
-      }
+      widget.scrollNotificationListener.call(notification);
+      // if (specs.scrollingController!.hasClients &&
+      //     specs.scrollingController!.position.atEdge &&
+      //     specs.scrollingController!.position.pixels > 0) {
+      //   context
+      //       .findAncestorWidgetOfExactType<TableView>()
+      //       ?.onScrollToEndListener
+      //       ?.call();
+      // }
     }
   }
 
@@ -134,10 +138,7 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
       TableSpecs specs, ScrollController controller) {
     if (controller == specs.scrollingController) {
       specs.scrollingController = null;
-      context
-          .findAncestorWidgetOfExactType<TableView>()
-          ?.onVerticalScrolledListener
-          ?.call();
+      widget.scrollNotificationListener.call(notification);
     }
   }
 

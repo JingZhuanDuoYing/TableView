@@ -28,6 +28,9 @@ class TableView extends StatefulWidget {
 }
 
 class _TableViewState extends State<TableView> {
+  bool _scrollingHorizontally = false;
+  bool _scrollingVertically = false;
+
   @override
   void initState() {
     super.initState();
@@ -59,8 +62,13 @@ class _TableViewState extends State<TableView> {
           scrollDirection: Axis.horizontal,
           itemCount: widget.headerRow.columns.length,
           itemBuilder: (context, index) {
-            return TableColumnLayout(widget.specs, widget.headerRow, index,
-                false, widget.columnGestureDetectorCreator);
+            return TableColumnLayout(
+                widget.specs,
+                widget.headerRow,
+                index,
+                false,
+                widget.columnGestureDetectorCreator,
+                _onVerticalScrollCallback);
           },
         ),
       );
@@ -93,8 +101,13 @@ class _TableViewState extends State<TableView> {
             scrollDirection: Axis.horizontal,
             itemCount: specs.stickyColumnsCount,
             itemBuilder: (context, index) {
-              return TableColumnLayout(specs, headerRow, index, true,
-                  widget.columnGestureDetectorCreator);
+              return TableColumnLayout(
+                  specs,
+                  headerRow,
+                  index,
+                  true,
+                  widget.columnGestureDetectorCreator,
+                  _onVerticalScrollCallback);
             },
           ),
         ),
@@ -114,7 +127,8 @@ class _TableViewState extends State<TableView> {
                   headerRow,
                   index + specs.stickyColumnsCount,
                   false,
-                  widget.columnGestureDetectorCreator);
+                  widget.columnGestureDetectorCreator,
+                  _onVerticalScrollCallback);
             },
           ),
         ),
@@ -133,8 +147,13 @@ class _TableViewState extends State<TableView> {
             scrollDirection: Axis.horizontal,
             itemCount: specs.stickyColumnsCount,
             itemBuilder: (context, index) {
-              return TableColumnLayout(specs, headerRow, index, true,
-                  widget.columnGestureDetectorCreator);
+              return TableColumnLayout(
+                  specs,
+                  headerRow,
+                  index,
+                  true,
+                  widget.columnGestureDetectorCreator,
+                  _onVerticalScrollCallback);
             },
           ),
         ),
@@ -143,7 +162,8 @@ class _TableViewState extends State<TableView> {
         child: ScrollConfiguration(
           behavior: NoGlowBehavior(),
           child: NotificationListener<ScrollNotification>(
-            onNotification: (notification) => _onScrollNotified(notification),
+            onNotification: (notification) =>
+                _onHorizontalScrollCallback(notification),
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: headerRow.columns.length - specs.stickyColumnsCount,
@@ -153,7 +173,8 @@ class _TableViewState extends State<TableView> {
                     headerRow,
                     index + specs.stickyColumnsCount,
                     false,
-                    widget.columnGestureDetectorCreator);
+                    widget.columnGestureDetectorCreator,
+                    _onVerticalScrollCallback);
               },
             ),
           ),
@@ -162,10 +183,34 @@ class _TableViewState extends State<TableView> {
     ];
   }
 
-  bool _onScrollNotified(ScrollNotification notification) {
-    if (notification is ScrollEndNotification) {
-      widget.onHorizontalScrolledListener?.call();
+  bool _onHorizontalScrollCallback(ScrollNotification notification) {
+    if (notification is ScrollStartNotification) {
+      if (_scrollingVertically) return true;
+      _scrollingHorizontally = true;
+      _scrollingVertically = false;
+    } else if (notification is ScrollEndNotification) {
+      if (_scrollingHorizontally) widget.onHorizontalScrolledListener?.call();
+      _scrollingHorizontally = false;
     }
     return true;
+  }
+
+  void _onVerticalScrollCallback(ScrollNotification notification) {
+    if (notification is ScrollStartNotification) {
+      if (_scrollingHorizontally) return;
+      _scrollingHorizontally = false;
+      _scrollingVertically = true;
+    } else if (notification is ScrollUpdateNotification) {
+      var specs = widget.specs;
+      if (_scrollingVertically &&
+          specs.scrollingController!.hasClients &&
+          specs.scrollingController!.position.atEdge &&
+          specs.scrollingController!.position.pixels > 0) {
+        widget.onScrollToEndListener?.call();
+      }
+    } else if (notification is ScrollEndNotification) {
+      if (_scrollingVertically) widget.onVerticalScrolledListener?.call();
+      _scrollingVertically = false;
+    }
   }
 }
