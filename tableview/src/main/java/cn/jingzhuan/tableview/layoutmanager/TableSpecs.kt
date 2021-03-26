@@ -108,6 +108,8 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         this.stickyColumnsCount = stickyColumnsCount
         // 列数变化，重置 stretchMode 列宽
         this.averageStretchColumnWidth = 0
+        visibleColumnsWidth.clear()
+        realColumnsWidth.clear()
         onColumnsWidthChanged()
         resetScrollableFirstVisibleColumn()
     }

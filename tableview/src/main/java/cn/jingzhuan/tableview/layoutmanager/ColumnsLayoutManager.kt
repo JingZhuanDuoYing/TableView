@@ -146,20 +146,34 @@ class ColumnsLayoutManager : Serializable {
                 val view =
                     if (initialized) {
                         (if (sticky) rowLayout.getChildAt(stickyViewIndex)
+                            ?: column.createView(context)
                         else scrollableContainer.getChildAt(scrollableViewIndex))
                             ?: column.createView(context)
                     } else {
                         column.createView(context)
                     }
 
-                // 未初始化过，需要将新创建的View添加到ViewGroup
                 if (!initialized) {
+                    // 未初始化过，需要将新创建的View添加到ViewGroup
                     rowLayout.runOnMainThread {
                         if (sticky) {
                             rowLayout.addView(view)
                         } else {
                             scrollableContainer.addView(view)
                         }
+                    }
+                } else {
+                    val addView = (sticky && rowLayout.indexOfChild(view) < 0)
+                            || (!sticky && scrollableContainer.indexOfChild(view) < 0)
+                    if (addView) {
+                        rowLayout.runOnMainThread {
+                            if (sticky) rowLayout.addView(
+                                view,
+                                (rowLayout.childCount - 2).coerceAtLeast(0)
+                            )
+                            else scrollableContainer.addView(view)
+                        }
+                        pendingLayout = true
                     }
                 }
 
@@ -211,10 +225,11 @@ class ColumnsLayoutManager : Serializable {
                 val prePendingRemoveScrollableCount =
                     scrollableContainer.childCount - 1 - scrollableViewIndex
                 if (prePendingRemoveStickyCount > 0 || prePendingRemoveScrollableCount > 0) {
-                    val pendingRemoveStickyCount = rowLayout.realChildCount() - 2 - stickyViewIndex
-                    val pendingRemoveScrollableCount =
-                        scrollableContainer.childCount - 1 - scrollableViewIndex
                     rowLayout.runOnMainThread {
+                        val pendingRemoveStickyCount =
+                            rowLayout.realChildCount() - 2 - stickyViewIndex
+                        val pendingRemoveScrollableCount =
+                            scrollableContainer.childCount - 1 - scrollableViewIndex
                         for (i in 0 until pendingRemoveStickyCount) {
                             rowLayout.removeViewAt(rowLayout.realChildCount() - 2)
                         }
