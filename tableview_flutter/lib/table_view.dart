@@ -207,6 +207,7 @@ class _TableViewState extends State<TableView> {
           specs.scrollingController!.position.atEdge &&
           specs.scrollingController!.position.pixels > 0) {
         widget.onScrollToEndListener?.call();
+        _scrollingVertically = false;
       }
     } else if (notification is ScrollEndNotification) {
       if (_scrollingVertically) widget.onVerticalScrolledListener?.call();

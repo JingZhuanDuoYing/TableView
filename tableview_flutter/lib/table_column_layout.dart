@@ -123,14 +123,6 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
     if (null != specs.scrollingController) {
       specs.onScrolled();
       widget.scrollNotificationListener.call(notification);
-      // if (specs.scrollingController!.hasClients &&
-      //     specs.scrollingController!.position.atEdge &&
-      //     specs.scrollingController!.position.pixels > 0) {
-      //   context
-      //       .findAncestorWidgetOfExactType<TableView>()
-      //       ?.onScrollToEndListener
-      //       ?.call();
-      // }
     }
   }
 
@@ -144,6 +136,9 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
 
   Widget _buildListView(ScrollController controller) {
     var itemBuilder = (context, index) {
+      if(widget.columnIndex == 8) {
+        print('12345 build $index, offset: ${controller.offset}');
+      }
       table_row.TableRow row = widget.headerRow.rows[index];
       var column = row.getColumnAt(widget.columnIndex);
       var columnWidget =
