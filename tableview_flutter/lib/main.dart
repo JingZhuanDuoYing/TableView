@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -14,8 +13,27 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final ScrollController controller =
-      ScrollController(initialScrollOffset: 1050);
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: Scaffold(
+        body: Container(
+          color: Colors.cyan,
+          child: Container(
+            height: 100,
+            child: ColumnListView(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ColumnListView extends RecyclerView {
   final List<Color> colors = [
     Colors.black,
     Colors.black26,
@@ -33,47 +51,29 @@ class _MyAppState extends State<MyApp> {
   final Random random = Random();
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: Scaffold(
-        body: Container(
-          color: Colors.cyan,
-          child: Container(
-            height: 100,
-            child: Scrollable(
-              controller: controller,
-              axisDirection: AxisDirection.right,
-              viewportBuilder: (context, offset) {
-                return Viewport(
-                  axisDirection: AxisDirection.right,
-                  offset: offset,
-                  slivers: [
-                    RecyclerView(
-                      SliverChildBuilderDelegate(
-                        (context, index) {
-                          print('12345 1 build $index');
-                          return Container(
-                            width: 100,
-                            height: 100,
-                            color: colors[random.nextInt(colors.length)],
-                            alignment: Alignment.center,
-                            child: Text('$index'),
-                          );
-                        },
-                        childCount: 100,
-                      ),
-                    )
-                  ],
-                );
-              },
-            ),
-          ),
-        ),
-      ),
+  Widget? buildChild(BuildContext context, int index) {
+    return Container(
+      width: 100,
+      height: 100,
+      color: colors[random.nextInt(colors.length)],
+      alignment: Alignment.center,
+      child: Text('$index'),
     );
   }
+
+  @override
+  AxisDirection getAxisDirection() => AxisDirection.right;
+
+  @override
+  int getChildCount() => 100;
+
+  @override
+  ScrollController? createScrollController() =>
+      ScrollController(initialScrollOffset: 1024);
+
+  @override
+  double getChildMainAxisLayoutOffsetAtIndex(int index) => 100.0 * index;
+
+  @override
+  double getChildMainAxisSizeAtIndex(int index) => 100;
 }

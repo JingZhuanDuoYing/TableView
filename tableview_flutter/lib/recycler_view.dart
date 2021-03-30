@@ -1,34 +1,77 @@
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-class RecyclerView extends SliverMultiBoxAdaptorWidget {
-  RecyclerView(SliverChildDelegate delegate)
+typedef ChildMainAxisSizeProvider = double Function(int index);
+typedef ChildMainAxisLayoutOffsetProvider = double Function(int index);
+
+abstract class RecyclerView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scrollable(
+      axisDirection: getAxisDirection(),
+      controller: createScrollController(),
+      viewportBuilder: (context, offset) => Viewport(
+        axisDirection: getAxisDirection(),
+        offset: offset,
+        slivers: [
+          _RecyclerList(
+            SliverChildBuilderDelegate(
+              (context, index) => buildChild(context, index),
+              childCount: getChildCount(),
+            ),
+            (index) => getChildMainAxisSizeAtIndex(index),
+            (index) => getChildMainAxisLayoutOffsetAtIndex(index),
+          )
+        ],
+      ),
+    );
+  }
+
+  AxisDirection getAxisDirection() => AxisDirection.down;
+
+  ScrollController? createScrollController();
+
+  int getChildCount() => 0;
+
+  Widget? buildChild(BuildContext context, int index);
+
+  double getChildMainAxisSizeAtIndex(int index);
+
+  double getChildMainAxisLayoutOffsetAtIndex(int index);
+}
+
+class _RecyclerList extends SliverMultiBoxAdaptorWidget {
+  final ChildMainAxisSizeProvider _sizeProvider;
+  final ChildMainAxisLayoutOffsetProvider _offsetProvider;
+
+  _RecyclerList(
+      SliverChildDelegate delegate, this._sizeProvider, this._offsetProvider)
       : assert(delegate.estimatedChildCount != null),
         super(delegate: delegate);
 
   @override
   RenderSliverMultiBoxAdaptor createRenderObject(BuildContext context) {
     var element = context as SliverMultiBoxAdaptorElement;
-    return _RecyclerViewAdapter(element);
+    return _RecyclerViewAdapter(element, _sizeProvider, _offsetProvider);
   }
 }
 
-class _RecyclerViewAdapter
-    extends RenderSliverFixedExtentBoxAdaptor {
-  _RecyclerViewAdapter(
-      RenderSliverBoxChildManager childManager)
+class _RecyclerViewAdapter extends RenderSliverFixedExtentBoxAdaptor {
+  final ChildMainAxisSizeProvider _sizeProvider;
+  final ChildMainAxisLayoutOffsetProvider _offsetProvider;
+
+  _RecyclerViewAdapter(RenderSliverBoxChildManager childManager,
+      this._sizeProvider, this._offsetProvider)
       : super(childManager: childManager);
 
   double _getMainAxisSizeByIndex(int index) {
-    return 100;
+    return _sizeProvider(index);
   }
 
   double _getMainAxisScrollOffsetByIndex(int index) {
-    return index * 100;
+    return _offsetProvider(index);
   }
 
   int _getChildIndexByMainAxisScrollOffset(double scrollOffset) {
