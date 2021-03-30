@@ -59,7 +59,7 @@ class _TableViewState extends State<TableView> {
     var headerRowHeight = widget.headerRow.rowHeight;
     var stickyRowsHeight = .0;
     for (var i = 0; i < widget.headerRow.stickyRows.length; i++) {
-      stickyRowsHeight = widget.headerRow.stickyRows[i].rowHeight;
+      stickyRowsHeight += widget.headerRow.stickyRows[i].rowHeight;
     }
     return Stack(
       children: [
@@ -89,6 +89,7 @@ class _TableViewState extends State<TableView> {
             child: ListView.builder(
               itemCount: widget.headerRow.rows.length,
               itemBuilder: (context, index) {
+                print('12345 build $index');
                 return TableRowWidget(
                   widget.headerRow.rows[index],
                   widget.specs,

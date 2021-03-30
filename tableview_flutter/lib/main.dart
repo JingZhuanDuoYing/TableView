@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tableview_flutter/recycler_view.dart';
+import 'package:tableview_flutter/table_view_test_widget.dart';
 
 void main() => runApp(MyApp());
 
@@ -23,10 +24,11 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         body: Container(
           color: Colors.cyan,
-          child: Container(
-            height: 100,
-            child: ColumnListView(),
-          ),
+          // child: Container(
+          //   height: 100,
+          //   child: ColumnListView(),
+          // ),
+          child: TableViewTestWidget(),
         ),
       ),
     );
