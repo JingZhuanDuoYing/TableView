@@ -12,26 +12,30 @@ abstract class RecyclerView extends StatelessWidget {
     return Scrollable(
       axisDirection: getAxisDirection(),
       controller: createScrollController(),
-      viewportBuilder: (context, offset) => Viewport(
-        axisDirection: getAxisDirection(),
-        offset: offset,
-        slivers: [
-          _RecyclerList(
-            SliverChildBuilderDelegate(
-              (context, index) => buildChild(context, index),
-              childCount: getChildCount(),
-            ),
-            (index) => getChildMainAxisSizeAtIndex(index),
-            (index) => getChildMainAxisLayoutOffsetAtIndex(index),
-          )
-        ],
-      ),
+      viewportBuilder: (context, offset) => buildViewport(context, offset),
     );
   }
 
-  AxisDirection getAxisDirection() => AxisDirection.down;
+  Widget buildViewport(BuildContext context, ViewportOffset offset) {
+    return Viewport(
+      axisDirection: getAxisDirection(),
+      offset: offset,
+      slivers: [
+        _RecyclerList(
+          SliverChildBuilderDelegate(
+            (context, index) => buildChild(context, index),
+            childCount: getChildCount(),
+          ),
+          (index) => getChildMainAxisSizeAtIndex(index),
+          (index) => getChildMainAxisLayoutOffsetAtIndex(index),
+        )
+      ],
+    );
+  }
 
   ScrollController? createScrollController();
+
+  AxisDirection getAxisDirection() => AxisDirection.down;
 
   int getChildCount() => 0;
 

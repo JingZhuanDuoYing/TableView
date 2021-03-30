@@ -15,8 +15,6 @@ class TableSpecs {
   late HeaderRow headerRow;
 
   @internal
-  late List<double> columnsWidth;
-  @internal
   late List<double> viewColumnsWidth;
   @internal
   late List<ScrollController?> controllers;
@@ -48,8 +46,6 @@ class TableSpecs {
     headerRow = row;
     this.stickyColumnsCount = stickyColumnsCount;
 
-    columnsWidth =
-        List.filled(headerRow.columns.length, defaultViewColumnsWidth);
     viewColumnsWidth =
         List.filled(headerRow.columns.length, defaultViewColumnsWidth);
     controllers = List.filled(headerRow.columns.length, null);
@@ -62,7 +58,6 @@ class TableSpecs {
     if (!visible) {
       column.columnWidth = 0;
       column.columnHeight = 0;
-      columnsWidth[index] = 0;
       viewColumnsWidth[index] = 0;
     } else if (null != column.width && null != column.height) {
       column.columnWidth = column.width!;
@@ -92,7 +87,6 @@ class TableSpecs {
       }
     }
 
-    columnsWidth[index] = max(column.columnWidth, columnsWidth[index]);
     double viewColumnWidth = max(column.columnWidth, viewColumnsWidth[index]);
     if (viewColumnWidth != viewColumnsWidth[index]) {
       viewColumnsWidth[index] = viewColumnWidth;

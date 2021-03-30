@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tableview_flutter/no_glow_behavior.dart';
+import 'package:tableview_flutter/table_row_widget.dart';
 import 'package:tableview_flutter/table_view_def.dart';
 
 import 'header_row.dart';
@@ -55,39 +56,87 @@ class _TableViewState extends State<TableView> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.specs.stickyColumnsCount <= 0) {
-      return ScrollConfiguration(
-        behavior: NoGlowBehavior(),
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: widget.headerRow.columns.length,
-          itemBuilder: (context, index) {
-            return TableColumnLayout(
-                widget.specs,
-                widget.headerRow,
-                index,
-                false,
-                widget.columnGestureDetectorCreator,
-                _onVerticalScrollCallback);
-          },
-        ),
-      );
+    var headerRowHeight = widget.headerRow.rowHeight;
+    var stickyRowsHeight = .0;
+    for (var i = 0; i < widget.headerRow.stickyRows.length; i++) {
+      stickyRowsHeight = widget.headerRow.stickyRows[i].rowHeight;
     }
-
-    double stickyListViewWidth = 0;
-    widget.specs.viewColumnsWidth
-        .take(widget.specs.stickyColumnsCount)
-        .forEach((element) {
-      stickyListViewWidth += element;
-    });
-    return Row(
-      children: widget.specs.enableColumnsDivider
-          ? _buildWithDivider(
-              stickyListViewWidth, widget.specs, widget.headerRow)
-          : _buildWithoutDivider(
-              stickyListViewWidth, widget.specs, widget.headerRow),
+    return Stack(
+      children: [
+        ScrollConfiguration(
+          behavior: NoGlowBehavior(),
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: widget.headerRow.stickyRows.length + 1,
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return TableRowWidget(
+                    widget.headerRow, widget.specs, ScrollController());
+              } else {
+                return TableRowWidget(
+                  widget.headerRow.stickyRows[index - 1],
+                  widget.specs,
+                  ScrollController(),
+                );
+              }
+            },
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(top: headerRowHeight + stickyRowsHeight),
+          child: ScrollConfiguration(
+            behavior: NoGlowBehavior(),
+            child: ListView.builder(
+              itemCount: widget.headerRow.rows.length,
+              itemBuilder: (context, index) {
+                return TableRowWidget(
+                  widget.headerRow.rows[index],
+                  widget.specs,
+                  ScrollController(),
+                );
+              },
+            ),
+          ),
+        )
+      ],
     );
   }
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   if (widget.specs.stickyColumnsCount <= 0) {
+  //     return ScrollConfiguration(
+  //       behavior: NoGlowBehavior(),
+  //       child: ListView.builder(
+  //         scrollDirection: Axis.horizontal,
+  //         itemCount: widget.headerRow.columns.length,
+  //         itemBuilder: (context, index) {
+  //           return TableColumnLayout(
+  //               widget.specs,
+  //               widget.headerRow,
+  //               index,
+  //               false,
+  //               widget.columnGestureDetectorCreator,
+  //               _onVerticalScrollCallback);
+  //         },
+  //       ),
+  //     );
+  //   }
+  //
+  //   double stickyListViewWidth = 0;
+  //   widget.specs.viewColumnsWidth
+  //       .take(widget.specs.stickyColumnsCount)
+  //       .forEach((element) {
+  //     stickyListViewWidth += element;
+  //   });
+  //   return Row(
+  //     children: widget.specs.enableColumnsDivider
+  //         ? _buildWithDivider(
+  //             stickyListViewWidth, widget.specs, widget.headerRow)
+  //         : _buildWithoutDivider(
+  //             stickyListViewWidth, widget.specs, widget.headerRow),
+  //   );
+  // }
 
   List<Widget> _buildWithDivider(
       double stickyListViewWidth, TableSpecs specs, HeaderRow headerRow) {
