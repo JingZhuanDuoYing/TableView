@@ -5,25 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-class TestSliverMultiBoxAdaptorWidget extends SliverMultiBoxAdaptorWidget {
-  TestSliverMultiBoxAdaptorWidget(SliverChildDelegate delegate)
+class RecyclerView extends SliverMultiBoxAdaptorWidget {
+  RecyclerView(SliverChildDelegate delegate)
       : assert(delegate.estimatedChildCount != null),
         super(delegate: delegate);
 
   @override
-  SliverMultiBoxAdaptorElement createElement() =>
-      TestSliverMultiBoxAdaptorElement(this);
-
-  @override
   RenderSliverMultiBoxAdaptor createRenderObject(BuildContext context) {
-    var element = context as TestSliverMultiBoxAdaptorElement;
-    return TestRenderSliverFixedExtentBoxAdaptor(element);
+    var element = context as SliverMultiBoxAdaptorElement;
+    return _RecyclerViewAdapter(element);
   }
 }
 
-class TestRenderSliverFixedExtentBoxAdaptor
+class _RecyclerViewAdapter
     extends RenderSliverFixedExtentBoxAdaptor {
-  TestRenderSliverFixedExtentBoxAdaptor(
+  _RecyclerViewAdapter(
       RenderSliverBoxChildManager childManager)
       : super(childManager: childManager);
 
@@ -248,49 +244,5 @@ class TestRenderSliverFixedExtentBoxAdaptor
       walker = childBefore(walker);
     }
     return trailingGarbage;
-  }
-}
-
-class TestSliverMultiBoxAdaptorElement extends SliverMultiBoxAdaptorElement {
-  TestSliverMultiBoxAdaptorElement(SliverMultiBoxAdaptorWidget widget)
-      : super(widget);
-
-  @override
-  void moveRenderObjectChild(RenderObject child, int oldSlot, int newSlot) {
-    super.moveRenderObjectChild(child, oldSlot, newSlot);
-  }
-
-  @override
-  void didStartLayout() {
-    super.didStartLayout();
-  }
-
-  @override
-  double estimateMaxScrollOffset(SliverConstraints? constraints,
-      {int? firstIndex,
-      int? lastIndex,
-      double? leadingScrollOffset,
-      double? trailingScrollOffset}) {
-    var result = super.estimateMaxScrollOffset(constraints,
-        firstIndex: firstIndex,
-        lastIndex: lastIndex,
-        leadingScrollOffset: leadingScrollOffset,
-        trailingScrollOffset: trailingScrollOffset);
-    return result;
-  }
-
-  @override
-  void rebuild() {
-    super.rebuild();
-  }
-
-  @override
-  void performRebuild() {
-    super.performRebuild();
-  }
-
-  @override
-  void didFinishLayout() {
-    super.didFinishLayout();
   }
 }

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:tableview_flutter/test.dart';
+import 'package:tableview_flutter/recycler_view.dart';
 
 void main() => runApp(MyApp());
 
@@ -50,13 +50,12 @@ class _MyAppState extends State<MyApp> {
               viewportBuilder: (context, offset) {
                 return Viewport(
                   axisDirection: AxisDirection.right,
-                  crossAxisDirection: AxisDirection.down,
                   offset: offset,
                   slivers: [
-                    TestSliverMultiBoxAdaptorWidget(
+                    RecyclerView(
                       SliverChildBuilderDelegate(
                         (context, index) {
-                          print('12345 build $index');
+                          print('12345 1 build $index');
                           return Container(
                             width: 100,
                             height: 100,
@@ -67,7 +66,7 @@ class _MyAppState extends State<MyApp> {
                         },
                         childCount: 100,
                       ),
-                    ),
+                    )
                   ],
                 );
               },
