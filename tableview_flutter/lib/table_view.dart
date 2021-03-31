@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tableview_flutter/no_glow_behavior.dart';
@@ -144,7 +146,14 @@ class _TableViewState extends State<TableView> {
         _scrollingVertically = false;
       }
     } else if (notification is ScrollEndNotification) {
-      if (_scrollingVertically) widget.onVerticalScrolledListener?.call();
+      if (_scrollingVertically) {
+        // delay listener callback because this end notification may be triggered another vertical scroll
+        Timer(Duration(milliseconds: 8), () {
+          if (!_scrollingVertically) {
+            widget.onVerticalScrolledListener?.call();
+          }
+        });
+      }
       _scrollingVertically = false;
     }
     return true;
