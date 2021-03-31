@@ -16,7 +16,7 @@ class _TableViewTestState extends State<TableViewTestWidget> {
   late HeaderRow row;
   TableSpecs specs = TableSpecs();
   final int stickyRowsCount = 2;
-  final int columnsCount = 30;
+  final int columnsCount = 100;
   final int stickyColumnsCount = 1;
 
   @override
@@ -40,17 +40,17 @@ class _TableViewTestState extends State<TableViewTestWidget> {
           (columnIndex) => TextColumn(
                 "Sticky $rowIndex - $columnIndex",
                 minWidth: 100,
-                minHeight: 40,
+                minHeight: 50,
                 backgroundColor: Colors.white,
               )));
     }));
-    row.rows.addAll(List.generate(100, (rowIndex) {
+    row.rows.addAll(List.generate(200, (rowIndex) {
       return table_row.TableRow(List.generate(
           columnsCount,
           (columnIndex) => TextColumn(
                 "$rowIndex - $columnIndex",
                 minWidth: 100,
-                minHeight: 40,
+                minHeight: 50,
                 backgroundColor: Colors.white,
               )));
     }));

@@ -16,8 +16,8 @@ class TableSpecs {
 
   @internal
   late List<double> viewColumnsWidth;
-  @internal
-  late List<ScrollController?> controllers;
+  var _controllers = Set();
+  var _idleControllers = Set();
   @internal
   ScrollController? scrollingController;
   @internal
@@ -48,7 +48,6 @@ class TableSpecs {
 
     viewColumnsWidth =
         List.filled(headerRow.columns.length, defaultViewColumnsWidth);
-    controllers = List.filled(headerRow.columns.length, null);
     viewColumnsWidthListener = List.filled(headerRow.columns.length, null);
   }
 
@@ -99,11 +98,42 @@ class TableSpecs {
   }
 
   ScrollController getScrollController(int columnIndex) {
-    ScrollController? controller = controllers[columnIndex];
-    if (null != controller) return controller;
-    controller = ScrollController();
-    controllers[columnIndex] = controller;
+    // ScrollController? controller = controllers[columnIndex];
+    // if (null != controller) return controller;
+    // controller = ScrollController();
+    // controllers[columnIndex] = controller;
+    // return controller;
+    return ScrollController();
+  }
+
+  ScrollController acquireController() {
+    if (_idleControllers.isNotEmpty) {
+      var controller = _idleControllers.first;
+      if (_idleControllers.remove(controller)) {
+        _controllers.add(controller);
+        return controller;
+      }
+    }
+
+    var controller = ScrollController(initialScrollOffset: offset);
+    _controllers.add(controller);
     return controller;
+  }
+
+  void releaseController(ScrollController controller) {
+    if (!_controllers.remove(controller)) return;
+    _idleControllers.add(controller);
+  }
+
+  void releaseIdleControllers() {
+    var iterator = _controllers.iterator;
+    var idles = Set();
+    while (iterator.moveNext()) {
+      ScrollController controller = iterator.current;
+      if (!controller.hasClients) idles.add(controller);
+    }
+    _controllers.removeAll(idles);
+    _idleControllers.addAll(idles);
   }
 
   double getViewColumnWidth(int columnIndex) {
@@ -114,12 +144,14 @@ class TableSpecs {
     var controller = scrollingController;
     if (null == controller || controller.hasClients != true) return;
     offset = controller.offset;
-    controllers.forEach((element) {
-      if (element == controller) return;
-      if (null == element || element.hasClients != true) return;
-      if (element.offset == offset) return;
-      element.jumpTo(offset);
-    });
+    var iterator = _controllers.iterator;
+    while (iterator.moveNext()) {
+      ScrollController current = iterator.current;
+      if (current == controller) continue;
+      if (!current.hasClients) continue;
+      if (current.offset == offset) continue;
+      current.jumpTo(offset);
+    }
   }
 
   Divider? getRowsDivider() {

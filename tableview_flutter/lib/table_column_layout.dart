@@ -136,9 +136,6 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
 
   Widget _buildListView(ScrollController controller) {
     var itemBuilder = (context, index) {
-      if(widget.columnIndex == 8) {
-        print('12345 build $index, offset: ${controller.offset}');
-      }
       table_row.TableRow row = widget.headerRow.rows[index];
       var column = row.getColumnAt(widget.columnIndex);
       var columnWidget =
