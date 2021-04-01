@@ -134,22 +134,28 @@ class TableRowWidgetState extends RecyclerViewState<TableRowWidget> {
       BuildContext context, ScrollStartNotification notification) {
     if (null == widget.specs.scrollingController) {
       widget.specs.scrollingController = controller;
+      widget.scrollNotificationListener(notification);
     } else if (notification.dragDetails?.kind == PointerDeviceKind.touch) {
       if (widget.specs.scrollingController?.hasClients == true) {
         widget.specs.scrollingController?.jumpTo(widget.specs.offset);
       }
       widget.specs.scrollingController = controller;
+      widget.scrollNotificationListener(notification);
     }
   }
 
   void _onScrolling(
       BuildContext context, ScrollUpdateNotification notification) {
-    if (null != widget.specs.scrollingController) widget.specs.onScrolled();
+    if (null != widget.specs.scrollingController) {
+      widget.specs.onScrolled();
+      widget.scrollNotificationListener(notification);
+    }
   }
 
   void _onScrollEnd(BuildContext context, ScrollEndNotification notification) {
     if (controller == widget.specs.scrollingController) {
       widget.specs.scrollingController = null;
+      widget.scrollNotificationListener(notification);
     }
   }
 }

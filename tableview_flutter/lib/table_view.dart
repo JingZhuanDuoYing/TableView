@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tableview_flutter/no_glow_behavior.dart';
@@ -13,15 +14,16 @@ class TableView extends StatefulWidget {
   final HeaderRow headerRow;
   final TableSpecs specs;
   final ColumnGestureDetectorCreator? columnGestureDetectorCreator;
+  final TableViewScrollStateListener? scrollStateListener;
   final VoidCallback? onScrollToEndListener;
-  final VoidCallback? onVerticalScrolledListener;
-  final VoidCallback? onHorizontalScrolledListener;
 
-  TableView(this.headerRow, this.specs,
-      {this.columnGestureDetectorCreator,
-      this.onScrollToEndListener,
-      this.onVerticalScrolledListener,
-      this.onHorizontalScrolledListener});
+  TableView(
+    this.headerRow,
+    this.specs, {
+    this.columnGestureDetectorCreator,
+    this.onScrollToEndListener,
+    this.scrollStateListener,
+  });
 
   @override
   State<StatefulWidget> createState() => _TableViewState();
@@ -125,8 +127,22 @@ class _TableViewState extends State<TableView> {
       if (_scrollingVertically) return true;
       _scrollingHorizontally = true;
       _scrollingVertically = false;
+      widget.scrollStateListener
+          ?.call(Axis.horizontal, TableViewScrollState.START);
+    } else if (notification is ScrollUpdateNotification) {
+      if (_scrollingHorizontally)
+        widget.scrollStateListener
+            ?.call(Axis.horizontal, TableViewScrollState.SCROLLING);
     } else if (notification is ScrollEndNotification) {
-      if (_scrollingHorizontally) widget.onHorizontalScrolledListener?.call();
+      if (_scrollingHorizontally) {
+        // delay listener callback because this end notification may be triggered another horizontal scroll
+        Timer(Duration(milliseconds: 8), () {
+          if (!_scrollingHorizontally) {
+            widget.scrollStateListener
+                ?.call(Axis.horizontal, TableViewScrollState.END);
+          }
+        });
+      }
       _scrollingHorizontally = false;
     }
     return true;
@@ -137,6 +153,8 @@ class _TableViewState extends State<TableView> {
       if (_scrollingHorizontally) return true;
       _scrollingHorizontally = false;
       _scrollingVertically = true;
+      widget.scrollStateListener
+          ?.call(Axis.vertical, TableViewScrollState.START);
     } else if (notification is ScrollUpdateNotification) {
       if (_scrollingVertically &&
           controller.hasClients &&
@@ -145,12 +163,17 @@ class _TableViewState extends State<TableView> {
         widget.onScrollToEndListener?.call();
         _scrollingVertically = false;
       }
+      if (_scrollingVertically) {
+        widget.scrollStateListener
+            ?.call(Axis.vertical, TableViewScrollState.SCROLLING);
+      }
     } else if (notification is ScrollEndNotification) {
       if (_scrollingVertically) {
         // delay listener callback because this end notification may be triggered another vertical scroll
         Timer(Duration(milliseconds: 8), () {
           if (!_scrollingVertically) {
-            widget.onVerticalScrolledListener?.call();
+            widget.scrollStateListener
+                ?.call(Axis.vertical, TableViewScrollState.END);
           }
         });
       }

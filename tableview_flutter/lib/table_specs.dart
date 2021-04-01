@@ -18,6 +18,7 @@ class TableSpecs {
   late List<double> viewColumnsWidth;
   var _controllers = Set();
   var _idleControllers = Set();
+
   @internal
   ScrollController? scrollingController;
   @internal
