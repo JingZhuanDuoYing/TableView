@@ -149,6 +149,7 @@ class _TableViewState extends State<TableView> {
   }
 
   bool _onVerticalScrollCallback(ScrollNotification notification) {
+    widget.specs.verticalOffset = controller.offset;
     if (notification is ScrollStartNotification) {
       if (_scrollingHorizontally) return true;
       _scrollingHorizontally = false;

@@ -50,7 +50,7 @@ class TableRowWidgetState extends RecyclerViewState<TableRowWidget> {
   Widget build(BuildContext context) {
     WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
       if (null != controller && controller!.hasClients)
-        controller!.jumpTo(widget.specs.offset);
+        controller!.jumpTo(widget.specs.horizontalOffset);
     });
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
@@ -137,7 +137,7 @@ class TableRowWidgetState extends RecyclerViewState<TableRowWidget> {
       widget.scrollNotificationListener(notification);
     } else if (notification.dragDetails?.kind == PointerDeviceKind.touch) {
       if (widget.specs.scrollingController?.hasClients == true) {
-        widget.specs.scrollingController?.jumpTo(widget.specs.offset);
+        widget.specs.scrollingController?.jumpTo(widget.specs.horizontalOffset);
       }
       widget.specs.scrollingController = controller;
       widget.scrollNotificationListener(notification);

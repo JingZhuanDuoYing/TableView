@@ -73,7 +73,7 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
     ScrollController controller =
         widget.specs.getScrollController(widget.columnIndex);
     WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
-      if (controller.hasClients) controller.jumpTo(widget.specs.offset);
+      if (controller.hasClients) controller.jumpTo(widget.specs.horizontalOffset);
     });
 
     widgets.add(NotificationListener<ScrollNotification>(
@@ -111,7 +111,7 @@ class _TableColumnLayoutState extends State<TableColumnLayout> {
       widget.scrollNotificationListener.call(notification);
     } else if (notification.dragDetails?.kind == PointerDeviceKind.touch) {
       if (specs.scrollingController?.hasClients == true) {
-        specs.scrollingController?.jumpTo(specs.offset);
+        specs.scrollingController?.jumpTo(specs.horizontalOffset);
       }
       specs.scrollingController = controller;
       widget.scrollNotificationListener.call(notification);

@@ -38,7 +38,8 @@ class TableSpecs {
   bool enableRowsDivider = false;
   bool enableColumnsDivider = false;
 
-  double offset = 0;
+  double horizontalOffset = 0;
+  double verticalOffset = 0;
 
   TextPainter painter =
       TextPainter(maxLines: 1, textDirection: TextDirection.ltr);
@@ -116,7 +117,7 @@ class TableSpecs {
       }
     }
 
-    var controller = ScrollController(initialScrollOffset: offset);
+    var controller = ScrollController(initialScrollOffset: horizontalOffset);
     _controllers.add(controller);
     return controller;
   }
@@ -144,14 +145,14 @@ class TableSpecs {
   void onScrolled() {
     var controller = scrollingController;
     if (null == controller || controller.hasClients != true) return;
-    offset = controller.offset;
+    horizontalOffset = controller.offset;
     var iterator = _controllers.iterator;
     while (iterator.moveNext()) {
       ScrollController current = iterator.current;
       if (current == controller) continue;
       if (!current.hasClients) continue;
-      if (current.offset == offset) continue;
-      current.jumpTo(offset);
+      if (current.offset == horizontalOffset) continue;
+      current.jumpTo(horizontalOffset);
     }
   }
 
