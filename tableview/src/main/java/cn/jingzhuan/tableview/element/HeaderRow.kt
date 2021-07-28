@@ -46,14 +46,19 @@ open class HeaderRow<COLUMN : Column>(columns: List<COLUMN>) : Row<COLUMN>(colum
 
     fun preMeasureAllRows(context: Context) {
         val layoutManager = layoutManager ?: return
-        measure(context, layoutManager.specs)
-        stickyRows.forEach { it.measure(context, layoutManager.specs) }
-        rows.forEach { it.measure(context, layoutManager.specs) }
+        var columnsWidthChanged = false
+        columnsWidthChanged = columnsWidthChanged or measure(context, layoutManager.specs)
+        stickyRows.forEach { columnsWidthChanged = columnsWidthChanged or it.measure(context, layoutManager.specs) }
+        rows.forEach { columnsWidthChanged = columnsWidthChanged or it.measure(context, layoutManager.specs) }
+        if(columnsWidthChanged) getTableSpecs()?.onColumnsWidthChanged()
     }
 
     fun preMeasureRow(context: Context, row: Row<*>) {
         val layoutManager = layoutManager ?: return
-        if (row.measure(context, layoutManager.specs)) row.forceLayout = true
+        if (row.measure(context, layoutManager.specs)) {
+            getTableSpecs()?.onColumnsWidthChanged()
+            row.forceLayout = true
+        }
     }
 
     fun preLayoutRowIfNecessary(context: Context, row: Row<*>) {

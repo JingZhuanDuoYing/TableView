@@ -14,6 +14,7 @@ import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
 import cn.jingzhuan.tableview.layoutmanager.TableSpecs
 import cn.jingzhuan.tableview.listeners.OnRowClickListener
 import cn.jingzhuan.tableview.listeners.OnRowLongClickListener
+import timber.log.Timber
 import java.io.ObjectInputStream
 import kotlin.math.max
 import kotlin.math.min
@@ -169,8 +170,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         for (i in 0 until maxSize) {
             if (i == specs.stickyColumnsCount) x = 0
             val column = columns[i]
-            layoutColumn(context, i, column, x, rowHeight, specs)
-            x = column.columnRight
+            x = layoutColumn(context, i, column, x, rowHeight, specs)
         }
     }
 
@@ -192,10 +192,9 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         for (i in 0 until specs.stickyColumnsCount) {
             if (!specs.isColumnVisible(i)) continue
             val column = columns[i]
-            layoutColumn(context, i, column, x, rowHeight, specs)
+            x = layoutColumn(context, i, column, x, rowHeight, specs)
             if (column is DrawableColumn) column.draw(context, canvas, rowShareElements)
             drawColumnsDivider(canvas, column, specs)
-            x = column.columnRight
         }
     }
 
@@ -212,7 +211,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         for (i in startIndex until specs.columnsCount) {
             if (!specs.isColumnVisible(i)) continue
             val column = columns[i]
-            layoutColumn(context, i, column, x, rowHeight, specs)
+            x = layoutColumn(context, i, column, x, rowHeight, specs)
             if (column is DrawableColumn) {
                 if (column.columnLeft > container.scrollX + container.width) break
                 if (!column.shouldIgnoreDraw(container)) {
@@ -220,7 +219,6 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
                 }
             }
             drawColumnsDivider(canvas, column, specs)
-            x = column.columnRight
         }
     }
 
@@ -290,10 +288,12 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         x: Int,
         rowHeight: Int,
         specs: TableSpecs
-    ) {
-        column.columnLeft = x
+    ): Int {
+        val snapWidth = if(specs.snapColumnsCount > 0 && index >= specs.stickyColumnsCount) specs.getSnapWidth() else 0
+        val columnLeft = x - snapWidth
+        column.columnLeft = columnLeft
         column.columnTop = 0
-        column.columnRight = x + specs.visibleColumnsWidth[index]
+        column.columnRight = columnLeft + specs.visibleColumnsWidth[index]
         column.columnBottom = rowHeight
 
         val top: Int
@@ -338,6 +338,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         if (column is DrawableColumn) {
             column.prepareToDraw(context, rowShareElements)
         }
+        return column.columnRight + snapWidth
     }
 
     private fun drawColumnsDivider(canvas: Canvas, column: Column, specs: TableSpecs) {

@@ -1,15 +1,19 @@
 package cn.jingzhuan.tableview.layoutmanager
 
+import android.animation.ValueAnimator
 import android.content.Context
+import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.view.View.MeasureSpec
 import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
 import cn.jingzhuan.tableview.RowLayout
 import cn.jingzhuan.tableview.element.DrawableColumn
 import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.element.ViewColumn
 import cn.jingzhuan.tableview.lazyNone
 import cn.jingzhuan.tableview.runOnMainThread
+import timber.log.Timber
 import java.io.ObjectInputStream
 import java.io.Serializable
 import kotlin.math.max
@@ -21,6 +25,9 @@ class ColumnsLayoutManager : Serializable {
 
     @Transient
     private var attachedRows = mutableSetOf<RowLayout>()
+
+    @Transient
+    private var snapAnimator: ValueAnimator? = null
 
     private val runnable = Runnable {
         attachedRows.forEach { it.layout() }
@@ -44,7 +51,15 @@ class ColumnsLayoutManager : Serializable {
         columnsSize: Int = this.specs.columnsCount,
         stickyColumns: Int = this.specs.stickyColumnsCount
     ) {
-        specs.updateTableSize(columnsSize, stickyColumns)
+        updateTableSize(columnsSize, stickyColumns, 0)
+    }
+
+    fun updateTableSize(
+        columnsSize: Int = this.specs.columnsCount,
+        stickyColumns: Int = this.specs.stickyColumnsCount,
+        snapColumnsCount: Int = 0
+    ) {
+        specs.updateTableSize(columnsSize, stickyColumns, snapColumnsCount)
         attachedRows.forEach { it.row?.forceLayout = true }
     }
 
@@ -76,22 +91,81 @@ class ColumnsLayoutManager : Serializable {
         if (attachedRows.isEmpty()) return 0
         val scrollRange = specs.computeScrollRange()
         val consumed = when {
+            specs.scrollX > 0 && dx < 0 && specs.scrollX < -dx -> {
+                -specs.scrollX
+            }
+            specs.scrollX < 0 && dx > 0 && -specs.scrollX < dx -> {
+                -specs.scrollX
+            }
             dx > 0 -> {
                 val maxDx = scrollRange - specs.scrollX
                 min(dx, maxDx)
             }
             dx < 0 -> {
-                val minDx = -specs.scrollX
+                val minDx = -specs.scrollX - specs.getSnapWidth()
                 max(dx, minDx)
             }
             else -> 0
         }
         if (consumed == 0 && specs.scrollX <= scrollRange) return 0
-        specs.updateScrollX(specs.scrollX + consumed)
-        if (specs.scrollX > scrollRange) specs.updateScrollX(scrollRange)
+        val expectScrollX = specs.scrollX + consumed
+        if (expectScrollX > scrollRange) {
+            specs.updateScrollX(scrollRange)
+        } else {
+            specs.updateScrollX(expectScrollX)
+        }
         // 调整当前持有的所有RowLayout
         attachedRows.forEach { it.scrollTo(specs.scrollX, 0) }
         return consumed
+    }
+
+    /**
+     * @return 返回 true 会停止 RecyclerView 的 ViewFlinger，然后可以开始执行 TableView 的 SnapScroll
+     */
+    internal fun onHorizontalScrollStateChanged(state: Int, dx: Int): Boolean {
+        if (specs.snapColumnsCount <= 0) return false
+        if (state == RecyclerView.SCROLL_STATE_SETTLING && specs.scrollX < 0) {
+            val snapWidth = specs.getSnapWidth()
+            if (snapWidth <= 0) return false
+            snapAnimator?.cancel()
+            val endX = if (dx > 0) 0 else -snapWidth
+            val animator = ValueAnimator.ofInt(specs.scrollX, endX)
+            animator.interpolator = AccelerateDecelerateInterpolator()
+            animator.addUpdateListener {
+                val x = it.animatedValue as? Int ?: return@addUpdateListener
+                val animateDx = x - specs.scrollX
+                scrollHorizontallyBy(animateDx)
+            }
+            snapAnimator = animator
+            snapAnimator?.start()
+            return true
+        } else if (state == RecyclerView.SCROLL_STATE_IDLE && specs.scrollX < 0) {
+            if (snapAnimator?.isRunning == true) return true
+            val snapWidth = specs.getSnapWidth()
+            if (snapWidth <= 0) return false
+            snapAnimator?.cancel()
+            val endX = if (snapWidth + specs.scrollX > -specs.scrollX) 0 else -snapWidth
+            val animator = ValueAnimator.ofInt(specs.scrollX, endX)
+            animator.interpolator = AccelerateDecelerateInterpolator()
+            animator.addUpdateListener {
+                val x = it.animatedValue as? Int ?: return@addUpdateListener
+                val animateDx = x - specs.scrollX
+                scrollHorizontallyBy(animateDx)
+            }
+            snapAnimator = animator
+            snapAnimator?.start()
+        }
+        return false
+    }
+
+    internal fun adjustSnapScrollXAfterColumnsWidthChanged() {
+        if(specs.scrollX >= 0) return
+        val snapWidth = specs.getSnapWidth()
+        if(snapWidth <= 0) return
+        val endX = if(snapWidth + specs.scrollX > -specs.scrollX) 0 else -snapWidth
+        if(specs.scrollX == endX) return
+        val dx = endX - specs.scrollX
+        scrollHorizontallyBy(dx)
     }
 
     internal fun measureAndLayout(
@@ -123,6 +197,7 @@ class ColumnsLayoutManager : Serializable {
                 val column = row.columns[index]
 
                 val sticky = index < specs.stickyColumnsCount
+                val snap = (index - specs.stickyColumnsCount) < specs.snapColumnsCount
                 val visible = specs.isColumnVisible(index)
 
                 if (column is DrawableColumn) {
@@ -251,6 +326,7 @@ class ColumnsLayoutManager : Serializable {
         // 列宽发生变化或者第一次初始化，都需要Layout
         if (layoutOnly || pendingLayout || !initialized || row.forceLayout) {
             if (specs.stretchMode) specs.compareAndSetStretchColumnsWidth()
+            specs.compareAndSetSnapColumnsWidth()
             row.layout(context, specs)
 
             var viewIndex = 0
@@ -285,6 +361,8 @@ class ColumnsLayoutManager : Serializable {
         } else {
             scrollableContainer.postInvalidate()
         }
+
+        if(pendingLayout) adjustSnapScrollXAfterColumnsWidthChanged()
     }
 
     /**

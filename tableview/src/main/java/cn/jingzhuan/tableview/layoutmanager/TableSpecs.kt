@@ -1,12 +1,14 @@
 package cn.jingzhuan.tableview.layoutmanager
 
 import android.graphics.Paint
+import android.os.Handler
 import android.support.annotation.ColorInt
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.util.SparseIntArray
 import cn.jingzhuan.tableview.element.Column
 import cn.jingzhuan.tableview.element.HeaderRow
+import timber.log.Timber
 import kotlin.math.max
 import kotlin.math.min
 
@@ -16,11 +18,18 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
 
     var headerRow: HeaderRow<*>? = null
 
+    // 列显示宽度
     val visibleColumnsWidth = SparseIntArray()
+
+    // 列实际测量宽度
     private val realColumnsWidth = SparseIntArray()
 
     var stickyColumnsCount = 0
         private set
+
+    var snapColumnsCount = 0
+        private set
+
     var columnsCount = 0
         private set
 
@@ -102,10 +111,15 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         resetScrollableFirstVisibleColumn()
     }
 
-    internal fun updateTableSize(columnsCount: Int, stickyColumnsCount: Int) {
+    internal fun updateTableSize(
+        columnsCount: Int,
+        stickyColumnsCount: Int,
+        snapColumnsCount: Int = 0
+    ) {
         if (stickyColumnsCount > columnsCount) throw IllegalArgumentException("stickyColumnsCount must not be greater than columnsCount")
         this.columnsCount = columnsCount
         this.stickyColumnsCount = stickyColumnsCount
+        this.snapColumnsCount = snapColumnsCount
         // 列数变化，重置 stretchMode 列宽
         this.averageStretchColumnWidth = 0
         visibleColumnsWidth.clear()
@@ -116,9 +130,35 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
 
     fun compareAndSetStretchColumnsWidth() {
         val stretchWidth = tableWidth - stickyWidth
-        for (i in stickyColumnsCount until columnsCount) {
+        for (i in stickyColumnsCount + snapColumnsCount until columnsCount) {
             val weight = realColumnsWidth[i] / realScrollableVirtualWidth.toFloat()
             visibleColumnsWidth.put(i, (weight * stretchWidth).toInt())
+        }
+    }
+
+    fun compareAndSetSnapColumnsWidth() {
+        if (snapColumnsCount <= 0) return
+        val snapWidth = getSnapWidth()
+        var flexibleWidth = snapWidth
+        val flexibleWeights = mutableMapOf<Int, Int>()
+        var totalWeight = 0F
+        for (i in stickyColumnsCount until stickyColumnsCount + snapColumnsCount) {
+            val weight = headerRow?.columns?.getOrNull(i)?.weight ?: 0
+            flexibleWeights[i] = weight
+            totalWeight += weight
+            if (weight == 0 && isColumnVisible(i)) {
+                flexibleWidth -= visibleColumnsWidth[i]
+            }
+        }
+        var snapTotalWidth = 0
+        for (i in stickyColumnsCount until stickyColumnsCount + snapColumnsCount) {
+            val weight = flexibleWeights[i] ?: 0
+            if (weight <= 0) {
+                snapTotalWidth += visibleColumnsWidth[i]
+                continue
+            }
+            visibleColumnsWidth.put(i, (flexibleWidth * (weight / totalWeight)).toInt())
+            snapTotalWidth += visibleColumnsWidth[i]
         }
     }
 
@@ -198,7 +238,8 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
 
     fun computeScrollRange(): Int {
         if (stretchMode) return 0
-        return max(0, visibleScrollableVirtualWidth - (tableWidth - stickyWidth))
+        val times = if (snapColumnsCount > 0) 2 else 1
+        return max(0, visibleScrollableVirtualWidth - (tableWidth - stickyWidth) * times)
     }
 
     fun onColumnsWidthChanged() {
@@ -226,6 +267,10 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
             }
             left += visibleColumnsWidth[i]
         }
+    }
+
+    internal fun getSnapWidth(): Int {
+        return if (snapColumnsCount <= 0) 0 else max(0, tableWidth - stickyWidth)
     }
 
 }

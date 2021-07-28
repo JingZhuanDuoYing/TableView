@@ -3,6 +3,7 @@
 ./gradlew clean
 ./gradlew :tableview:assembleRelease
 ./jetifier-standalone/bin/jetifier-standalone -i "tableview/build/outputs/aar/tableview-release.aar" -o "app/libs/jz-tableview-release-jetified.aar"
-./gradlew :app:assembleDebug
-adb install -r -t app/build/outputs/apk/debug/app-debug.apk
+#./gradlew :app:assembleDebug
+#adb install -r -t app/build/outputs/apk/debug/app-debug.apk
+./gradlew :app:installDebug
 adb shell am start -n cn.jingzhuan.tableview.demo/.main.MainActivity

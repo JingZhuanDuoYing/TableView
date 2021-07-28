@@ -3,6 +3,7 @@ package cn.jingzhuan.tableview.layoutmanager
 import android.content.Context
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 
 /**
  * Chenyikang
@@ -10,8 +11,14 @@ import android.support.v7.widget.RecyclerView
  */
 internal class RowListLayoutManager(
     context: Context,
-    private val scrollHorizontallyBy: (dx: Int, remainingScrollHorizontal: Int) -> Int
+    // @return consumed dx
+    private val onScrollHorizontallyBy: (dx: Int, remainingScrollHorizontal: Int) -> Int,
+    // @return whether to stop scroller
+    private val onHorizontalScrollStateChanged: (state: Int, dx: Int) -> Boolean
 ) : LinearLayoutManager(context) {
+
+    private var lastScrollState = RecyclerView.SCROLL_STATE_IDLE
+    private var lastHorizontalScrollState = RecyclerView.SCROLL_STATE_IDLE
 
     override fun canScrollVertically() = true
 
@@ -22,6 +29,19 @@ internal class RowListLayoutManager(
         recycler: RecyclerView.Recycler,
         state: RecyclerView.State
     ): Int {
-        return scrollHorizontallyBy.invoke(dx, state.remainingScrollHorizontal)
+        if (lastHorizontalScrollState != lastScrollState) {
+            lastHorizontalScrollState = lastScrollState
+            if(onHorizontalScrollStateChanged(lastHorizontalScrollState, dx)) return 0
+        }
+        return onScrollHorizontallyBy.invoke(dx, state.remainingScrollHorizontal)
+    }
+
+    override fun onScrollStateChanged(state: Int) {
+        super.onScrollStateChanged(state)
+        lastScrollState = state
+        if (state == RecyclerView.SCROLL_STATE_IDLE && lastHorizontalScrollState != RecyclerView.SCROLL_STATE_IDLE) {
+            lastHorizontalScrollState = state
+            onHorizontalScrollStateChanged(lastHorizontalScrollState, 0)
+        }
     }
 }

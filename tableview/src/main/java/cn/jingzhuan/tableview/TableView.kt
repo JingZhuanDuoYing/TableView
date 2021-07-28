@@ -7,6 +7,7 @@ import android.support.annotation.ColorInt
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -85,12 +86,24 @@ open class TableView @JvmOverloads constructor(
 
         setAdapter(adapter)
         setStretchMode(false)
-        header.layoutManager = RowListLayoutManager(context) { dx, _ ->
-            headerRow?.layoutManager?.scrollHorizontallyBy(dx) ?: 0
-        }
-        main.layoutManager = RowListLayoutManager(context) { dx, _ ->
-            headerRow?.layoutManager?.scrollHorizontallyBy(dx) ?: 0
-        }
+        header.layoutManager = RowListLayoutManager(
+            context,
+            onScrollHorizontallyBy = { dx, _ ->
+                headerRow?.layoutManager?.scrollHorizontallyBy(dx) ?: 0
+            },
+            onHorizontalScrollStateChanged = { state, dx ->
+                headerRow?.layoutManager?.onHorizontalScrollStateChanged(state, dx) ?: false
+            },
+        )
+        main.layoutManager = RowListLayoutManager(
+            context,
+            onScrollHorizontallyBy = { dx, _ ->
+                headerRow?.layoutManager?.scrollHorizontallyBy(dx) ?: 0
+            },
+            onHorizontalScrollStateChanged = { state, dx ->
+                headerRow?.layoutManager?.onHorizontalScrollStateChanged(state, dx) ?: false
+            },
+        )
         header.addOnScrollListener(scrollListener)
         main.addOnScrollListener(scrollListener)
         (header as DirectionLockRecyclerView).directionLockEnabled = true
@@ -132,7 +145,11 @@ open class TableView @JvmOverloads constructor(
     }
 
     fun updateTableSize(columns: Int, stickyColumnsCount: Int) {
-        columnsLayoutManager.updateTableSize(columns, stickyColumnsCount)
+        updateTableSize(columns, stickyColumnsCount, 0)
+    }
+
+    fun updateTableSize(columns: Int, stickyColumnsCount: Int, snapColumnsCount: Int) {
+        columnsLayoutManager.updateTableSize(columns, stickyColumnsCount, snapColumnsCount)
     }
 
     fun setRowsDividerEnabled(
