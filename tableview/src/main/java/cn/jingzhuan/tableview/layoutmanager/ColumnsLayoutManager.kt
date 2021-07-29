@@ -159,11 +159,11 @@ class ColumnsLayoutManager : Serializable {
     }
 
     internal fun adjustSnapScrollXAfterColumnsWidthChanged() {
-        if(specs.scrollX >= 0) return
+        if (specs.scrollX >= 0) return
         val snapWidth = specs.getSnapWidth()
-        if(snapWidth <= 0) return
-        val endX = if(snapWidth + specs.scrollX > -specs.scrollX) 0 else -snapWidth
-        if(specs.scrollX == endX) return
+        if (snapWidth <= 0) return
+        val endX = if (snapWidth + specs.scrollX > -specs.scrollX) 0 else -snapWidth
+        if (specs.scrollX == endX) return
         val dx = endX - specs.scrollX
         scrollHorizontallyBy(dx)
     }
@@ -326,7 +326,7 @@ class ColumnsLayoutManager : Serializable {
         // 列宽发生变化或者第一次初始化，都需要Layout
         if (layoutOnly || pendingLayout || !initialized || row.forceLayout) {
             if (specs.stretchMode) specs.compareAndSetStretchColumnsWidth()
-            specs.compareAndSetSnapColumnsWidth()
+            if (specs.compareAndSetSnapColumnsWidth()) measureSnapViewColumns()
             row.layout(context, specs)
 
             var viewIndex = 0
@@ -362,7 +362,7 @@ class ColumnsLayoutManager : Serializable {
             scrollableContainer.postInvalidate()
         }
 
-        if(pendingLayout) adjustSnapScrollXAfterColumnsWidthChanged()
+        if (pendingLayout) adjustSnapScrollXAfterColumnsWidthChanged()
     }
 
     /**
@@ -398,6 +398,24 @@ class ColumnsLayoutManager : Serializable {
             scrollableContainer.layout(left, 0, right, rowHeight)
         }
         return scrollableContainer.measuredWidth
+    }
+
+    private fun measureSnapViewColumns() {
+        if (specs.snapColumnsCount <= 0) return
+        attachedRows.forEach {
+            var viewIndex = 0
+            @Suppress("UseWithIndex")
+            for (i in 0 until specs.stickyColumnsCount + specs.snapColumnsCount) {
+                val column = it.row?.columns?.getOrNull(i) ?: return@forEach
+                if (column !is ViewColumn) continue
+                val currentViewIndex = viewIndex
+                viewIndex++
+                if (i < specs.stickyColumnsCount) continue
+                val view = it.getChildAt(currentViewIndex) ?: return@forEach
+                view.layoutParams.width = specs.visibleColumnsWidth[i]
+                column.measureView(view)
+            }
+        }
     }
 
 }

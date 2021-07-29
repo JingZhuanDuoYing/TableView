@@ -75,13 +75,17 @@ abstract class ViewColumn : Column {
 
     open fun measureView(view: View) {
         val lp = view.layoutParams
-        val widthSpec =
-            if (lp.width > 0) MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY)
-            else MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
-        val heightSpec =
-            if (lp.height > 0) MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY)
-            else MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
-        view.measure(widthSpec, heightSpec)
+        val skipMeasure =
+            lp.width > 0 && lp.height > 0 && view.measuredWidth == lp.width && view.measuredHeight == lp.height
+        if (!skipMeasure) {
+            val widthSpec =
+                if (lp.width > 0) MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY)
+                else MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+            val heightSpec =
+                if (lp.height > 0) MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY)
+                else MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
+            view.measure(widthSpec, heightSpec)
+        }
 
         val mlp = lp as? MarginLayoutParams
         val leftMargin = mlp?.leftMargin ?: 0

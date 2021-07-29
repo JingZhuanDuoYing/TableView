@@ -24,7 +24,7 @@ class Lesson9ViewModel : ViewModel() {
                     val titleColumn = TitleColumn(i)
                     when (i) {
                         0 -> titleColumn.weight = 1
-                        1 -> titleColumn.weight = 1
+                        1 -> titleColumn.weight = 3
                         2 -> titleColumn.weight = 0
                     }
                     titleColumn.rightMargin = 10

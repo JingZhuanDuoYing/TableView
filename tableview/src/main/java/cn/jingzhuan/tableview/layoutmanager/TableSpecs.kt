@@ -136,30 +136,38 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         }
     }
 
-    fun compareAndSetSnapColumnsWidth() {
-        if (snapColumnsCount <= 0) return
+    /**
+     * @return whether snap column's width changed or not
+     */
+    fun compareAndSetSnapColumnsWidth(): Boolean {
+        if (snapColumnsCount <= 0) return false
         val snapWidth = getSnapWidth()
         var flexibleWidth = snapWidth
         val flexibleWeights = mutableMapOf<Int, Int>()
         var totalWeight = 0F
+        var changed = false
         for (i in stickyColumnsCount until stickyColumnsCount + snapColumnsCount) {
             val weight = headerRow?.columns?.getOrNull(i)?.weight ?: 0
-            flexibleWeights[i] = weight
-            totalWeight += weight
+            if (isColumnVisible(i)) {
+                flexibleWeights[i] = weight
+                totalWeight += weight
+            } else {
+                flexibleWeights[i] = 0
+            }
             if (weight == 0 && isColumnVisible(i)) {
                 flexibleWidth -= visibleColumnsWidth[i]
             }
         }
-        var snapTotalWidth = 0
         for (i in stickyColumnsCount until stickyColumnsCount + snapColumnsCount) {
             val weight = flexibleWeights[i] ?: 0
-            if (weight <= 0) {
-                snapTotalWidth += visibleColumnsWidth[i]
-                continue
+            if (weight <= 0) continue
+            val newWidth = (flexibleWidth * (weight / totalWeight)).toInt()
+            if (newWidth != visibleColumnsWidth[i]) {
+                visibleColumnsWidth.put(i, newWidth)
+                changed = true
             }
-            visibleColumnsWidth.put(i, (flexibleWidth * (weight / totalWeight)).toInt())
-            snapTotalWidth += visibleColumnsWidth[i]
         }
+        return changed
     }
 
     /**
