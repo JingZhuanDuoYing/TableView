@@ -1,6 +1,7 @@
 package cn.jingzhuan.tableview.layoutmanager
 
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.support.v7.widget.RecyclerView
 import android.view.View
@@ -27,7 +28,7 @@ class ColumnsLayoutManager : Serializable {
     private var attachedRows = mutableSetOf<RowLayout>()
 
     @Transient
-    private var snapAnimator: ValueAnimator? = null
+    internal var snapAnimator: ValueAnimator? = null
 
     private val runnable = Runnable {
         attachedRows.forEach { it.layout() }
@@ -122,6 +123,7 @@ class ColumnsLayoutManager : Serializable {
     /**
      * @return 返回 true 会停止 RecyclerView 的 ViewFlinger，然后可以开始执行 TableView 的 SnapScroll
      */
+    @SuppressLint("Recycle")
     internal fun onHorizontalScrollStateChanged(state: Int, dx: Int): Boolean {
         if (specs.snapColumnsCount <= 0) return false
         if (state == RecyclerView.SCROLL_STATE_SETTLING && specs.scrollX < 0) {

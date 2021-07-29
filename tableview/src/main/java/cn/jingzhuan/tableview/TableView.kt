@@ -238,6 +238,8 @@ open class TableView @JvmOverloads constructor(
 
     fun scrollState() = max(header.scrollState, main.scrollState)
 
+    fun isSnapAnimating() = columnsLayoutManager.snapAnimator?.isRunning == true
+
     fun scrollToPositionWithOffset(
         position: Int,
         offset: Int
