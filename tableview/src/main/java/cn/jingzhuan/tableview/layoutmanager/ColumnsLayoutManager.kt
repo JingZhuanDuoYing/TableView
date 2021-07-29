@@ -273,6 +273,9 @@ class ColumnsLayoutManager : Serializable {
                 }
 
                 if (view.measuredWidth <= 0 || view.measuredHeight <= 0 || row.forceLayout || column.forceLayout || visibilityChanged) {
+                    if (specs.isSnapWeightColumn(index) && specs.visibleColumnsWidth[index] > 0) {
+                        view.layoutParams.width = specs.visibleColumnsWidth[index]
+                    }
                     // 实际Measure
                     column.measureView(view)
                 }

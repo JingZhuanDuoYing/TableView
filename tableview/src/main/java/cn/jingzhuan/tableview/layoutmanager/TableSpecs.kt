@@ -1,16 +1,12 @@
 package cn.jingzhuan.tableview.layoutmanager
 
 import android.graphics.Paint
-import android.os.Handler
 import android.support.annotation.ColorInt
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.util.SparseIntArray
 import cn.jingzhuan.tableview.element.Column
 import cn.jingzhuan.tableview.element.HeaderRow
-import timber.log.Timber
 import kotlin.math.max
-import kotlin.math.min
 
 class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
 
@@ -279,6 +275,11 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
 
     internal fun getSnapWidth(): Int {
         return if (snapColumnsCount <= 0) 0 else max(0, tableWidth - stickyWidth)
+    }
+
+    internal fun isSnapWeightColumn(index: Int): Boolean {
+        return index in stickyColumnsCount until stickyColumnsCount + snapColumnsCount
+                && headerRow?.columns?.getOrNull(index)?.weight ?: 0 > 0
     }
 
 }
