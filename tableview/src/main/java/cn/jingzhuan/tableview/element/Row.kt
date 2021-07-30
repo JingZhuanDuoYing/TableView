@@ -141,6 +141,10 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
                 column.widthWithMargins = 0
             }
             if (specs.compareAndSetColumnsWidth(index, column)) {
+                // 前面的列宽发生变化，scrollX 不变，因此后面的列要往后移动
+                if (specs.isScrollableFirstVisibleMarkValid && specs.scrollableFirstVisibleColumnIndex > index) {
+                    specs.resetScrollableFirstVisibleColumn()
+                }
                 columnsSizeChanged = true
             }
 
@@ -167,8 +171,9 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         var x = 0
         val rowHeight = getRowHeight(context)
         val maxSize = min(columns.size, specs.columnsCount)
+        val snapWidth = specs.getSnapWidth()
         for (i in 0 until maxSize) {
-            if (i == specs.stickyColumnsCount) x = 0
+            if (i == specs.stickyColumnsCount) x = -snapWidth
             val column = columns[i]
             x = layoutColumn(context, i, column, x, rowHeight, specs)
         }
@@ -205,9 +210,12 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         specs: TableSpecs
     ) {
         val rowHeight = getRowHeight(context)
+        if (!specs.isScrollableFirstVisibleMarkValid) {
+            specs.resetScrollableFirstVisibleColumn()
+        }
+
         val startIndex = specs.scrollableFirstVisibleColumnIndex
         var x = specs.scrollableFirstVisibleColumnLeft
-
         for (i in startIndex until specs.columnsCount) {
             if (!specs.isColumnVisible(i)) continue
             val column = columns[i]
@@ -289,11 +297,9 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         rowHeight: Int,
         specs: TableSpecs
     ): Int {
-        val snapWidth = if(specs.snapColumnsCount > 0 && index >= specs.stickyColumnsCount) specs.getSnapWidth() else 0
-        val columnLeft = x - snapWidth
-        column.columnLeft = columnLeft
+        column.columnLeft = x
         column.columnTop = 0
-        column.columnRight = columnLeft + specs.visibleColumnsWidth[index]
+        column.columnRight = x + specs.visibleColumnsWidth[index]
         column.columnBottom = rowHeight
 
         val top: Int
@@ -338,7 +344,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         if (column is DrawableColumn) {
             column.prepareToDraw(context, rowShareElements)
         }
-        return column.columnRight + snapWidth
+        return column.columnRight
     }
 
     private fun drawColumnsDivider(canvas: Canvas, column: Column, specs: TableSpecs) {

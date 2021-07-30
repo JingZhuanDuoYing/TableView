@@ -14,6 +14,7 @@ import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import kotlin.math.max
 
 class RowLayout @JvmOverloads constructor(
@@ -260,6 +261,9 @@ class RowLayout @JvmOverloads constructor(
             }
         }
 
+        if(!specs.isScrollableFirstVisibleMarkValid) {
+            specs.resetScrollableFirstVisibleColumn()
+        }
         val drawStartIndex = specs.scrollableFirstVisibleColumnIndex
         var scrollableColumnLeft =
             specs.scrollableFirstVisibleColumnLeft - specs.scrollX + specs.stickyWidth

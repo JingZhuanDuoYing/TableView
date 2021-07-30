@@ -6,6 +6,7 @@ import android.support.v7.widget.RecyclerView
 import android.util.SparseIntArray
 import cn.jingzhuan.tableview.element.Column
 import cn.jingzhuan.tableview.element.HeaderRow
+import timber.log.Timber
 import kotlin.math.max
 
 class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
@@ -38,6 +39,7 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
     /**
      * help to locate column by coordinate
      */
+    internal var isScrollableFirstVisibleMarkValid = false
     internal var scrollableFirstVisibleColumnIndex = 0
         private set
     internal var scrollableFirstVisibleColumnLeft = 0
@@ -77,14 +79,24 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         if (this.scrollX == scrollX) return
         val dx = scrollX - this.scrollX
         this.scrollX = scrollX
-        if (scrollableFirstVisibleColumnLeft <= scrollX && scrollableFirstVisibleColumnLeft + visibleColumnsWidth[scrollableFirstVisibleColumnIndex] >= scrollX) {
+
+        if (isScrollableFirstVisibleMarkValid &&
+            scrollableFirstVisibleColumnLeft <= scrollX
+            && scrollableFirstVisibleColumnLeft + visibleColumnsWidth[scrollableFirstVisibleColumnIndex] >= scrollX
+        ) {
+            // 最左面的字段没有发生变化
             return
         }
+
+        if (!isScrollableFirstVisibleMarkValid) {
+            resetScrollableFirstVisibleColumn()
+        }
+
         if (dx > 0) {
             var left =
                 scrollableFirstVisibleColumnLeft + visibleColumnsWidth[scrollableFirstVisibleColumnIndex]
             for (i in scrollableFirstVisibleColumnIndex + 1 until columnsCount) {
-                if (left <= scrollX && left + visibleColumnsWidth[i] >= scrollX) {
+                if (scrollX in left until left + visibleColumnsWidth[i]) {
                     scrollableFirstVisibleColumnIndex = i
                     scrollableFirstVisibleColumnLeft = left
                     return
@@ -95,7 +107,7 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
             var left = scrollableFirstVisibleColumnLeft
             for (i in scrollableFirstVisibleColumnIndex downTo stickyColumnsCount) {
                 if (i != scrollableFirstVisibleColumnIndex) left -= visibleColumnsWidth[i]
-                if (left <= scrollX && left + visibleColumnsWidth[i] >= scrollX) {
+                if (scrollX in left until left + visibleColumnsWidth[i]) {
                     scrollableFirstVisibleColumnIndex = i
                     scrollableFirstVisibleColumnLeft = left
                     return
@@ -229,10 +241,6 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
             }
         }
 
-        if (scrollableFirstVisibleColumnIndex > index) {
-            resetScrollableFirstVisibleColumn()
-        }
-
         return changed
     }
 
@@ -261,16 +269,30 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         onColumnsWidthWithMarginsChanged?.invoke(layoutManager)
     }
 
-    private fun resetScrollableFirstVisibleColumn() {
-        var left = 0
-        for (i in stickyColumnsCount until columnsCount) {
-            if (left <= scrollX && left + visibleColumnsWidth[i] >= scrollX) {
+    internal fun resetScrollableFirstVisibleColumn() {
+        val snapWidth = getSnapWidth()
+        var left: Int
+        val startColumnIndex: Int
+        if (snapColumnsCount > 0 && snapWidth <= 0) {
+            startColumnIndex = stickyColumnsCount + snapColumnsCount
+            left = 0
+            isScrollableFirstVisibleMarkValid = false
+        } else {
+            startColumnIndex = stickyColumnsCount
+            left = -snapWidth
+        }
+        for (i in startColumnIndex until columnsCount) {
+            val right = left + visibleColumnsWidth[i]
+            if (scrollX in left until right) {
                 scrollableFirstVisibleColumnIndex = i
                 scrollableFirstVisibleColumnLeft = left
+                isScrollableFirstVisibleMarkValid = true
                 return
             }
             left += visibleColumnsWidth[i]
         }
+        scrollableFirstVisibleColumnIndex = stickyColumnsCount + snapColumnsCount
+        scrollableFirstVisibleColumnLeft = 0
     }
 
     internal fun getSnapWidth(): Int {

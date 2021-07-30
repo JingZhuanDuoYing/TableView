@@ -160,7 +160,7 @@ class ColumnsLayoutManager : Serializable {
         return false
     }
 
-    internal fun adjustSnapScrollXAfterColumnsWidthChanged() {
+    private fun adjustSnapScrollXAfterColumnsWidthChanged() {
         if (specs.scrollX >= 0) return
         val snapWidth = specs.getSnapWidth()
         if (snapWidth <= 0) return
@@ -332,6 +332,7 @@ class ColumnsLayoutManager : Serializable {
         if (layoutOnly || pendingLayout || !initialized || row.forceLayout) {
             if (specs.stretchMode) specs.compareAndSetStretchColumnsWidth()
             if (specs.compareAndSetSnapColumnsWidth()) measureSnapViewColumns()
+            if (pendingLayout) specs.resetScrollableFirstVisibleColumn()
             row.layout(context, specs)
 
             var viewIndex = 0
