@@ -81,6 +81,15 @@ open class TableView @JvmOverloads constructor(
 
     private val glowHelper by lazyNone { GlowHelper(this) }
 
+    private val notifyDataSetChangedRunnable by lazyNone {
+        object: Runnable {
+            override fun run() {
+                removeCallbacks(this)
+                adapter.notifyDataSetChanged()
+            }
+        }
+    }
+
     init {
         orientation = VERTICAL
 
@@ -301,7 +310,15 @@ open class TableView @JvmOverloads constructor(
 
     // </editor-fold desc="Glow">    ---------------------------------------------------------
     fun notifyDataSetChanged() {
-        adapter.notifyDataSetChanged()
+        notifyDataSetChanged(true)
+    }
+
+    fun notifyDataSetChanged(delayWhenAnimating: Boolean = true) {
+        if(isSnapAnimating()) {
+            postDelayed(notifyDataSetChangedRunnable, 300)
+        } else {
+            notifyDataSetChangedRunnable.run()
+        }
     }
 
     private fun setAdapter(adapter: IRowListAdapterDelegate) {
