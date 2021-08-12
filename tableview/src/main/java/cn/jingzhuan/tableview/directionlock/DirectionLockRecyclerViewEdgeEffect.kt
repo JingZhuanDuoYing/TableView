@@ -1,7 +1,7 @@
 package cn.jingzhuan.tableview.directionlock
 
 import android.graphics.Canvas
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.widget.EdgeEffect
 
 internal class DirectionLockRecyclerViewEdgeEffect(private val view: RecyclerView, @RecyclerView.EdgeEffectFactory.EdgeDirection private val direction: Int) :

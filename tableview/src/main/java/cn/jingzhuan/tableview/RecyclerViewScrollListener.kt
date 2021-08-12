@@ -1,7 +1,7 @@
 package cn.jingzhuan.tableview
 
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 internal class RecyclerViewScrollListener(
     var verticalScrollCallback: (() -> Unit)? = null,

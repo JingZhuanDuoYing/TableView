@@ -1,9 +1,9 @@
 package cn.jingzhuan.tableview.layoutmanager
 
 import android.graphics.Paint
-import android.support.annotation.ColorInt
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.util.SparseIntArray
+import androidx.annotation.ColorInt
 import cn.jingzhuan.tableview.element.Column
 import cn.jingzhuan.tableview.element.HeaderRow
 import timber.log.Timber

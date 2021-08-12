@@ -1,6 +1,6 @@
 package cn.jingzhuan.tableview.annotations;
 
-import android.support.annotation.Dimension;
+import androidx.annotation.Dimension;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

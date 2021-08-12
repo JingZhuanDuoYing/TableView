@@ -6,12 +6,12 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
-import android.support.annotation.ColorInt
 import android.text.*
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.ColorInt
 import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.sp
 import java.io.ObjectInputStream

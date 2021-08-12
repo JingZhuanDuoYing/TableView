@@ -3,7 +3,7 @@ package cn.jingzhuan.tableview.layoutmanager
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.view.View.MeasureSpec
 import android.view.ViewGroup

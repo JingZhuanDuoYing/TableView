@@ -1,6 +1,6 @@
 package cn.jingzhuan.tableview.adapter
 
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 
 internal class AdapterDataObserver(private val onChanged: (() -> Unit)) : RecyclerView.AdapterDataObserver() {
 

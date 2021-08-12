@@ -1,7 +1,7 @@
 package cn.jingzhuan.tableview
 
-import android.support.v7.widget.RecyclerView
 import android.view.View
+import androidx.recyclerview.widget.RecyclerView
 import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
 

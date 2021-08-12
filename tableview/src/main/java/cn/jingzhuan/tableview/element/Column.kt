@@ -1,10 +1,10 @@
 package cn.jingzhuan.tableview.element
 
 import android.content.Context
-import android.support.annotation.Px
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.Px
 import cn.jingzhuan.tableview.annotations.DP
 import cn.jingzhuan.tableview.dp
 import cn.jingzhuan.tableview.listeners.OnColumnClickListener

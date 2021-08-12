@@ -3,9 +3,6 @@ package cn.jingzhuan.tableview
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
-import android.support.annotation.ColorInt
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
@@ -14,6 +11,9 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import android.view.ViewGroup
+import androidx.annotation.ColorInt
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import cn.jingzhuan.tableview.adapter.IRowListAdapterDelegate
 import cn.jingzhuan.tableview.adapter.RowListAdapter
 import cn.jingzhuan.tableview.adapter.RowListAdapterDelegate
