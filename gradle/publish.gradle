@@ -1,18 +1,6 @@
 apply plugin: 'maven-publish'
 
-def publishVersion = '1.1.6'
-
-task buildSdk {
-    dependsOn ':tableview:assembleRelease'
-    doLast {
-        exec {
-            workingDir "${rootProject.projectDir}"
-            commandLine './jetifier-standalone/bin/jetifier-standalone', '-i',
-                    'tableview/build/outputs/aar/tableview-release.aar', '-o',
-                    'tableview/build/outputs/aar/tableview-release-jetified.aar'
-        }
-    }
-}
+def publishVersion = '1.1.7'
 
 def sourceJar(String name, String path) {
     return tasks.create("source${name.capitalize()}Jar", Jar) {
@@ -29,7 +17,7 @@ def setGeneratePomFileAndDepends(publicationName) {
     model {
         tasks."generatePomFileFor${publicationName.capitalize()}Publication" {
             destination = file("$buildDir/pom/$publicationName-pom.xml")
-            dependsOn(buildSdk)
+            dependsOn(':tableview:assembleRelease')
         }
     }
 }
@@ -55,15 +43,7 @@ publishing {
             artifact ("./tableview/build/outputs/aar/tableview-release.aar")
             artifact sourceJar("tableview", "./tableview")
         }
-        tableview_jetified(MavenPublication) {
-            groupId 'cn.jingzhuan.lib'
-            artifactId 'tableview-jetified'
-            version publishVersion
-            artifact ("./tableview/build/outputs/aar/tableview-release-jetified.aar")
-            artifact sourceJar("tableview_jetified", "./tableview")
-        }
     }
 }
 
 setGeneratePomFileAndDepends('tableview')
-setGeneratePomFileAndDepends('tableview_jetified')
