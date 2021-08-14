@@ -6,6 +6,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProviders
 import cn.jingzhuan.tableview.demo.R
 import cn.jingzhuan.tableview.demo.databinding.ActivityLesson9Binding
+import cn.jingzhuan.tableview.demo.dp
 
 class Lesson9Activity : AppCompatActivity() {
 
@@ -26,6 +27,10 @@ class Lesson9Activity : AppCompatActivity() {
         }
 
         viewModel.fetch(this, 100, 15)
+
+        binding.tableView.postDelayed({
+            binding.tableView.startSnapColumnsDemonstrationAnimation(dp(80F).toInt(), 500, 500, 500)
+        }, 2000)
     }
 
 }

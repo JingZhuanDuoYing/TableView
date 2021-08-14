@@ -82,7 +82,7 @@ open class TableView @JvmOverloads constructor(
     private val glowHelper by lazyNone { GlowHelper(this) }
 
     private val notifyDataSetChangedRunnable by lazyNone {
-        object: Runnable {
+        object : Runnable {
             override fun run() {
                 removeCallbacks(this)
                 adapter.notifyDataSetChanged()
@@ -159,6 +159,10 @@ open class TableView @JvmOverloads constructor(
 
     fun updateTableSize(columns: Int, stickyColumnsCount: Int, snapColumnsCount: Int) {
         columnsLayoutManager.updateTableSize(columns, stickyColumnsCount, snapColumnsCount)
+    }
+
+    fun startSnapColumnsDemonstrationAnimation(depth: Int, enterDuration: Long, stayDuration: Long, exitDuration: Long) {
+        columnsLayoutManager.animateSnapColumnsDemonstration(depth, enterDuration, stayDuration, exitDuration)
     }
 
     fun setRowsDividerEnabled(
@@ -314,7 +318,7 @@ open class TableView @JvmOverloads constructor(
     }
 
     fun notifyDataSetChanged(delayWhenAnimating: Boolean = true) {
-        if(isSnapAnimating()) {
+        if (isSnapAnimating()) {
             postDelayed(notifyDataSetChangedRunnable, 300)
         } else {
             notifyDataSetChangedRunnable.run()

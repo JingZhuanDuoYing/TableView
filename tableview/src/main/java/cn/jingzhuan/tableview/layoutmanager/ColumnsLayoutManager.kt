@@ -139,7 +139,7 @@ class ColumnsLayoutManager : Serializable {
                 scrollHorizontallyBy(animateDx)
             }
             snapAnimator = animator
-            snapAnimator?.start()
+            animator.start()
             return true
         } else if (state == RecyclerView.SCROLL_STATE_IDLE && specs.scrollX < 0) {
             if (snapAnimator?.isRunning == true) return true
@@ -155,9 +155,36 @@ class ColumnsLayoutManager : Serializable {
                 scrollHorizontallyBy(animateDx)
             }
             snapAnimator = animator
-            snapAnimator?.start()
+            animator.start()
         }
         return false
+    }
+
+    internal fun animateSnapColumnsDemonstration(depth: Int, enterDuration: Long, stayDuration: Long, exitDuration: Long) {
+        if (specs.snapColumnsCount <= 0) return
+        val snapWidth = specs.getSnapWidth()
+        if (snapWidth <= 0) return
+        if (snapAnimator?.isRunning == true) return
+        snapAnimator?.cancel()
+        val duration = enterDuration + stayDuration + exitDuration
+        val animator = ValueAnimator.ofInt(0, duration.toInt())
+        animator.duration = duration
+        animator.addUpdateListener {
+            val current = it.animatedValue as Int
+            if(current < enterDuration) {
+                val progress = current / enterDuration.toFloat()
+                val scrollX = depth * progress * -1F
+                val dx = scrollX - specs.scrollX
+                scrollHorizontallyBy(dx.toInt())
+            } else if(current >= enterDuration + stayDuration) {
+                val progress = (current - enterDuration - stayDuration) / exitDuration.toFloat()
+                val scrollX = depth * (1 - progress) * -1F
+                val dx = scrollX - specs.scrollX
+                scrollHorizontallyBy(dx.toInt())
+            }
+        }
+        snapAnimator = animator
+        animator.start()
     }
 
     private fun adjustSnapScrollXAfterColumnsWidthChanged() {
