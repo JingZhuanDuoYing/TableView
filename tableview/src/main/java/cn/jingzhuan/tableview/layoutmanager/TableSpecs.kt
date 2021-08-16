@@ -132,6 +132,7 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         this.averageStretchColumnWidth = 0
         visibleColumnsWidth.clear()
         realColumnsWidth.clear()
+        stickyWidth = 0
         onColumnsWidthChanged()
         resetScrollableFirstVisibleColumn()
     }
