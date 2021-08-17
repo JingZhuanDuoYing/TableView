@@ -133,6 +133,7 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
         visibleColumnsWidth.clear()
         realColumnsWidth.clear()
         stickyWidth = 0
+        if (scrollX < 0 && snapColumnsCount <= 0) scrollX = 0
         onColumnsWidthChanged()
         resetScrollableFirstVisibleColumn()
     }

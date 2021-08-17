@@ -61,7 +61,10 @@ class ColumnsLayoutManager : Serializable {
         snapColumnsCount: Int = 0
     ) {
         specs.updateTableSize(columnsSize, stickyColumns, snapColumnsCount)
-        attachedRows.forEach { it.row?.forceLayout = true }
+        attachedRows.forEach {
+            it.scrollX = specs.scrollX
+            it.row?.forceLayout = true
+        }
     }
 
     fun setCoroutineEnabled(enable: Boolean) {

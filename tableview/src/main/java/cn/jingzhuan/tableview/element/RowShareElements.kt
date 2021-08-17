@@ -27,23 +27,28 @@ class RowShareElements {
 
     fun getPaint(@Px textSize: Float, @ColorInt color: Int, typeface: Typeface): RowShareTextPaint {
         val key = getKey(textSize, color, typeface)
-        if (paintPool.contains(key)) return paintPool.getValue(key).acquire()
-        var paint: RowShareTextPaint? = null
-        if (paintPool.size > paintLimitCount) {
-            val found = paintPool.entries.find { !it.value.acquired }
-            if (null != found) {
-                paint = found.value
-                paintPool.remove(found.key)
-            }
+        var paint: RowShareTextPaint? = try {
+            paintPool[key]
+        } catch (e: Exception) {
+            // give up handling ConcurrentModificationException, take performance at first position
+            e.printStackTrace()
+            null
         }
-        if (null == paint) paint = RowShareTextPaint()
+        if (null != paint) {
+            paint.acquire()
+            paint.doOnRelease = { onReleasePaint(it) }
+            return paint
+        }
+        paint = RowShareTextPaint()
         paint.isAntiAlias = true
         paint.isDither = true
         paint.color = color
         paint.textSize = textSize
         paint.typeface = typeface
         paintPool[key] = paint
-        return paint.acquire()
+        paint.acquire()
+        paint.doOnRelease = { onReleasePaint(it) }
+        return paint
     }
 
     private fun getKey(textSize: Float, color: Int, typeface: Typeface): Int {
@@ -54,4 +59,9 @@ class RowShareElements {
         return result
     }
 
+    private fun onReleasePaint(paint: RowShareTextPaint) {
+        if (paintPool.size <= paintLimitCount) return
+        val key = getKey(paint.textSize, paint.color, paint.typeface)
+        paintPool.remove(key)
+    }
 }

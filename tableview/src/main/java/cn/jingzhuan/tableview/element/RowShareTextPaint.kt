@@ -8,6 +8,7 @@ class RowShareTextPaint : TextPaint {
     constructor() : super()
     constructor(flags: Int) : super(flags)
     constructor(p: Paint?) : super(p)
+    internal var doOnRelease: ((RowShareTextPaint) -> Unit)? = null
 
     var acquired: Boolean = false
 
@@ -18,6 +19,7 @@ class RowShareTextPaint : TextPaint {
 
     fun release() {
         acquired = false
+        doOnRelease?.invoke(this)
     }
 
 }
