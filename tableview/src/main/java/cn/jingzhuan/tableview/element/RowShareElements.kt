@@ -13,6 +13,7 @@ class RowShareElements {
     internal val rect2 by lazyNone { Rect() }
 
     private var paintLimitCount = 3
+
     @delegate:Transient
     private val paintPool by lazyNone { mutableMapOf<Int, RowShareTextPaint>() }
 
@@ -60,8 +61,12 @@ class RowShareElements {
     }
 
     private fun onReleasePaint(paint: RowShareTextPaint) {
-        if (paintPool.size <= paintLimitCount) return
-        val key = getKey(paint.textSize, paint.color, paint.typeface)
-        paintPool.remove(key)
+        try {
+            if (paintPool.size <= paintLimitCount) return
+            val key = getKey(paint.textSize, paint.color, paint.typeface)
+            paintPool.remove(key)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }

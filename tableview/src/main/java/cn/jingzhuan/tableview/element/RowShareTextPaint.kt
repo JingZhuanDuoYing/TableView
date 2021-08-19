@@ -10,6 +10,7 @@ class RowShareTextPaint : TextPaint {
     constructor(p: Paint?) : super(p)
     internal var doOnRelease: ((RowShareTextPaint) -> Unit)? = null
 
+    @Transient
     var acquired: Boolean = false
 
     fun acquire(): RowShareTextPaint {
