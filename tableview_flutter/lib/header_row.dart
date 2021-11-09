@@ -17,5 +17,6 @@ class HeaderRow extends TableRow {
     rows.forEach((row) {
       row.columns.forEach((column) => specs.measureColumn(row, column));
     });
+    specs.applyStretchWidthIfInNeed();
   }
 }
