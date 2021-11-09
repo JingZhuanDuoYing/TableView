@@ -37,6 +37,7 @@ class _TableViewState extends State<TableView> {
   @override
   void initState() {
     super.initState();
+    widget.specs.screenWidth = MediaQuery.of(context).size.width;
     if (widget.specs.stickyColumnsCount > 0) {
       for (var i = 0; i < widget.specs.stickyColumnsCount; i++) {
         widget.specs.viewColumnsWidthListener[i] = () {

@@ -16,6 +16,8 @@ class TableSpecs {
 
   @internal
   late List<double> viewColumnsWidth;
+  @internal
+  late List<double> realColumnsWidth;
   var _controllers = Set();
   var _idleControllers = Set();
 
@@ -29,7 +31,10 @@ class TableSpecs {
   int stickyColumnsCount = 0;
   double defaultViewColumnsWidth = 90;
 
+  double screenWidth = 0;
   bool stretchMode = false;
+  @internal
+  bool stretchModeFlag = true;
   double _averageStretchColumnWidth = 0;
 
   Color? dividerColor;
@@ -50,6 +55,8 @@ class TableSpecs {
 
     viewColumnsWidth =
         List.filled(headerRow.columns.length, defaultViewColumnsWidth);
+    realColumnsWidth =
+        List.filled(headerRow.columns.length, defaultViewColumnsWidth);
     viewColumnsWidthListener = List.filled(headerRow.columns.length, null);
   }
 
@@ -60,6 +67,7 @@ class TableSpecs {
       column.columnWidth = 0;
       column.columnHeight = 0;
       viewColumnsWidth[index] = 0;
+      realColumnsWidth[index] = 0;
     } else if (null != column.width && null != column.height) {
       column.columnWidth = column.width!;
       column.columnHeight = column.height!;
@@ -88,11 +96,37 @@ class TableSpecs {
       }
     }
 
+    double realColumnWidth = max(column.columnWidth, realColumnsWidth[index]);
+    if (realColumnWidth != realColumnsWidth[index]) {
+      realColumnsWidth[index] = realColumnWidth;
+      stretchModeFlag = true;
+    }
     double viewColumnWidth = max(column.columnWidth, viewColumnsWidth[index]);
     if (viewColumnWidth != viewColumnsWidth[index]) {
       viewColumnsWidth[index] = viewColumnWidth;
       viewColumnsWidthListener[index]?.call();
     }
+  }
+
+  void applyStretchWidthIfInNeed() {
+    if (!stretchMode) return;
+    if (screenWidth <= 0) return;
+    if (!stretchModeFlag) return;
+    var stickyWidth = 0.0;
+    for (var i = 0; i < stickyColumnsCount; i++) {
+      stickyWidth += realColumnsWidth[i];
+    }
+    var availableWidth = screenWidth - stickyWidth;
+    if (availableWidth <= 0) return;
+    var total = 0.0;
+    for (var i = stickyColumnsCount; i < realColumnsWidth.length; i++) {
+      total += realColumnsWidth[i];
+    }
+    for (var i = stickyColumnsCount; i < realColumnsWidth.length; i++) {
+      var weight = realColumnsWidth[i] / total;
+      viewColumnsWidth[i] = availableWidth * weight;
+    }
+    stretchModeFlag = false;
   }
 
   bool isColumnVisible(int index) {
