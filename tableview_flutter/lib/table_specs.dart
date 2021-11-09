@@ -101,10 +101,12 @@ class TableSpecs {
       realColumnsWidth[index] = realColumnWidth;
       stretchModeFlag = true;
     }
-    double viewColumnWidth = max(column.columnWidth, viewColumnsWidth[index]);
-    if (viewColumnWidth != viewColumnsWidth[index]) {
-      viewColumnsWidth[index] = viewColumnWidth;
-      viewColumnsWidthListener[index]?.call();
+    if (stretchModeFlag) {
+      double viewColumnWidth = max(column.columnWidth, viewColumnsWidth[index]);
+      if (viewColumnWidth != viewColumnsWidth[index]) {
+        viewColumnsWidth[index] = viewColumnWidth;
+        viewColumnsWidthListener[index]?.call();
+      }
     }
   }
 
