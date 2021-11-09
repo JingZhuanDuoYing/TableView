@@ -37,7 +37,6 @@ class _TableViewState extends State<TableView> {
   @override
   void initState() {
     super.initState();
-    widget.specs.screenWidth = MediaQuery.of(context).size.width;
     if (widget.specs.stickyColumnsCount > 0) {
       for (var i = 0; i < widget.specs.stickyColumnsCount; i++) {
         widget.specs.viewColumnsWidthListener[i] = () {
@@ -59,6 +58,9 @@ class _TableViewState extends State<TableView> {
 
   @override
   Widget build(BuildContext context) {
+    if(widget.specs.screenWidth <= 0) {
+      widget.specs.screenWidth = MediaQuery.of(context).size.width;
+    }
     var headerRowHeight = widget.headerRow.rowHeight;
     var stickyRowsHeight = .0;
     for (var i = 0; i < widget.headerRow.stickyRows.length; i++) {
