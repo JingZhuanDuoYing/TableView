@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tableview_flutter/no_glow_behavior.dart';
@@ -16,10 +15,12 @@ class TableView extends StatefulWidget {
   final ColumnGestureDetectorCreator? columnGestureDetectorCreator;
   final TableViewScrollStateListener? scrollStateListener;
   final VoidCallback? onScrollToEndListener;
+  final ScrollController? scrollController;
 
   TableView(
     this.headerRow,
     this.specs, {
+    this.scrollController,
     this.columnGestureDetectorCreator,
     this.onScrollToEndListener,
     this.scrollStateListener,
@@ -32,11 +33,12 @@ class TableView extends StatefulWidget {
 class _TableViewState extends State<TableView> {
   bool _scrollingHorizontally = false;
   bool _scrollingVertically = false;
-  var controller = ScrollController();
+  late ScrollController controller;
 
   @override
   void initState() {
     super.initState();
+    controller = widget.scrollController ?? ScrollController();
     if (widget.specs.stickyColumnsCount > 0) {
       for (var i = 0; i < widget.specs.stickyColumnsCount; i++) {
         widget.specs.viewColumnsWidthListener[i] = () {
@@ -58,7 +60,7 @@ class _TableViewState extends State<TableView> {
 
   @override
   Widget build(BuildContext context) {
-    if(widget.specs.screenWidth <= 0) {
+    if (widget.specs.screenWidth <= 0) {
       widget.specs.screenWidth = MediaQuery.of(context).size.width;
     }
     var headerRowHeight = widget.headerRow.rowHeight;
