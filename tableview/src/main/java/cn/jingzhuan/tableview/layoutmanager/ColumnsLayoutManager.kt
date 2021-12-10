@@ -3,20 +3,25 @@ package cn.jingzhuan.tableview.layoutmanager
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Looper
 import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.view.View.MeasureSpec
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
-import cn.jingzhuan.tableview.RowLayout
+import cn.jingzhuan.tableview.*
 import cn.jingzhuan.tableview.element.DrawableColumn
 import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.element.ViewColumn
+import cn.jingzhuan.tableview.firstOrNullSafer
 import cn.jingzhuan.tableview.lazyNone
 import cn.jingzhuan.tableview.runOnMainThread
 import timber.log.Timber
 import java.io.ObjectInputStream
 import java.io.Serializable
+import java.util.*
+import java.util.concurrent.CopyOnWriteArraySet
+import kotlin.collections.LinkedHashSet
 import kotlin.math.max
 import kotlin.math.min
 
@@ -25,18 +30,18 @@ class ColumnsLayoutManager : Serializable {
     internal val specs by lazyNone { TableSpecs(this) }
 
     @Transient
-    private var attachedRows = mutableSetOf<RowLayout>()
+    private var attachedRows = LinkedHashSet<RowLayout>(26)
 
     @Transient
     internal var snapAnimator: ValueAnimator? = null
 
     private val runnable = Runnable {
-        attachedRows.forEach { it.layout() }
+        attachedRows.forEachSafe { it.layout() }
     }
 
     init {
         specs.onColumnsWidthWithMarginsChanged = OnColumnsWidthWithMarginsChanged@{
-            val parent = attachedRows.firstOrNull()?.parent as? View
+            val parent = attachedRows.firstOrNullSafer()?.parent as? View
                 ?: return@OnColumnsWidthWithMarginsChanged
             parent.removeCallbacks(runnable)
             parent.post(runnable)
@@ -45,7 +50,7 @@ class ColumnsLayoutManager : Serializable {
 
     private fun readObject(inputStream: ObjectInputStream) {
         inputStream.defaultReadObject()
-        attachedRows = mutableSetOf()
+        attachedRows = LinkedHashSet(26)
     }
 
     fun updateTableSize(
@@ -61,7 +66,7 @@ class ColumnsLayoutManager : Serializable {
         snapColumnsCount: Int = 0
     ) {
         specs.updateTableSize(columnsSize, stickyColumns, snapColumnsCount)
-        attachedRows.forEach {
+        attachedRows.forEachSafe {
             it.scrollX = specs.scrollX
             it.row?.forceLayout = true
         }
@@ -72,7 +77,7 @@ class ColumnsLayoutManager : Serializable {
     }
 
     fun randomRowLayout(): RowLayout? {
-        return attachedRows.firstOrNull()
+        return attachedRows.firstOrNullSafer()
     }
 
     fun forceDetachAllRowLayouts() {
@@ -80,15 +85,15 @@ class ColumnsLayoutManager : Serializable {
     }
 
     fun attachRowLayout(layout: RowLayout) {
-        attachedRows.add(layout)
+        attachedRows.addSafer(layout)
     }
 
     fun detachRowLayout(layout: RowLayout) {
-        attachedRows.remove(layout)
+        attachedRows.removeSafer(layout)
     }
 
     fun containsRowLayout(layout: RowLayout): Boolean {
-        return attachedRows.contains(layout)
+        return attachedRows.containsSafer(layout)
     }
 
     fun scrollHorizontallyBy(dx: Int): Int {
@@ -119,7 +124,7 @@ class ColumnsLayoutManager : Serializable {
             specs.updateScrollX(expectScrollX)
         }
         // 调整当前持有的所有RowLayout
-        attachedRows.forEach { it.scrollTo(specs.scrollX, 0) }
+        attachedRows.forEachSafe { it.scrollTo(specs.scrollX, 0) }
         return consumed
     }
 
@@ -438,16 +443,16 @@ class ColumnsLayoutManager : Serializable {
 
     private fun measureSnapViewColumns() {
         if (specs.snapColumnsCount <= 0) return
-        attachedRows.forEach {
+        attachedRows.forEachSafe {
             var viewIndex = 0
             @Suppress("UseWithIndex")
             for (i in 0 until specs.stickyColumnsCount + specs.snapColumnsCount) {
-                val column = it.row?.columns?.getOrNull(i) ?: return@forEach
+                val column = it.row?.columns?.getOrNull(i) ?: return@forEachSafe
                 if (column !is ViewColumn) continue
                 val currentViewIndex = viewIndex
                 viewIndex++
                 if (i < specs.stickyColumnsCount) continue
-                val view = it.getChildAt(currentViewIndex) ?: return@forEach
+                val view = it.getChildAt(currentViewIndex) ?: return@forEachSafe
                 view.layoutParams.width = specs.visibleColumnsWidth[i]
                 column.measureView(view)
             }
