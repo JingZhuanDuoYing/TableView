@@ -257,17 +257,23 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
     }
 
     fun onColumnsWidthChanged() {
-        stickyWidth = 0
-        visibleScrollableVirtualWidth = 0
-        realScrollableVirtualWidth = 0
+        var newStickyWidth = 0
+        var newVisibleScrollVirtualWidth = 0
+        var newRealScrollableVirtualWidth = 0
+
         for (i in 0 until columnsCount) {
             if (i < stickyColumnsCount) {
-                stickyWidth += visibleColumnsWidth[i]
+                newStickyWidth += visibleColumnsWidth[i]
             } else {
-                visibleScrollableVirtualWidth += visibleColumnsWidth[i]
-                realScrollableVirtualWidth += realColumnsWidth[i]
+                newVisibleScrollVirtualWidth += visibleColumnsWidth[i]
+                newRealScrollableVirtualWidth += realColumnsWidth[i]
             }
         }
+
+        stickyWidth = newStickyWidth
+        visibleScrollableVirtualWidth = newVisibleScrollVirtualWidth
+        realScrollableVirtualWidth = newRealScrollableVirtualWidth
+
         onColumnsWidthWithMarginsChanged?.invoke(layoutManager)
     }
 
