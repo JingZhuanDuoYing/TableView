@@ -141,6 +141,8 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
     private fun getRowForType(type: Int): Row<*>? {
         if (type == IRowListAdapterDelegate.INVALID_VIEW_TYPE) return EmptyRow()
         val headerRow = headerRow ?: return EmptyRow()
+        if(null != typeRowMap[type]) return typeRowMap[type]
+
         headerRow.rows.distinctBy { it.type() }.forEach {
             typeRowMap.put(it.type(), it)
         }
@@ -151,6 +153,8 @@ open class RowListAdapterDelegate : IRowListAdapterDelegate {
         if (type == IRowListAdapterDelegate.INVALID_VIEW_TYPE) return EmptyRow()
         val headerRow = headerRow ?: return EmptyRow()
         if (type == IRowListAdapterDelegate.HEADER_VIEW_TYPE) return headerRow
+        if(null != headerTypeRowMap[type]) return headerTypeRowMap[type]
+
         headerRow.stickyRows.distinctBy { it.type() }.forEach {
             headerTypeRowMap.put(it.type(), it)
         }

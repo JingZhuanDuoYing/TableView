@@ -396,7 +396,7 @@ class ColumnsLayoutManager : Serializable {
 
         // 校准scrollX
         val scrollRange = specs.computeScrollRange()
-        if (specs.scrollX > scrollRange) specs.updateScrollX(scrollRange)
+        if (specs.scrollX > scrollRange && scrollRange > 0) specs.updateScrollX(scrollRange)
         if (scrollableContainer.scrollX != specs.scrollX) {
             scrollableContainer.scrollTo(specs.scrollX, 0)
         } else {
