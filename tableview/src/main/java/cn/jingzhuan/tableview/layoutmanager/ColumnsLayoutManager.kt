@@ -16,6 +16,7 @@ import cn.jingzhuan.tableview.element.ViewColumn
 import cn.jingzhuan.tableview.firstOrNullSafer
 import cn.jingzhuan.tableview.lazyNone
 import cn.jingzhuan.tableview.runOnMainThread
+import timber.log.Timber
 import java.io.ObjectInputStream
 import java.io.Serializable
 import java.util.*
@@ -100,7 +101,10 @@ class ColumnsLayoutManager : Serializable {
 
     fun detachRowLayout(layout: IRowLayout) {
         attachedRows.removeSafer(layout)
-        if (layout.isIndependentScrollRange()) attachedIndependentScrollRows.removeSafer(layout)
+        if (layout.isIndependentScrollRange()) {
+            attachedIndependentScrollRows.removeSafer(layout)
+            calibrateIndependentScrollX()
+        }
     }
 
     fun containsRowLayout(layout: IRowLayout): Boolean {
@@ -111,12 +115,17 @@ class ColumnsLayoutManager : Serializable {
         if (attachedRows.isEmpty()) return 0
         val scrollRange = specs.computeScrollRange()
         val scrollDiff = specs.scrollX - specs.independentScrollX
-        val preConsumed = if(attachedIndependentScrollRows.isNotEmpty() && dx < 0 && scrollDiff > dx) scrollDiff else 0
+        val preConsumed =
+            if (attachedIndependentScrollRows.isNotEmpty() && dx < 0 && scrollDiff in (dx until 0)) {
+                scrollDiff
+            } else {
+                0
+            }
         val consumed = when {
             // 特殊逻辑
             attachedIndependentScrollRows.isNotEmpty() && dx < 0 && scrollDiff < 0 -> {
                 // 向左滚动事件消耗完毕后，独立滚动业务还有余量
-                if(scrollDiff < dx) 0
+                if (scrollDiff < dx) 0
                 // 向左滚动事件消耗完毕后，独立滚动业务没有余量
                 else dx - preConsumed
             }
@@ -149,52 +158,69 @@ class ColumnsLayoutManager : Serializable {
             specs.updateScrollX(expectScrollX)
         }
 
-        // 调整当前持有的所有RowLayout
-        var newIndependentScrollX = specs.independentScrollX
+        // 调整当前持有的所有RowLayout, 计算独立滚动业务消耗值，并更新独立滚动业务的标准值
+        var independentConsumed = 0
         attachedRows.forEachSafe {
             if (it.isIndependentScrollRange()) {
-                it.onScrollBy(dx)
-                newIndependentScrollX = if (dx > 0) {
-                    max(newIndependentScrollX, it.onGetScrollX())
-                } else {
-                    min(newIndependentScrollX, it.onGetScrollX())
-                }
+                val rowConsumed = independentScrollHorizontallyBy(it, dx)
+                if (dx < 0 && rowConsumed < independentConsumed) independentConsumed = rowConsumed
+                if (dx > 0 && rowConsumed > independentConsumed) independentConsumed = rowConsumed
             } else {
                 it.onScrollTo(specs.scrollX, 0)
             }
         }
 
-        // 计算独立滚动业务消耗值，并更新独立滚动业务的标准值
-        val independentConsumed: Int
+        //
         if (attachedIndependentScrollRows.isEmpty()) {
             independentConsumed = consumed
             specs.independentScrollX = specs.scrollX
         } else {
-            independentConsumed = newIndependentScrollX - specs.independentScrollX
-            specs.independentScrollX = newIndependentScrollX
+            specs.independentScrollX += independentConsumed
         }
 
         // 由于两者的滚动逻辑是完全独立的，这里需要返回两者滚动消耗的最大(小)值，否则会影响后续的 fling
-        return if (dx > 0) {
+        val value = if (dx > 0) {
             max(independentConsumed, consumed + preConsumed)
         } else {
             min(independentConsumed, consumed + preConsumed)
         }
+        Log.d(
+            "12345 ",
+            "12345 dx: $dx, value: $value, independentConsumed: $independentConsumed, consumed: $consumed, preConsumed: $preConsumed, scrollDiff: $scrollDiff"
+        )
+        return value
     }
 
     private fun independentScrollHorizontallyBy(dx: Int): Int {
-        var newIndependentScrollX = specs.independentScrollX
+        var consumed = 0
         attachedIndependentScrollRows.forEachSafe {
-            it.onScrollBy(dx)
-            newIndependentScrollX = if (dx > 0) {
-                max(newIndependentScrollX, it.onGetScrollX())
-            } else {
-                min(newIndependentScrollX, it.onGetScrollX())
-            }
+            val rowConsumed = independentScrollHorizontallyBy(it, dx)
+            if (dx < 0 && rowConsumed < consumed) consumed = rowConsumed
+            if (dx > 0 && rowConsumed > consumed) consumed = rowConsumed
         }
-        val independentConsumed = newIndependentScrollX - specs.independentScrollX
-        specs.independentScrollX = newIndependentScrollX
-        return independentConsumed
+        Log.d(
+            "12345",
+            "12345 dx: $dx, independentScrollHorizontallyBy $dx, oldIndependentScrollX: ${specs.independentScrollX}, consumed: $consumed"
+        )
+        specs.independentScrollX += consumed
+        return consumed
+    }
+
+    private fun independentScrollHorizontallyBy(rowLayout: IRowLayout, dx: Int): Int {
+        val oldScrollX = rowLayout.onGetScrollX()
+        var fixedDx = dx
+        if(dx < 0 && oldScrollX > -dx) {
+            if(oldScrollX - specs.independentScrollX < dx) return 0
+            fixedDx = dx + (specs.independentScrollX - oldScrollX)
+        }
+        rowLayout.onScrollBy(fixedDx)
+        return rowLayout.onGetScrollX() - oldScrollX
+    }
+
+    private fun calibrateIndependentScrollX() {
+        val x = attachedIndependentScrollRows.map { it.onGetScrollX() }.maxOrNull() ?: specs.independentScrollX
+        Log.d("12345", "12345 calibrateIndependentScrollX $x, old: ${specs.independentScrollX}")
+        specs.independentScrollX = x
     }
 
     /**

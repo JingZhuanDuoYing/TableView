@@ -19,6 +19,8 @@ interface IRowLayout {
 
     fun onGetScrollX(): Int
 
+    fun onGetScrollRange(): Int
+
     fun realChildCount(): Int
 
     fun doLayout()

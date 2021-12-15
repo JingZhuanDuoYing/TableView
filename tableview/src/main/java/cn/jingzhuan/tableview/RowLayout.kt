@@ -220,6 +220,10 @@ class RowLayout @JvmOverloads constructor(
         return scrollableContainer.scrollX
     }
 
+    override fun onGetScrollRange(): Int {
+        return layoutManager?.specs?.computeScrollRange() ?: 0
+    }
+
     override fun doLayout() {
         layout()
     }
