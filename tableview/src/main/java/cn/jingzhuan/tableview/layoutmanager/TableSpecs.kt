@@ -36,6 +36,9 @@ class TableSpecs(private val layoutManager: ColumnsLayoutManager) {
     var scrollX = 0
         private set
 
+    var independentScrollX = 0
+        internal set
+
     /**
      * help to locate column by coordinate
      */

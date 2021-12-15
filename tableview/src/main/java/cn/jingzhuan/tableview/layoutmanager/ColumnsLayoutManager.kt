@@ -3,7 +3,7 @@ package cn.jingzhuan.tableview.layoutmanager
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Looper
+import android.util.Log
 import androidx.recyclerview.widget.RecyclerView
 import android.view.View
 import android.view.View.MeasureSpec
@@ -16,12 +16,12 @@ import cn.jingzhuan.tableview.element.ViewColumn
 import cn.jingzhuan.tableview.firstOrNullSafer
 import cn.jingzhuan.tableview.lazyNone
 import cn.jingzhuan.tableview.runOnMainThread
-import timber.log.Timber
 import java.io.ObjectInputStream
 import java.io.Serializable
 import java.util.*
-import java.util.concurrent.CopyOnWriteArraySet
+import kotlin.collections.LinkedHashMap
 import kotlin.collections.LinkedHashSet
+import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
 
@@ -30,18 +30,21 @@ class ColumnsLayoutManager : Serializable {
     internal val specs by lazyNone { TableSpecs(this) }
 
     @Transient
-    private var attachedRows = LinkedHashSet<RowLayout>(26)
+    private var attachedRows = LinkedHashSet<IRowLayout>(26)
+
+    @Transient
+    private var attachedIndependentScrollRows = LinkedHashSet<IRowLayout>(26)
 
     @Transient
     internal var snapAnimator: ValueAnimator? = null
 
     private val runnable = Runnable {
-        attachedRows.forEachSafe { it.layout() }
+        attachedRows.forEachSafe { it.doLayout() }
     }
 
     init {
         specs.onColumnsWidthWithMarginsChanged = OnColumnsWidthWithMarginsChanged@{
-            val parent = attachedRows.firstOrNullSafer()?.parent as? View
+            val parent = attachedRows.firstOrNullSafer()?.onGetParentView() as? View
                 ?: return@OnColumnsWidthWithMarginsChanged
             parent.removeCallbacks(runnable)
             parent.post(runnable)
@@ -51,6 +54,7 @@ class ColumnsLayoutManager : Serializable {
     private fun readObject(inputStream: ObjectInputStream) {
         inputStream.defaultReadObject()
         attachedRows = LinkedHashSet(26)
+        attachedIndependentScrollRows = LinkedHashSet(26)
     }
 
     fun updateTableSize(
@@ -67,8 +71,8 @@ class ColumnsLayoutManager : Serializable {
     ) {
         specs.updateTableSize(columnsSize, stickyColumns, snapColumnsCount)
         attachedRows.forEachSafe {
-            it.scrollX = specs.scrollX
-            it.row?.forceLayout = true
+            it.updateScrollX(specs.scrollX)
+            it.onGetRow()?.forceLayout = true
         }
     }
 
@@ -76,7 +80,7 @@ class ColumnsLayoutManager : Serializable {
         specs.enableCoroutine = enable
     }
 
-    fun randomRowLayout(): RowLayout? {
+    fun randomRowLayout(): IRowLayout? {
         return attachedRows.firstOrNullSafer()
     }
 
@@ -84,48 +88,113 @@ class ColumnsLayoutManager : Serializable {
         attachedRows.clear()
     }
 
-    fun attachRowLayout(layout: RowLayout) {
+    fun attachRowLayout(layout: IRowLayout) {
+        if (layout.isIndependentScrollRange()) {
+            layout.updateScrollX(specs.independentScrollX)
+        } else {
+            layout.updateScrollX(specs.scrollX)
+        }
         attachedRows.addSafer(layout)
+        if (layout.isIndependentScrollRange()) attachedIndependentScrollRows.addSafer(layout)
     }
 
-    fun detachRowLayout(layout: RowLayout) {
+    fun detachRowLayout(layout: IRowLayout) {
         attachedRows.removeSafer(layout)
+        if (layout.isIndependentScrollRange()) attachedIndependentScrollRows.removeSafer(layout)
     }
 
-    fun containsRowLayout(layout: RowLayout): Boolean {
+    fun containsRowLayout(layout: IRowLayout): Boolean {
         return attachedRows.containsSafer(layout)
     }
 
     fun scrollHorizontallyBy(dx: Int): Int {
         if (attachedRows.isEmpty()) return 0
         val scrollRange = specs.computeScrollRange()
+        val scrollDiff = specs.scrollX - specs.independentScrollX
+        val preConsumed = if(attachedIndependentScrollRows.isNotEmpty() && dx < 0 && scrollDiff > dx) scrollDiff else 0
         val consumed = when {
-            specs.scrollX > 0 && dx < 0 && specs.scrollX < -dx -> {
-                -specs.scrollX
+            // 特殊逻辑
+            attachedIndependentScrollRows.isNotEmpty() && dx < 0 && scrollDiff < 0 -> {
+                // 向左滚动事件消耗完毕后，独立滚动业务还有余量
+                if(scrollDiff < dx) 0
+                // 向左滚动事件消耗完毕后，独立滚动业务没有余量
+                else dx - preConsumed
             }
-            specs.scrollX < 0 && dx > 0 && -specs.scrollX < dx -> {
-                -specs.scrollX
-            }
+            // 特殊逻辑：向左滚动事件消耗完毕后，统一滚动业务没有余量
+            specs.scrollX > 0 && dx < 0 && specs.scrollX < dx.absoluteValue -> -specs.scrollX
+            // 特殊逻辑：向右滚动事件消耗完毕后，统一滚动业务没有余量
+            specs.scrollX < 0 && dx > 0 && specs.scrollX.absoluteValue < dx -> specs.scrollX.absoluteValue
+            // 普通逻辑
             dx > 0 -> {
                 val maxDx = scrollRange - specs.scrollX
                 min(dx, maxDx)
             }
+            // 普通逻辑
             dx < 0 -> {
                 val minDx = -specs.scrollX - specs.getSnapWidth()
                 max(dx, minDx)
             }
             else -> 0
         }
-        if (consumed == 0 && specs.scrollX <= scrollRange) return 0
+        if (consumed == 0) {
+            // 这里只执行独立滚动逻辑，不需要考虑 preConsumed
+            return independentScrollHorizontallyBy(dx)
+        }
+
+        // 更新值
         val expectScrollX = specs.scrollX + consumed
         if (expectScrollX > scrollRange) {
             specs.updateScrollX(scrollRange)
         } else {
             specs.updateScrollX(expectScrollX)
         }
+
         // 调整当前持有的所有RowLayout
-        attachedRows.forEachSafe { it.scrollTo(specs.scrollX, 0) }
-        return consumed
+        var newIndependentScrollX = specs.independentScrollX
+        attachedRows.forEachSafe {
+            if (it.isIndependentScrollRange()) {
+                it.onScrollBy(dx)
+                newIndependentScrollX = if (dx > 0) {
+                    max(newIndependentScrollX, it.onGetScrollX())
+                } else {
+                    min(newIndependentScrollX, it.onGetScrollX())
+                }
+            } else {
+                it.onScrollTo(specs.scrollX, 0)
+            }
+        }
+
+        // 计算独立滚动业务消耗值，并更新独立滚动业务的标准值
+        val independentConsumed: Int
+        if (attachedIndependentScrollRows.isEmpty()) {
+            independentConsumed = consumed
+            specs.independentScrollX = specs.scrollX
+        } else {
+            independentConsumed = newIndependentScrollX - specs.independentScrollX
+            specs.independentScrollX = newIndependentScrollX
+        }
+
+        // 由于两者的滚动逻辑是完全独立的，这里需要返回两者滚动消耗的最大(小)值，否则会影响后续的 fling
+        return if (dx > 0) {
+            max(independentConsumed, consumed + preConsumed)
+        } else {
+            min(independentConsumed, consumed + preConsumed)
+        }
+    }
+
+    private fun independentScrollHorizontallyBy(dx: Int): Int {
+        var newIndependentScrollX = specs.independentScrollX
+        attachedIndependentScrollRows.forEachSafe {
+            it.onScrollBy(dx)
+            newIndependentScrollX = if (dx > 0) {
+                max(newIndependentScrollX, it.onGetScrollX())
+            } else {
+                min(newIndependentScrollX, it.onGetScrollX())
+            }
+        }
+        val independentConsumed = newIndependentScrollX - specs.independentScrollX
+        specs.independentScrollX = newIndependentScrollX
+        return independentConsumed
     }
 
     /**
@@ -168,7 +237,12 @@ class ColumnsLayoutManager : Serializable {
         return false
     }
 
-    internal fun animateSnapColumnsDemonstration(depth: Int, enterDuration: Long, stayDuration: Long, exitDuration: Long) {
+    internal fun animateSnapColumnsDemonstration(
+        depth: Int,
+        enterDuration: Long,
+        stayDuration: Long,
+        exitDuration: Long
+    ) {
         if (specs.snapColumnsCount <= 0) return
         val snapWidth = specs.getSnapWidth()
         if (snapWidth <= 0) return
@@ -179,12 +253,12 @@ class ColumnsLayoutManager : Serializable {
         animator.duration = duration
         animator.addUpdateListener {
             val current = it.animatedValue as Int
-            if(current < enterDuration) {
+            if (current < enterDuration) {
                 val progress = current / enterDuration.toFloat()
                 val scrollX = depth * progress * -1F
                 val dx = scrollX - specs.scrollX
                 scrollHorizontallyBy(dx.toInt())
-            } else if(current >= enterDuration + stayDuration) {
+            } else if (current >= enterDuration + stayDuration) {
                 val progress = (current - enterDuration - stayDuration) / exitDuration.toFloat()
                 val scrollX = depth * (1 - progress) * -1F
                 val dx = scrollX - specs.scrollX
@@ -447,12 +521,12 @@ class ColumnsLayoutManager : Serializable {
             var viewIndex = 0
             @Suppress("UseWithIndex")
             for (i in 0 until specs.stickyColumnsCount + specs.snapColumnsCount) {
-                val column = it.row?.columns?.getOrNull(i) ?: return@forEachSafe
+                val column = it.onGetRow()?.columns?.getOrNull(i) ?: return@forEachSafe
                 if (column !is ViewColumn) continue
                 val currentViewIndex = viewIndex
                 viewIndex++
                 if (i < specs.stickyColumnsCount) continue
-                val view = it.getChildAt(currentViewIndex) ?: return@forEachSafe
+                val view = it.onGetChildAt(currentViewIndex) ?: return@forEachSafe
                 view.layoutParams.width = specs.visibleColumnsWidth[i]
                 column.measureView(view)
             }

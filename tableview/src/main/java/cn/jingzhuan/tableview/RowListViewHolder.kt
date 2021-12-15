@@ -18,7 +18,7 @@ internal class RowListViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         layoutManager: ColumnsLayoutManager
     ) {
         this.data = data
-        if (itemView is RowLayout) {
+        if (itemView is IRowLayout) {
             itemView.bindRow(data, layoutManager)
         } else {
             data.onBindView(itemView, layoutManager)

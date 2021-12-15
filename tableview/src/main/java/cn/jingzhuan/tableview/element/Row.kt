@@ -133,7 +133,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         var columnsSizeChanged = false
         val maxSize = min(columns.size, specs.columnsCount)
         for (index in 0 until maxSize) {
-            val column = columns[index]
+            val column = columns.getOrNull(index) ?: continue
 
             if (specs.isColumnVisible(index)) {
                 measureColumn(context, column)
@@ -174,7 +174,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         val snapWidth = specs.getSnapWidth()
         for (i in 0 until maxSize) {
             if (i == specs.stickyColumnsCount) x = -snapWidth
-            val column = columns[i]
+            val column = columns.getOrNull(i) ?: continue
             x = layoutColumn(context, i, column, x, rowHeight, specs)
         }
     }
@@ -196,7 +196,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         var x = 0
         for (i in 0 until specs.stickyColumnsCount) {
             if (!specs.isColumnVisible(i)) continue
-            val column = columns[i]
+            val column = columns.getOrNull(i) ?: continue
             x = layoutColumn(context, i, column, x, rowHeight, specs)
             if (column is DrawableColumn) column.draw(context, canvas, rowShareElements)
             drawColumnsDivider(canvas, column, specs)
@@ -218,7 +218,7 @@ abstract class Row<COLUMN : Column>(var columns: List<COLUMN>) :
         var x = specs.scrollableFirstVisibleColumnLeft
         for (i in startIndex until specs.columnsCount) {
             if (!specs.isColumnVisible(i)) continue
-            val column = columns[i]
+            val column = columns.getOrNull(i) ?: continue
             x = layoutColumn(context, i, column, x, rowHeight, specs)
             if (column is DrawableColumn) {
                 if (column.columnLeft > container.scrollX + container.width) break

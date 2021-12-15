@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewParent
 import android.widget.FrameLayout
 import cn.jingzhuan.tableview.element.Row
 import cn.jingzhuan.tableview.layoutmanager.ColumnsLayoutManager
@@ -21,7 +22,7 @@ class RowLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : FrameLayout(context, attrs, defStyleAttr) {
+) : FrameLayout(context, attrs, defStyleAttr), IRowLayout {
 
     private val scrollableContainer: FrameLayout by lazyNone {
         HiddenFrameLayout(context)
@@ -78,7 +79,6 @@ class RowLayout @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         layoutManager?.attachRowLayout(this)
-        if (null != layoutManager) scrollX = layoutManager!!.specs.scrollX
     }
 
     override fun onDetachedFromWindow() {
@@ -135,8 +135,6 @@ class RowLayout @JvmOverloads constructor(
     override fun getChildCount() =
         max(0, super.getChildCount() - 1 + scrollableContainer.childCount)
 
-    fun realChildCount(): Int = super.getChildCount()
-
     override fun setScrollX(value: Int) {
         scrollableContainer.scrollX = value
     }
@@ -156,7 +154,7 @@ class RowLayout @JvmOverloads constructor(
     }
 
     // -----------------------------    public    -----------------------------
-    fun bindRow(row: Row<*>, layoutManager: ColumnsLayoutManager) {
+    override fun bindRow(row: Row<*>, layoutManager: ColumnsLayoutManager) {
         if (this.row?.type() != row.type()) {
             removeAllViews()
             scrollableContainer.removeAllViews()
@@ -191,6 +189,48 @@ class RowLayout @JvmOverloads constructor(
         val row = row ?: return
         layoutManager?.measureAndLayout(context, row, this, scrollableContainer, true)
     }
+
+    // <editor-fold desc="IRowLayout">    ----------------------------------------------------------
+
+    override fun isIndependentScrollRange(): Boolean {
+        return false
+    }
+
+    override fun onGetParentView(): ViewParent? {
+        return parent
+    }
+
+    override fun onGetChildAt(index: Int): View? {
+        return getChildAt(index)
+    }
+
+    override fun onGetRow(): Row<*>? {
+        return row
+    }
+
+    override fun onScrollTo(x: Int, y: Int) {
+        scrollTo(x, y)
+    }
+
+    override fun onScrollBy(x: Int) {
+        scrollBy(x, 0)
+    }
+
+    override fun onGetScrollX(): Int {
+        return scrollableContainer.scrollX
+    }
+
+    override fun doLayout() {
+        layout()
+    }
+
+    override fun realChildCount(): Int = super.getChildCount()
+
+    override fun updateScrollX(scrollX: Int) {
+        setScrollX(scrollX)
+    }
+
+    // </editor-fold desc="IRowLayout">    ---------------------------------------------------------
 
     // -----------------------------    private    -----------------------------
     private fun onClick(x: Float, y: Float) {
@@ -261,7 +301,7 @@ class RowLayout @JvmOverloads constructor(
             }
         }
 
-        if(!specs.isScrollableFirstVisibleMarkValid) {
+        if (!specs.isScrollableFirstVisibleMarkValid) {
             specs.resetScrollableFirstVisibleColumn()
         }
         val drawStartIndex = specs.scrollableFirstVisibleColumnIndex
