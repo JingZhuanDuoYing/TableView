@@ -1,6 +1,6 @@
 apply plugin: 'maven-publish'
 
-def publishVersion = '1.1.211216'
+def publishVersion = '1.1.211216-02'
 
 def sourceJar(String name, String path) {
     return tasks.create("source${name.capitalize()}Jar", Jar) {

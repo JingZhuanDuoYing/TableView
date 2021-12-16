@@ -122,6 +122,9 @@ class TableDecoration(
 
         for (i in 0 until parent.childCount) {
             val child = parent.getChildAt(i)
+            // 跳过重叠分隔线
+            if (isVertical && child.height == 0) continue
+            if (!isVertical && child.width == 0) continue
             parent.getDecoratedBoundsWithMargins(child, rect)
             val position = parent.getChildAdapterPosition(child)
             if (position < skipStartCount || position >= count - skipEndCount) continue
