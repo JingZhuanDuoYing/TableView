@@ -92,11 +92,11 @@ class ColumnsLayoutManager : Serializable {
     fun attachRowLayout(layout: IRowLayout) {
         if (layout.isIndependentScrollRange()) {
             layout.updateScrollX(specs.independentScrollX)
+            attachedIndependentScrollRows.addSafer(layout)
         } else {
             layout.updateScrollX(specs.scrollX)
         }
         attachedRows.addSafer(layout)
-        if (layout.isIndependentScrollRange()) attachedIndependentScrollRows.addSafer(layout)
     }
 
     fun detachRowLayout(layout: IRowLayout) {
@@ -170,7 +170,6 @@ class ColumnsLayoutManager : Serializable {
             }
         }
 
-        //
         if (attachedIndependentScrollRows.isEmpty()) {
             independentConsumed = consumed
             specs.independentScrollX = specs.scrollX
@@ -184,10 +183,6 @@ class ColumnsLayoutManager : Serializable {
         } else {
             min(independentConsumed, consumed + preConsumed)
         }
-        Log.d(
-            "12345 ",
-            "12345 dx: $dx, value: $value, independentConsumed: $independentConsumed, consumed: $consumed, preConsumed: $preConsumed, scrollDiff: $scrollDiff"
-        )
         return value
     }
 
@@ -198,10 +193,6 @@ class ColumnsLayoutManager : Serializable {
             if (dx < 0 && rowConsumed < consumed) consumed = rowConsumed
             if (dx > 0 && rowConsumed > consumed) consumed = rowConsumed
         }
-        Log.d(
-            "12345",
-            "12345 dx: $dx, independentScrollHorizontallyBy $dx, oldIndependentScrollX: ${specs.independentScrollX}, consumed: $consumed"
-        )
         specs.independentScrollX += consumed
         return consumed
     }
@@ -219,7 +210,6 @@ class ColumnsLayoutManager : Serializable {
 
     private fun calibrateIndependentScrollX() {
         val x = attachedIndependentScrollRows.map { it.onGetScrollX() }.maxOrNull() ?: specs.independentScrollX
-        Log.d("12345", "12345 calibrateIndependentScrollX $x, old: ${specs.independentScrollX}")
         specs.independentScrollX = x
     }
 
