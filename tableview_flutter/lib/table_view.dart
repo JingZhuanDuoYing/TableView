@@ -5,9 +5,13 @@ import 'package:flutter/widgets.dart';
 import 'package:tableview_flutter/no_glow_behavior.dart';
 import 'package:tableview_flutter/table_row_widget.dart';
 import 'package:tableview_flutter/table_view_def.dart';
+import 'package:tableview_flutter/table_view_nested_scroll_controller.dart';
 
 import 'header_row.dart';
 import 'table_specs.dart';
+
+typedef TableViewOnNestedParentScrolledNotifier = void Function(
+    double currentOffset, double maxScrollExtent);
 
 class TableView extends StatefulWidget {
   final HeaderRow headerRow;
@@ -16,15 +20,16 @@ class TableView extends StatefulWidget {
   final TableViewScrollStateListener? scrollStateListener;
   final VoidCallback? onScrollToEndListener;
   final ScrollController? scrollController;
+  final ScrollPhysics? scrollPhysics;
+  final TableViewNestedScrollController? nestedScrollController;
 
-  TableView(
-    this.headerRow,
-    this.specs, {
-    this.scrollController,
-    this.columnGestureDetectorCreator,
-    this.onScrollToEndListener,
-    this.scrollStateListener,
-  });
+  TableView(this.headerRow, this.specs,
+      {this.scrollController,
+      this.columnGestureDetectorCreator,
+      this.onScrollToEndListener,
+      this.scrollStateListener,
+      this.scrollPhysics,
+      this.nestedScrollController});
 
   @override
   State<StatefulWidget> createState() => _TableViewState();
@@ -33,12 +38,14 @@ class TableView extends StatefulWidget {
 class _TableViewState extends State<TableView> {
   bool _scrollingHorizontally = false;
   bool _scrollingVertically = false;
-  late ScrollController controller;
+  late ScrollController controller =
+      widget.scrollController ?? ScrollController();
+  late ScrollPhysics? scrollPhysics =
+      widget.scrollPhysics ?? widget.nestedScrollController?.nestedScrollPhysic;
 
   @override
   void initState() {
     super.initState();
-    controller = widget.scrollController ?? ScrollController();
     if (widget.specs.stickyColumnsCount > 0) {
       for (var i = 0; i < widget.specs.stickyColumnsCount; i++) {
         widget.specs.viewColumnsWidthListener[i] = () {
@@ -102,23 +109,31 @@ class _TableViewState extends State<TableView> {
           padding: EdgeInsets.only(top: headerRowHeight + stickyRowsHeight),
           child: ScrollConfiguration(
             behavior: NoGlowBehavior(),
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (notification) =>
-                  _onVerticalScrollCallback(notification),
-              child: ListView.builder(
-                controller: controller,
-                itemCount: widget.headerRow.rows.length,
-                itemBuilder: (context, index) {
-                  return TableRowWidget(
-                    widget.headerRow.rows[index],
-                    widget.specs,
-                    widget.columnGestureDetectorCreator,
-                    (notification) => _onHorizontalScrollCallback(notification),
-                    index,
-                    false,
-                    false,
-                  );
-                },
+            child: Listener(
+              onPointerMove: (event) {
+                widget.nestedScrollController
+                    ?.onPointerMove(controller, event.delta.dy);
+              },
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (notification) =>
+                    _onVerticalScrollCallback(notification),
+                child: ListView.builder(
+                  controller: controller,
+                  physics: scrollPhysics,
+                  itemCount: widget.headerRow.rows.length,
+                  itemBuilder: (context, index) {
+                    return TableRowWidget(
+                      widget.headerRow.rows[index],
+                      widget.specs,
+                      widget.columnGestureDetectorCreator,
+                      (notification) =>
+                          _onHorizontalScrollCallback(notification),
+                      index,
+                      false,
+                      false,
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -154,7 +169,7 @@ class _TableViewState extends State<TableView> {
   }
 
   bool _onVerticalScrollCallback(ScrollNotification notification) {
-    widget.specs.verticalOffset = controller.offset;
+    if(controller.hasClients) widget.specs.verticalOffset = controller.offset;
     if (notification is ScrollStartNotification) {
       if (_scrollingHorizontally) return true;
       _scrollingHorizontally = false;
@@ -183,6 +198,7 @@ class _TableViewState extends State<TableView> {
           }
         });
       }
+      widget.nestedScrollController?.onTableViewScrollEnd(controller);
       _scrollingVertically = false;
     }
     return true;

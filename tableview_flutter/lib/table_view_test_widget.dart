@@ -3,11 +3,17 @@ import 'package:flutter/widgets.dart';
 import 'package:tableview_flutter/table_row.dart' as table_row;
 import 'package:tableview_flutter/table_specs.dart';
 import 'package:tableview_flutter/table_view.dart';
+import 'package:tableview_flutter/table_view_nested_scroll_controller.dart';
 import 'package:tableview_flutter/text_column.dart';
 
 import 'header_row.dart';
 
 class TableViewTestWidget extends StatefulWidget {
+
+  final ScrollPhysics? scrollPhysics;
+  final TableViewNestedScrollController? nestedScrollController;
+  const TableViewTestWidget({this.scrollPhysics, this.nestedScrollController});
+
   @override
   State<StatefulWidget> createState() => _TableViewTestState();
 }
@@ -74,6 +80,6 @@ class _TableViewTestState extends State<TableViewTestWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return TableView(row, specs);
+    return TableView(row, specs, nestedScrollController: widget.nestedScrollController);
   }
 }
