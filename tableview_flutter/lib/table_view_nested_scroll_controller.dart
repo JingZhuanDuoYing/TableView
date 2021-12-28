@@ -24,7 +24,7 @@ class TableViewNestedScrollController {
       if (null != nestedPosition &&
           nestedPosition.maxScrollExtent > 0 &&
           nestedPosition.pixels == nestedPosition.maxScrollExtent) {
-        nestedPosition.jumpTo(nestedPosition.maxScrollExtent - 1);
+        nestedPosition.jumpTo(nestedPosition.maxScrollExtent - 0.1);
       }
     }
   }
@@ -71,7 +71,7 @@ class TableViewNestedScrollController {
             : null;
         if (null != nestedPosition &&
             nestedPosition.maxScrollExtent > 0 &&
-            nestedPosition.pixels == nestedPosition.maxScrollExtent - 1) {
+            nestedPosition.pixels == nestedPosition.maxScrollExtent - 0.1) {
           handlePointerMove = true;
           nestedPosition.jumpTo(nestedPosition.maxScrollExtent);
           var newPosition = position.pixels - verticalDelta;
@@ -85,7 +85,7 @@ class TableViewNestedScrollController {
             : null;
         if (null != nestedPosition &&
             nestedPosition.maxScrollExtent > 0 &&
-            nestedPosition.pixels == nestedPosition.maxScrollExtent - 1) {
+            nestedPosition.pixels == nestedPosition.maxScrollExtent - 0.1) {
           nestedPosition.jumpTo(nestedPosition.maxScrollExtent);
           _setStopScroll(false);
         }
