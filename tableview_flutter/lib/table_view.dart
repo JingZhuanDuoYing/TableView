@@ -39,9 +39,11 @@ class _TableViewState extends State<TableView> {
   bool _scrollingHorizontally = false;
   bool _scrollingVertically = false;
   late ScrollController controller =
-      widget.scrollController ?? ScrollController();
+      widget.nestedScrollController?.tableViewScrollController ??
+          widget.scrollController ??
+          ScrollController();
   late ScrollPhysics? scrollPhysics =
-      widget.scrollPhysics ?? widget.nestedScrollController?.nestedScrollPhysic;
+      widget.scrollPhysics ?? widget.nestedScrollController?.tableViewScrollPhysics;
 
   @override
   void initState() {
@@ -109,31 +111,25 @@ class _TableViewState extends State<TableView> {
           padding: EdgeInsets.only(top: headerRowHeight + stickyRowsHeight),
           child: ScrollConfiguration(
             behavior: NoGlowBehavior(),
-            child: Listener(
-              onPointerMove: (event) {
-                widget.nestedScrollController
-                    ?.onPointerMove(controller, event.delta.dy);
-              },
-              child: NotificationListener<ScrollNotification>(
-                onNotification: (notification) =>
-                    _onVerticalScrollCallback(notification),
-                child: ListView.builder(
-                  controller: controller,
-                  physics: scrollPhysics,
-                  itemCount: widget.headerRow.rows.length,
-                  itemBuilder: (context, index) {
-                    return TableRowWidget(
-                      widget.headerRow.rows[index],
-                      widget.specs,
-                      widget.columnGestureDetectorCreator,
-                      (notification) =>
-                          _onHorizontalScrollCallback(notification),
-                      index,
-                      false,
-                      false,
-                    );
-                  },
-                ),
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (notification) =>
+                  _onVerticalScrollCallback(notification),
+              child: ListView.builder(
+                controller: controller,
+                physics: scrollPhysics,
+                itemCount: widget.headerRow.rows.length,
+                itemBuilder: (context, index) {
+                  return TableRowWidget(
+                    widget.headerRow.rows[index],
+                    widget.specs,
+                    widget.columnGestureDetectorCreator,
+                        (notification) =>
+                        _onHorizontalScrollCallback(notification),
+                    index,
+                    false,
+                    false,
+                  );
+                },
               ),
             ),
           ),
@@ -169,7 +165,7 @@ class _TableViewState extends State<TableView> {
   }
 
   bool _onVerticalScrollCallback(ScrollNotification notification) {
-    if(controller.hasClients) widget.specs.verticalOffset = controller.offset;
+    if (controller.hasClients) widget.specs.verticalOffset = controller.offset;
     if (notification is ScrollStartNotification) {
       if (_scrollingHorizontally) return true;
       _scrollingHorizontally = false;
